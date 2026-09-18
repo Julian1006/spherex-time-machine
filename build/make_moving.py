@@ -23,6 +23,12 @@ BODIES = [
     ("neptune", "Neptune", "899", (61208.0, 61222.5),
      "Neptune, 30 astronomical units out, crossing a fixed patch of sky over twelve days in June 2026. "
      "The stars hold still; the planet does not. This is how the survey finds anything that moves."),
+    ("vesta", "Vesta", "4;", (60864.0, 60866.0),
+     "The asteroid Vesta, about 2 AU away, sprinting the full width of the frame in under two days. "
+     "Nothing in the background moves at all, which is exactly what makes it findable."),
+    ("uranus", "Uranus", "799", (61074.0, 61086.5),
+     "Uranus, 19 astronomical units out, drifting across the field over eight days. Slower than Vesta "
+     "and further than anything else here, so its motion is a gentle diagonal rather than a dash."),
 ]
 
 
@@ -52,8 +58,12 @@ def build(slug, name, command, window, blurb):
         e = exact.get(round(h['mjd'], 6))
         if e:
             h['ra'], h['dec'], h['delta'] = e
-    ra_c = sel[len(sel) // 2]['ra']
-    dec_c = sel[len(sel) // 2]['dec']
+    # centre on the midpoint of the track itself, not the median exposure in time: with
+    # uneven spacing those differ, and for a fast body that difference pushes the ends
+    # of the track off the cutout
+    ra0, ra1 = sel[0]['ra'], sel[-1]['ra']
+    ra_c = (ra0 + ((ra1 - ra0 + 180) % 360 - 180) / 2.0) % 360
+    dec_c = (sel[0]['dec'] + sel[-1]['dec']) / 2.0
     travel = sep_deg(sel[0]['ra'], sel[0]['dec'], sel[-1]['ra'], sel[-1]['dec'])
     sys.stderr.write("  centre %.4f %+.4f, travel %.2f arcmin (%.0f px)\n"
                      % (ra_c, dec_c, travel * 60, travel * 3600 / 6.15))

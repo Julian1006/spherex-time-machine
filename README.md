@@ -35,11 +35,14 @@ Built against the live NASA/IPAC IRSA archive. No mock data anywhere.
 
 ## What's in the bundle
 
-330 frames across 11 targets, 30 visits each, every one a separate SPHEREx exposure.
+368 frames across 13 targets, every one a separate SPHEREx exposure. Ten are fixed patches of
+sky with 30 visits each; three are solar system bodies crossing a fixed field.
 
 | Target | Baseline | Wavelengths sampled | Bands |
 |---|---|---|---|
-| **Neptune** (moving) | 12 d | 0.83–4.72 µm | 1–6 |
+| **Vesta** (moving, 126 px) | 26 h | 0.82–0.97 µm | 1 |
+| **Neptune** (moving, 54 px) | 12 d | 0.83–4.72 µm | 1–6 |
+| **Uranus** (moving, 24 px) | 10 d | 0.81–4.45 µm | 1, 2, 3, 6 |
 | North Ecliptic Pole | 472 d | 0.79–4.82 µm | 1–6 |
 | South Ecliptic Pole | 467 d | 0.80–4.93 µm | 1–6 |
 | Orion Nebula | 190 d | 0.79–4.93 µm | 1–6 |
@@ -57,8 +60,8 @@ exposures taken minutes apart within a single visit, where fast-moving objects s
 
 ## Watching something move
 
-Ten of the targets are fixed patches of sky. The eleventh is Neptune, and it is the one that
-answers the question the whole tool is about: what does it look like when something moves?
+Ten of the targets are fixed patches of sky. Three are not, and they are the ones that answer
+the question the whole tool is about: what does it look like when something moves?
 
 Finding it took a search. A cone query cannot follow a body that travels degrees per day, so the
 mission is scanned in twenty-day windows: each window asks IRSA for exposures whose detector
@@ -66,21 +69,35 @@ centre falls in a cone covering the body's track over that window, then every re
 is tested against the body's interpolated position at its own timestamp. Neptune turned up in
 155 exposures across 27 days of the release.
 
-Picking the right ones matters. Bodies that move fast leave the frame between visits — Mars
-covers 260–460 pixels a day, Vesta 55–310 — while SPHEREx revisits a given field in bursts hours
-apart and then not again for months. Neptune, at 30 AU, moves 1–22 pixels a day, which is the
-rate that keeps it inside a 13-arcminute cutout while still visibly walking across it. The
-window MJD 61208–61222 has 74 exposures over twelve days; the sequence uses 30 of them.
+Picking the right window matters more than picking the body. What has to hold is that the body
+crosses a useful fraction of a 13-arcminute cutout during a stretch SPHEREx actually observed —
+and the survey revisits a field in bursts hours apart, then not again for months. Fast bodies
+work over hours, slow ones over days:
+
+| Body | Apparent motion | Window used | Result |
+|---|---|---|---|
+| Vesta | 55–310 px/day | 26 hours | 126 px, the full width of the frame |
+| Neptune | 1–22 px/day | 12 days | 54 px |
+| Uranus | 1–34 px/day | 10 days | 24 px |
+| Mars | 260–460 px/day | — | too fast; leaves the frame between any two visits |
+| Ceres | 35–240 px/day | — | every covered run moves 345–1072 px |
 
 All frames are cut on one sky-fixed grid centred on the middle of Neptune's track, so the stars
 hold still and the planet moves. Each frame also stores Neptune's pixel position, obtained from
 Horizons at that exposure's exact timestamp and projected onto the cutout grid — nothing is
 fitted to the pixels, so the marker landing on a source is a test rather than a decoration.
 
-It lands. Aperture photometry at the predicted position finds a source above 8σ in 27 of the 30
-frames, median significance 312σ, against 0.7σ at a mirrored control position in the same
-frames. The three misses are the longest wavelengths, where zodiacal light swamps a planet that
-is not especially bright at 5 µm.
+It lands. Aperture photometry at each predicted position, against a mirrored control position in
+the same frame:
+
+| Body | Frames with a >8σ source where predicted | Median significance | Control |
+|---|---|---|---|
+| Vesta | 8 / 8 | 1458σ | 0.1σ |
+| Neptune | 27 / 30 | 312σ | 0.8σ |
+| Uranus | 30 / 30 | 85σ | 0.5σ |
+
+Neptune's three misses are its longest wavelengths, where zodiacal light swamps a planet that is
+not especially bright at 5 µm.
 
 ## How the frames are produced
 
@@ -131,8 +148,8 @@ Each stage was checked against something independent rather than assumed:
 | Brightest NEP source, aperture photometry across 30 visits | smooth stellar SED peaking near 1.4 µm |
 | Repeat visits that land on the same wavelength months apart | agree to ~1% |
 | Blank-sky control aperture | 0.005 vs 3.6 MJy/sr for the source |
-| Neptune found at the position Horizons predicts | 27 of 30 frames above 8σ, median 312σ |
-| Same measurement at a mirrored control position | median 0.7σ |
+| Moving bodies found where Horizons predicts | 65 of 68 frames above 8σ |
+| Same measurement at a mirrored control position | median 0.1–0.8σ |
 
 The last two matter most: independent epochs only agree at the percent level if the reprojection,
 the wavelength lookup and the photometry are all correct simultaneously.

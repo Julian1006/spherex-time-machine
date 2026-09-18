@@ -646,10 +646,12 @@ function renderChrome() {
     const pts = t.frames.filter(f => f.mx !== undefined);
     const first = pts[0], last = pts[pts.length - 1];
     const px = first && last ? Math.hypot(last.mx - first.mx, last.my - first.my) : 0;
+    const d = t.frames[t.frames.length - 1].mjd - t.frames[0].mjd;
+    const span = d < 2 ? (d * 24).toFixed(0) + " hours"
+                       : d.toFixed(0) + " days";
     $("movingNote").textContent = t.moving + " crosses " + px.toFixed(0) + " pixels of this frame — "
-      + (px * PIXSCALE / 60).toFixed(1) + " arcminutes — over "
-      + (t.frames[t.frames.length - 1].mjd - t.frames[0].mjd).toFixed(0)
-      + " days. The circle is where JPL's ephemeris puts it at each exposure's timestamp, "
+      + (px * PIXSCALE / 60).toFixed(1) + " arcminutes — in " + span
+      + ". The circle is where JPL's ephemeris puts it at each exposure's timestamp, "
       + "not something fitted to the image.";
   }
   $("ovTarget").textContent = t.name;

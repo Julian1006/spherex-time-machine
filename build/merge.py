@@ -32,7 +32,10 @@ def main():
 
     # moving targets lead: a planet crossing the field is the clearest answer to
     # "how does this change over time", so the page should open on one
-    movers = [t for i, t in sorted(seen.items()) if t.get('moving')]
+    def travel(t):
+        pts = [f for f in t['frames'] if 'mx' in f]
+        return -((pts[-1]['mx'] - pts[0]['mx']) ** 2 + (pts[-1]['my'] - pts[0]['my']) ** 2) if pts else 0
+    movers = sorted([t for t in seen.values() if t.get('moving')], key=travel)
     targets = movers + [seen[i] for i in ORDER if i in seen and not seen[i].get('moving')]
     missing = [i for i in ORDER if i not in seen]
     idx = {'generated': datetime.datetime.utcnow().strftime('%Y-%m-%d'),
