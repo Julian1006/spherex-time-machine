@@ -30,7 +30,10 @@ def main():
             if t['id'] not in seen or len(t['frames']) > len(seen[t['id']]['frames']):
                 seen[t['id']] = t
 
-    targets = [seen[i] for i in ORDER if i in seen]
+    # moving targets lead: a planet crossing the field is the clearest answer to
+    # "how does this change over time", so the page should open on one
+    movers = [t for i, t in sorted(seen.items()) if t.get('moving')]
+    targets = movers + [seen[i] for i in ORDER if i in seen and not seen[i].get('moving')]
     missing = [i for i in ORDER if i not in seen]
     idx = {'generated': datetime.datetime.utcnow().strftime('%Y-%m-%d'),
            'cutout': SIZE, 'pixelScale': 6.15, 'targets': targets}

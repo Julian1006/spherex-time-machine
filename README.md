@@ -35,10 +35,11 @@ Built against the live NASA/IPAC IRSA archive. No mock data anywhere.
 
 ## What's in the bundle
 
-300 frames across 10 targets, 30 visits each, every one a separate SPHEREx exposure.
+330 frames across 11 targets, 30 visits each, every one a separate SPHEREx exposure.
 
 | Target | Baseline | Wavelengths sampled | Bands |
 |---|---|---|---|
+| **Neptune** (moving) | 12 d | 0.83–4.72 µm | 1–6 |
 | North Ecliptic Pole | 472 d | 0.79–4.82 µm | 1–6 |
 | South Ecliptic Pole | 467 d | 0.80–4.93 µm | 1–6 |
 | Orion Nebula | 190 d | 0.79–4.93 µm | 1–6 |
@@ -53,6 +54,33 @@ Built against the live NASA/IPAC IRSA archive. No mock data anywhere.
 Visits are spaced evenly through the time-ordered list of everything that covers the target, so each
 target keeps its full baseline while preserving the real observing pattern — including the pairs of
 exposures taken minutes apart within a single visit, where fast-moving objects shift most visibly.
+
+## Watching something move
+
+Ten of the targets are fixed patches of sky. The eleventh is Neptune, and it is the one that
+answers the question the whole tool is about: what does it look like when something moves?
+
+Finding it took a search. A cone query cannot follow a body that travels degrees per day, so the
+mission is scanned in twenty-day windows: each window asks IRSA for exposures whose detector
+centre falls in a cone covering the body's track over that window, then every returned exposure
+is tested against the body's interpolated position at its own timestamp. Neptune turned up in
+155 exposures across 27 days of the release.
+
+Picking the right ones matters. Bodies that move fast leave the frame between visits — Mars
+covers 260–460 pixels a day, Vesta 55–310 — while SPHEREx revisits a given field in bursts hours
+apart and then not again for months. Neptune, at 30 AU, moves 1–22 pixels a day, which is the
+rate that keeps it inside a 13-arcminute cutout while still visibly walking across it. The
+window MJD 61208–61222 has 74 exposures over twelve days; the sequence uses 30 of them.
+
+All frames are cut on one sky-fixed grid centred on the middle of Neptune's track, so the stars
+hold still and the planet moves. Each frame also stores Neptune's pixel position, obtained from
+Horizons at that exposure's exact timestamp and projected onto the cutout grid — nothing is
+fitted to the pixels, so the marker landing on a source is a test rather than a decoration.
+
+It lands. Aperture photometry at the predicted position finds a source above 8σ in 27 of the 30
+frames, median significance 312σ, against 0.7σ at a mirrored control position in the same
+frames. The three misses are the longest wavelengths, where zodiacal light swamps a planet that
+is not especially bright at 5 µm.
 
 ## How the frames are produced
 
@@ -103,6 +131,8 @@ Each stage was checked against something independent rather than assumed:
 | Brightest NEP source, aperture photometry across 30 visits | smooth stellar SED peaking near 1.4 µm |
 | Repeat visits that land on the same wavelength months apart | agree to ~1% |
 | Blank-sky control aperture | 0.005 vs 3.6 MJy/sr for the source |
+| Neptune found at the position Horizons predicts | 27 of 30 frames above 8σ, median 312σ |
+| Same measurement at a mirrored control position | median 0.7σ |
 
 The last two matter most: independent epochs only agree at the percent level if the reprojection,
 the wavelength lookup and the photometry are all correct simultaneously.
@@ -162,6 +192,10 @@ build/
   waves.py        WCS-WAVE wavelength lookup
   resolve.py      obscore -> S3 key, with disk cache
   tap.py          IRSA TAP client
+  ephem.py        JPL Horizons ephemerides, sampled tracks and exact times
+  moving.py       windowed search for exposures containing a moving body
+  scan_moving.py  run that search over a list of bodies
+  make_moving.py  build the sky-fixed sequence with predicted positions
   merge.py        combine per-process index shards into one index.json
   assemble.py     inline the index into the page, stage app/dist
   filesmap.py     print the publish manifest for the staged bundle
