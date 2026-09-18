@@ -1,0 +1,184 @@
+# SPHEREx Time Machine
+
+A public web tool for watching the infrared sky change. Pick a patch of sky, press play, and
+real NASA SPHEREx survey images blink past in date order — anything that moves or varies
+stands out immediately.
+
+Built against the live NASA/IPAC IRSA archive. No mock data anywhere.
+
+---
+
+## What it does
+
+- **Time-lapse playback** of every SPHEREx visit to a target, in date order, over a 15-month baseline.
+- **Blink and difference modes** against a pinned reference frame — the classic way to find moving
+  or variable objects. A flat field means nothing changed; a black-and-white dot pair means something moved.
+- **Click-for-spectrum**: click any source and the tool does quick-look aperture photometry across every
+  visit, plotting brightness against wavelength. Because SPHEREx disperses light with a linear variable
+  filter, each visit samples a different wavelength — so repeat visits *are* a spectrum.
+- **Interactive stretch**: black/white points, asinh/linear/sqrt/log scaling, four colour maps, and an
+  optional background flattener for frames with off-axis glow.
+- **Band filtering and wavelength sorting**, so you can hold the band fixed for a fair brightness
+  comparison, or re-order by wavelength to sweep the spectrum instead of time.
+- Live sky coordinates (RA/Dec) and surface brightness in MJy/sr under the cursor.
+
+## The data
+
+| | |
+|---|---|
+| Mission | NASA SPHEREx (launched 11 March 2025) |
+| Products | Level-2 science images, Quick Release 2 and 3 |
+| Archive | IRSA at IPAC/Caltech; files mirrored in the public `nasa-irsa-spherex` S3 bucket |
+| Coverage used | MJD 60789–61262 (Apr 2025 – Aug 2026) |
+| Detector | 2040 × 2040 px, 6.15″/px, 6 arrays spanning 0.75–5.01 µm in 102 channels |
+| Units | MJy/sr, straight from the pipeline |
+
+## What's in the bundle
+
+300 frames across 10 targets, 30 visits each, every one a separate SPHEREx exposure.
+
+| Target | Baseline | Wavelengths sampled | Bands |
+|---|---|---|---|
+| North Ecliptic Pole | 472 d | 0.79–4.82 µm | 1–6 |
+| South Ecliptic Pole | 467 d | 0.80–4.93 µm | 1–6 |
+| Orion Nebula | 190 d | 0.79–4.93 µm | 1–6 |
+| Andromeda Galaxy | 393 d | 0.79–4.61 µm | 1–6 |
+| Pleiades | 184 d | 0.79–4.91 µm | 1–6 |
+| Tarantula Nebula | 453 d | 0.79–4.82 µm | 1–4, 6 |
+| Rho Ophiuchi | 372 d | 0.80–4.76 µm | 1–6 |
+| Carina Nebula | 406 d | 0.82–4.90 µm | 1–6 |
+| Helix Nebula | 371 d | 0.86–4.81 µm | 1–6 |
+| Hercules Cluster | 375 d | 0.85–4.90 µm | 1–6 |
+
+Visits are spaced evenly through the time-ordered list of everything that covers the target, so each
+target keeps its full baseline while preserving the real observing pattern — including the pairs of
+exposures taken minutes apart within a single visit, where fast-moving objects shift most visibly.
+
+## How the frames are produced
+
+The interesting engineering is in the build step.
+
+1. **Find the visits.** An ADQL query against `spherex.obscore` at IRSA's TAP service returns every
+   observation whose footprint contains the target. Candidates within 1.42° of the detector centre are
+   kept, so the cutout box stays clear of the array edge.
+
+2. **Resolve to files.** `spherex.artifact` maps each observation and detector to its archive path.
+   Pipeline version strings vary *within* a single week segment, so paths cannot be constructed by
+   hand — the table is queried per week segment and cached on disk.
+
+3. **Read only what is needed.** Each Level-2 file is 71 MB, but the science image is a plain
+   uncompressed `float32` array at a known offset. The builder issues HTTP range requests against S3:
+   64 KB for the header, then one contiguous band of image rows covering the target — roughly 1.3 MB
+   instead of 71 MB. The result is bit-identical to reading the whole file.
+
+4. **Put every frame on one grid.** SPHEREx revisits a target at a different roll angle each time, so
+   raw cutouts arrive rotated against each other and will not blink. Every frame is resampled onto one
+   shared tangent plane — north up, east left, 6.15″/px — using the full `TAN-SIP` solution from the
+   file header. Cross-correlating two independent epochs afterwards gives a 0-pixel offset.
+
+5. **Record the wavelength.** SPHEREx has no filter wheel: wavelength varies across the detector. Each
+   file carries a `WCS-WAVE` lookup grid, whose dimensions differ per detector (9×9 for SWIR arrays,
+   up to 13×20 for MWIR), so columns are located from `TFORM`/`TDIM` rather than assumed. Bilinear
+   interpolation at the target's pixel gives the wavelength and bandwidth for that visit. Values were
+   checked against the band limits IRSA publishes in `obscore`, and the implied resolving powers
+   (R ≈ 34–125) match the instrument design.
+
+6. **Pack.** Cutouts are stored as little-endian `float16` — two bytes per pixel, full dynamic range,
+   NaNs preserved — so the browser can restretch interactively instead of being handed a baked image.
+
+A per-frame affine approximation of the sky-to-detector mapping is also stored (residual ≈ 0.03 px),
+which is enough for a browser to reproduce the reprojection and pull wider fields directly from S3.
+
+## Verification
+
+Each stage was checked against something independent rather than assumed:
+
+| Check | Result |
+|---|---|
+| Range-read cutout vs. reading the whole 71 MB file with astropy | bit-identical |
+| Affine approximation vs. the full TAN-SIP mapping | max residual 0.03 px |
+| Two epochs of the same field, cross-correlated after reprojection | 0 px offset |
+| Interpolated wavelengths vs. the band limits IRSA publishes in `obscore` | all 6 detectors in band |
+| Implied resolving power R = λ/Δλ | 34–125, matching the instrument design |
+| Brightest NEP source, aperture photometry across 30 visits | smooth stellar SED peaking near 1.4 µm |
+| Repeat visits that land on the same wavelength months apart | agree to ~1% |
+| Blank-sky control aperture | 0.005 vs 3.6 MJy/sr for the source |
+
+The last two matter most: independent epochs only agree at the percent level if the reprojection,
+the wavelength lookup and the photometry are all correct simultaneously.
+
+An early version of the wavelength lookup read fixed byte offsets into the `WCS-WAVE` table and
+returned 0.05 µm for detector 3 — physically impossible for an instrument that starts at 0.75 µm.
+The `obscore` band cross-check is what caught it; the grid turned out to be 9×14 there rather than 9×9.
+
+## Running the build
+
+Requires Python 3.11+ with `numpy` and `astropy`.
+
+```bash
+python -u build/make_index.py --resume
+```
+
+Targets are listed at the top of `build/make_index.py`; adding one needs only a name and coordinates.
+The run is resumable and writes `data/out/index.json` after every target. TAP queries are the slow
+part, so week-segment lookups are cached under `data/weekcache/`.
+
+Then assemble the page:
+
+```bash
+python build/assemble.py data/out/index.json
+```
+
+That writes two builds from the one template:
+
+- **`docs/`** — a standalone static site: `index.html` with the frame index inlined, its own
+  charset and viewport meta tags, and one `frames_<id>.json` per target. This is what gets served.
+- **`app/dist/index.html`** — the same page for a Claude Artifact, whose host supplies those meta
+  tags itself. It reads its data files out of `docs/`, so the 13 MB is never duplicated.
+
+To try it locally:
+
+```bash
+python -m http.server 8777 --directory docs
+```
+
+## Publishing
+
+`docs/` is a plain static directory — no backend, no build step, ~13 MB. It works on any static host.
+
+For GitHub Pages, push this repository and then, under **Settings → Pages**, set the source to the
+`main` branch and the `/docs` folder. The site appears at `https://<user>.github.io/<repo>/`.
+
+Netlify Drop, Cloudflare Pages and Vercel all work the same way: point them at `docs/`.
+
+## Layout
+
+```
+build/
+  make_index.py   target list, visit selection, orchestration
+  frames.py       reprojection onto the shared tangent plane
+  cutout.py       S3 range reads
+  fitshdr.py      streaming FITS header parser (works on a byte prefix)
+  waves.py        WCS-WAVE wavelength lookup
+  resolve.py      obscore -> S3 key, with disk cache
+  tap.py          IRSA TAP client
+  merge.py        combine per-process index shards into one index.json
+  assemble.py     inline the index into the page, stage app/dist
+  filesmap.py     print the publish manifest for the staged bundle
+  scan.py         check coverage for candidate targets before adding them
+  png.py          small PNG writer, for contact sheets when spot-checking frames
+app/
+  template.html   the tool; single file, no build step, no runtime dependencies
+docs/             the built static site, ready to serve
+data/out/         reprojected cutout stacks (.bin) and the frame index
+```
+
+`data/out/` is committed so the page can be rebuilt without re-downloading ~400 MB from NASA.
+`data/weekcache/` is not — it is a cache of IRSA TAP responses and refills itself on the next run.
+
+## Credits
+
+Data: NASA/JPL-Caltech/IPAC. SPHEREx Quick Release products served by
+[IRSA](https://irsa.ipac.caltech.edu/Missions/spherex.html).
+
+Spectra shown in the tool are quick-look aperture sums for exploration, not calibrated photometry.

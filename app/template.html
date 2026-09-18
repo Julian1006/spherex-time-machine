@@ -1,0 +1,1020 @@
+<title>SPHEREx Time Machine</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+:root{
+  --bg:#F3F1EE; --surface:#FFFFFF; --surface-2:#F7F5F2; --line:#DFD9D1; --line-soft:#ECE7E1;
+  --text:#1A1712; --muted:#6B6358; --faint:#948B7E;
+  --accent:#B4531C; --accent-ink:#FFFFFF;
+  --stage:#08090C; --stage-line:#20222B;
+  --shadow:0 1px 2px rgba(26,23,18,.06), 0 8px 24px rgba(26,23,18,.06);
+  --b1:#B3402B; --b2:#CB5E2B; --b3:#DD8438; --b4:#EBAB53; --b5:#F1CC80; --b6:#F4E4BC;
+  --mono:"IBM Plex Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
+  --sans:"IBM Plex Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --serif:"Instrument Serif",Georgia,"Times New Roman",serif;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#0E0D0C; --surface:#17161A; --surface-2:#1D1C21; --line:#2C2A30; --line-soft:#232228;
+  --text:#EFEAE3; --muted:#9E958A; --faint:#6E6862;
+  --accent:#E08A47; --accent-ink:#17120C;
+  --stage:#050609; --stage-line:#23252E;
+  --shadow:0 1px 2px rgba(0,0,0,.4), 0 10px 30px rgba(0,0,0,.35);
+}}
+:root[data-theme="dark"]{
+  --bg:#0E0D0C; --surface:#17161A; --surface-2:#1D1C21; --line:#2C2A30; --line-soft:#232228;
+  --text:#EFEAE3; --muted:#9E958A; --faint:#6E6862;
+  --accent:#E08A47; --accent-ink:#17120C;
+  --stage:#050609; --stage-line:#23252E;
+  --shadow:0 1px 2px rgba(0,0,0,.4), 0 10px 30px rgba(0,0,0,.35);
+}
+
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:14px;line-height:1.5;
+  -webkit-font-smoothing:antialiased;margin:0}
+.wrap{max-width:1180px;margin:0 auto;padding-inline:16px;padding-block:0 56px}
+button{font:inherit;color:inherit}
+h1,h2,h3{margin:0;text-wrap:balance}
+.eyebrow{font-family:var(--mono);font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--faint)}
+
+/* ---------- header ---------- */
+header{border-bottom:1px solid var(--line);margin-bottom:22px}
+.hbar{max-width:1180px;margin:0 auto;padding-inline:16px;padding-block:20px 18px;
+  display:flex;gap:20px;align-items:flex-start;justify-content:space-between;flex-wrap:wrap}
+h1{font-family:var(--serif);font-weight:400;font-size:clamp(30px,5vw,44px);line-height:1.02;letter-spacing:-.01em}
+h1 em{font-style:italic;color:var(--accent)}
+.tag{margin-top:6px;color:var(--muted);max-width:62ch;font-size:14.5px}
+.hmeta{display:flex;gap:8px;align-items:center;flex-shrink:0}
+.ghost{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:7px 11px;
+  font-family:var(--mono);font-size:11px;letter-spacing:.06em;text-transform:uppercase;cursor:pointer;
+  transition:border-color .15s,background .15s}
+.ghost:hover{border-color:var(--accent)}
+.ghost:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+
+/* ---------- targets ---------- */
+.targets{display:flex;gap:8px;overflow-x:auto;padding-bottom:10px;margin-bottom:18px;
+  scrollbar-width:thin;-webkit-overflow-scrolling:touch}
+.tgt{flex:0 0 auto;background:var(--surface);border:1px solid var(--line);border-radius:10px;
+  padding:9px 13px;cursor:pointer;text-align:left;min-width:132px;transition:border-color .15s,transform .12s}
+.tgt:hover{border-color:var(--accent);transform:translateY(-1px)}
+.tgt:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.tgt[aria-pressed="true"]{border-color:var(--accent);background:var(--surface-2);
+  box-shadow:inset 0 0 0 1px var(--accent)}
+.tgt b{display:block;font-weight:600;font-size:13.5px;letter-spacing:-.005em}
+.tgt span{display:block;font-family:var(--mono);font-size:10px;color:var(--faint);margin-top:3px;letter-spacing:.03em}
+.bandbar{display:flex;gap:1.5px;margin-top:6px;height:3px}
+.bandbar i{flex:1;border-radius:1px;opacity:.28}
+.bandbar i.on{opacity:1}
+
+/* ---------- layout ---------- */
+.main{display:grid;grid-template-columns:minmax(0,1fr) 316px;gap:20px;align-items:start}
+@media (max-width:920px){.main{grid-template-columns:minmax(0,1fr)}}
+
+/* ---------- stage ---------- */
+.stage{position:relative;background:var(--stage);border:1px solid var(--line);border-radius:12px;
+  overflow:hidden;aspect-ratio:1;max-width:100%}
+.stage canvas{position:absolute;inset:0;width:100%;height:100%;display:block;cursor:crosshair;touch-action:none}
+.ov{position:absolute;pointer-events:none;font-family:var(--mono);font-size:11px;color:#EDE6DA;
+  text-shadow:0 1px 3px rgba(0,0,0,.9)}
+.ov-tl{top:12px;left:13px;display:flex;flex-direction:column;gap:3px;max-width:58%}
+.ov-tr{top:12px;right:13px;text-align:right;display:flex;flex-direction:column;gap:5px;align-items:flex-end;
+  max-width:40%}
+.ov-tr .pill{max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ov-bl{bottom:12px;left:13px}
+.ov-br{bottom:12px;right:13px;text-align:right;opacity:.75;line-height:1.35}
+.ov-date{font-size:16px;letter-spacing:.02em;font-weight:500}
+.lam{display:inline-flex;align-items:center;gap:6px;font-size:11.5px}
+.lam i{width:8px;height:8px;border-radius:50%;flex:0 0 auto;box-shadow:0 0 0 1px rgba(0,0,0,.5)}
+.pill{background:rgba(10,10,14,.72);border:1px solid rgba(240,230,215,.2);border-radius:999px;
+  padding:3px 9px;font-size:10px;letter-spacing:.1em;text-transform:uppercase}
+.sbar{display:flex;flex-direction:column;gap:4px;align-items:flex-start}
+.sbar .ln{height:3px;border-left:1px solid #EDE6DA;border-right:1px solid #EDE6DA;border-bottom:1px solid #EDE6DA}
+.hint{position:absolute;inset:auto 0 0 0;padding:30px 58px 36px;pointer-events:none;
+  background:linear-gradient(transparent,rgba(5,6,9,.9));font-size:12.5px;color:#D8D0C4;text-align:center;
+  transition:opacity .4s}
+.loading{position:absolute;inset:0;display:grid;place-items:center;color:#9C958A;font-family:var(--mono);
+  font-size:11.5px;letter-spacing:.1em;text-transform:uppercase;background:var(--stage);transition:opacity .3s}
+
+/* ---------- transport ---------- */
+.transport{margin-top:12px;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:12px 14px}
+.trow{display:flex;gap:11px;align-items:center;flex-wrap:wrap}
+.play{width:40px;height:40px;border-radius:50%;border:1px solid var(--accent);background:var(--accent);
+  color:var(--accent-ink);cursor:pointer;display:grid;place-items:center;flex:0 0 auto;transition:transform .12s}
+.play:hover{transform:scale(1.06)}
+.play:focus-visible{outline:2px solid var(--accent);outline-offset:3px}
+.step{width:32px;height:32px;border-radius:8px;border:1px solid var(--line);background:var(--surface-2);
+  cursor:pointer;display:grid;place-items:center;flex:0 0 auto}
+.step:hover{border-color:var(--accent)}
+.scrub{flex:1 1 200px;min-width:140px}
+input[type=range]{width:100%;accent-color:var(--accent);height:22px}
+.counter{font-family:var(--mono);font-size:12px;color:var(--muted);white-space:nowrap;
+  font-variant-numeric:tabular-nums}
+
+/* ---------- timeline + filmstrip ---------- */
+.tl{margin-top:12px}
+.tlaxis{width:100%;height:36px;display:block;cursor:pointer}
+.strip{display:flex;gap:4px;overflow-x:auto;padding-bottom:6px;scrollbar-width:thin}
+.thumb{flex:0 0 auto;width:52px;border:1px solid var(--line);border-radius:6px;overflow:hidden;
+  background:var(--stage);cursor:pointer;padding:0;line-height:0;position:relative;transition:border-color .12s}
+.thumb:hover{border-color:var(--accent)}
+.thumb[aria-pressed="true"]{border-color:var(--accent);box-shadow:0 0 0 2px var(--accent)}
+.thumb canvas{width:100%;height:52px;display:block;image-rendering:pixelated}
+.thumb u{display:block;height:3px;text-decoration:none}
+.thumb.isref::after{content:"REF";position:absolute;top:2px;left:3px;font-family:var(--mono);font-size:8px;
+  color:#0B0B0E;background:var(--b5);padding:0 3px;border-radius:2px;letter-spacing:.05em}
+
+/* ---------- side panel ---------- */
+.panel{display:flex;flex-direction:column;gap:14px;min-width:0}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:14px}
+.card h3{font-family:var(--mono);font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;
+  color:var(--faint);margin-bottom:11px;font-weight:500}
+.kv{display:grid;grid-template-columns:auto 1fr;gap:5px 12px;font-size:12.5px}
+.kv dt{color:var(--muted)}
+.kv dd{margin:0;font-family:var(--mono);font-size:12px;text-align:right;overflow-wrap:anywhere;
+  font-variant-numeric:tabular-nums}
+.seg{display:flex;gap:0;border:1px solid var(--line);border-radius:8px;overflow:hidden}
+.seg button{flex:1;background:var(--surface-2);border:0;border-right:1px solid var(--line);padding:7px 4px;
+  font-size:11.5px;cursor:pointer;color:var(--muted);transition:background .12s,color .12s}
+.seg button:last-child{border-right:0}
+.seg button[aria-pressed="true"]{background:var(--accent);color:var(--accent-ink);font-weight:600}
+.seg button:focus-visible{outline:2px solid var(--accent);outline-offset:-2px}
+.field{display:flex;flex-direction:column;gap:5px;margin-top:11px}
+.field label{font-size:11.5px;color:var(--muted);display:flex;justify-content:space-between;gap:8px}
+.field label b{font-family:var(--mono);font-size:11px;font-weight:500;color:var(--text);
+  font-variant-numeric:tabular-nums}
+select{width:100%;background:var(--surface-2);border:1px solid var(--line);border-radius:8px;
+  padding:7px 9px;font:inherit;font-size:12.5px;color:var(--text);cursor:pointer}
+select:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+.checks{display:flex;gap:14px;flex-wrap:wrap;margin-top:11px}
+.chk{display:flex;gap:6px;align-items:center;font-size:12.5px;color:var(--muted);cursor:pointer}
+.chk input{accent-color:var(--accent);width:15px;height:15px;cursor:pointer}
+.bandsel{display:flex;gap:4px;flex-wrap:wrap}
+.bandsel button{flex:1 1 auto;min-width:42px;border:1px solid var(--line);background:var(--surface-2);
+  border-radius:6px;padding:5px 2px;cursor:pointer;font-family:var(--mono);font-size:10px;color:var(--muted);
+  display:flex;flex-direction:column;align-items:center;gap:4px}
+.bandsel button u{width:100%;height:3px;border-radius:2px;text-decoration:none;opacity:.3}
+.bandsel button[aria-pressed="true"]{color:var(--text);border-color:var(--faint)}
+.bandsel button[aria-pressed="true"] u{opacity:1}
+.bandsel button:disabled{opacity:.3;cursor:not-allowed}
+.note{font-size:11.5px;color:var(--faint);line-height:1.45;margin-top:10px}
+.btn{width:100%;margin-top:11px;background:var(--surface-2);border:1px solid var(--line);border-radius:8px;
+  padding:8px;cursor:pointer;font-size:12.5px;transition:border-color .15s}
+.btn:hover{border-color:var(--accent)}
+.btn:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+#spec{width:100%;height:132px;display:block;border-radius:6px;background:var(--surface-2)}
+#sky{width:100%;height:auto;aspect-ratio:2/1;display:block;cursor:pointer;border-radius:6px;
+  background:var(--surface-2)}
+.specempty{font-size:12px;color:var(--faint);line-height:1.5}
+
+/* ---------- about ---------- */
+.about{margin-top:34px;border-top:1px solid var(--line);padding-top:26px}
+.about h2{font-family:var(--serif);font-weight:400;font-size:26px;margin-bottom:14px}
+.cols{display:grid;grid-template-columns:repeat(auto-fit,minmax(248px,1fr));gap:22px}
+.cols p{margin:0 0 10px;color:var(--muted);font-size:13.5px;max-width:64ch}
+.cols h4{margin:0 0 6px;font-size:13px;font-weight:600}
+.cols code{font-family:var(--mono);font-size:11.5px;background:var(--surface-2);border:1px solid var(--line-soft);
+  padding:1px 4px;border-radius:4px;overflow-wrap:anywhere}
+a{color:var(--accent);text-decoration-thickness:1px;text-underline-offset:2px}
+.steps{list-style:none;padding:0;margin:0;counter-reset:s}
+.steps li{counter-increment:s;position:relative;padding-left:26px;margin-bottom:9px;color:var(--muted);font-size:13.5px}
+.steps li::before{content:counter(s);position:absolute;left:0;top:1px;width:18px;height:18px;border-radius:50%;
+  background:var(--surface-2);border:1px solid var(--line);font-family:var(--mono);font-size:10px;
+  display:grid;place-items:center;color:var(--text)}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+
+<header>
+  <div class="hbar">
+    <div>
+      <h1>SPHEREx <em>Time Machine</em></h1>
+      <p class="tag">NASA's SPHEREx maps the entire sky in 102 infrared colours. Pick a patch, press play,
+        and watch fifteen months of real survey images blink past — anything that moves or flickers is doing something.</p>
+    </div>
+    <div class="hmeta">
+      <button class="ghost" id="theme" type="button">Theme</button>
+    </div>
+  </div>
+</header>
+
+<div class="wrap">
+  <div class="eyebrow" style="margin-bottom:8px">Choose a patch of sky</div>
+  <div class="targets" id="targets" role="group" aria-label="Sky targets"></div>
+
+  <div class="main">
+    <div>
+      <div class="stage" id="stage">
+        <canvas id="view" width="1024" height="1024"></canvas>
+        <div class="ov ov-tl">
+          <div class="ov-date" id="ovDate">—</div>
+          <div class="lam" id="ovLam"><i></i><span>—</span></div>
+        </div>
+        <div class="ov ov-tr">
+          <div class="pill" id="ovMode">Single</div>
+          <div class="pill" id="ovTarget">—</div>
+        </div>
+        <div class="ov ov-bl">
+          <div class="sbar"><div class="ln" id="sbarLn" style="width:60px"></div><span id="sbarTxt">5′</span></div>
+        </div>
+        <div class="ov ov-br" id="ovCursor">N ↑ &nbsp; E ←</div>
+        <div class="hint" id="hint">Press play. Click any source to pull its infrared spectrum.</div>
+        <div class="loading" id="loading">Loading frames…</div>
+      </div>
+
+      <div class="transport">
+        <div class="trow">
+          <button class="play" id="play" type="button" aria-label="Play">
+            <svg width="15" height="15" viewBox="0 0 16 16" aria-hidden="true"><path id="playIcon" d="M4 2.5v11l10-5.5z" fill="currentColor"/></svg>
+          </button>
+          <button class="step" id="prev" type="button" aria-label="Previous frame">
+            <svg width="13" height="13" viewBox="0 0 16 16" aria-hidden="true"><path d="M11 2.5v11L3 8z" fill="currentColor"/></svg>
+          </button>
+          <button class="step" id="next" type="button" aria-label="Next frame">
+            <svg width="13" height="13" viewBox="0 0 16 16" aria-hidden="true"><path d="M5 2.5v11L13 8z" fill="currentColor"/></svg>
+          </button>
+          <div class="scrub"><input type="range" id="scrub" min="0" max="0" value="0" aria-label="Frame"></div>
+          <div class="counter" id="counter">— / —</div>
+        </div>
+        <div class="tl">
+          <canvas class="tlaxis" id="tlaxis" width="1600" height="72"></canvas>
+          <div class="strip" id="strip" role="group" aria-label="Frame thumbnails"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="card">
+        <h3>Where you are looking</h3>
+        <canvas id="sky" width="620" height="310"></canvas>
+        <p class="note" id="skyNote">The whole sky, with the ecliptic drawn in. SPHEREx sweeps along it,
+          which is why its two deep fields sit at the ecliptic poles. Click a marker to jump there.</p>
+      </div>
+
+      <div class="card">
+        <h3>This frame</h3>
+        <dl class="kv" id="meta"></dl>
+      </div>
+
+      <div class="card">
+        <h3>Compare</h3>
+        <div class="seg" id="mode" role="group" aria-label="Comparison mode">
+          <button type="button" data-mode="single" aria-pressed="true">Single</button>
+          <button type="button" data-mode="blink" aria-pressed="false">Blink</button>
+          <button type="button" data-mode="diff" aria-pressed="false">Difference</button>
+        </div>
+        <button class="btn" id="setref" type="button">Pin this frame as reference</button>
+        <p class="note" id="modeNote">Blink flips between the reference frame and the current one. Difference
+          subtracts them, so only what changed stays visible.</p>
+      </div>
+
+      <div class="card">
+        <h3>Spectrum at cursor</h3>
+        <canvas id="spec" width="600" height="264" hidden></canvas>
+        <p class="specempty" id="specEmpty">Click a star or galaxy in the image. Every visit samples a different
+          infrared wavelength, so the frames together build a rough spectrum of whatever you picked.</p>
+        <p class="note" id="specNote" hidden></p>
+      </div>
+
+      <div class="card">
+        <h3>Display</h3>
+        <div class="field">
+          <label for="cmap">Colour map</label>
+          <select id="cmap">
+            <option value="grey">Greyscale</option>
+            <option value="ember" selected>Ember (infrared)</option>
+            <option value="ice">Ice</option>
+            <option value="spectral">Spectral</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="scale">Brightness scaling</label>
+          <select id="scale">
+            <option value="asinh" selected>Asinh (best for faint things)</option>
+            <option value="linear">Linear</option>
+            <option value="sqrt">Square root</option>
+            <option value="log">Logarithmic</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="black">Black point <b id="blackV">45.0%</b></label>
+          <input type="range" id="black" min="0" max="80" step="0.5" value="45">
+        </div>
+        <div class="field">
+          <label for="white">White point <b id="whiteV">99.70%</b></label>
+          <input type="range" id="white" min="0" max="1000" step="1" value="820">
+        </div>
+        <div class="checks">
+          <label class="chk"><input type="checkbox" id="flatten"> Flatten background</label>
+          <label class="chk"><input type="checkbox" id="smooth"> Smooth pixels</label>
+        </div>
+        <p class="note">SPHEREx frames often carry a glow from bright stars just off the edge. Flattening removes
+          that gradient so faint sources stand out.</p>
+      </div>
+
+      <div class="card">
+        <h3>Frames shown</h3>
+        <div class="field" style="margin-top:0">
+          <label for="sort">Order by</label>
+          <select id="sort">
+            <option value="time" selected>Date observed</option>
+            <option value="lam">Wavelength</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Infrared band</label>
+          <div class="bandsel" id="bands"></div>
+        </div>
+        <p class="note" id="bandNote"></p>
+      </div>
+    </div>
+  </div>
+
+  <section class="about">
+    <h2>What you are looking at</h2>
+    <div class="cols">
+      <div>
+        <h4>Real survey data, not artwork</h4>
+        <p>Every pixel here comes from a Level‑2 SPHEREx science image in NASA/IPAC's public archive. The cutouts
+          were pulled from the <code>nasa-irsa-spherex</code> bucket on AWS with HTTP range reads — fetching only the
+          few hundred kilobytes that cover each target rather than each 71 MB file — and they ship with this page so
+          it stays quick. Values are surface brightness in MJy/sr, exactly as the pipeline produced them.</p>
+        <p>SPHEREx launched in March 2025 and surveys the whole sky every six months. It carries no filter wheel:
+          a linear variable filter means the wavelength a pixel records depends on <em>where</em> the source lands
+          on the detector. That is why each visit here reports a different wavelength.</p>
+      </div>
+      <div>
+        <h4>How the frames were lined up</h4>
+        <p>SPHEREx revisits a target at a different roll angle every time, so raw cutouts arrive rotated against
+          one another. Each frame was reprojected onto one shared tangent plane — north up, east left, at the
+          native 6.15″ pixel scale — using the full <code>TAN‑SIP</code> astrometric solution in the file header.</p>
+        <p>The frames therefore blink cleanly against each other: if something shifts between images, it moved on
+          the sky rather than in the telescope.</p>
+        <p>As a check: pick a star in the deep field and the visits that happen to sample the same wavelength
+          months apart agree to about one percent. Getting that agreement requires the reprojection, the
+          wavelength lookup and the photometry to all be right at once.</p>
+      </div>
+      <div>
+        <h4>What to look for</h4>
+        <ol class="steps">
+          <li>Press play and let the frames cycle. Fixed stars stay put.</li>
+          <li>Pin a reference frame, then switch to <b>Difference</b>. A flat grey field means nothing changed;
+            a black‑and‑white pair of dots means something moved between the two epochs.</li>
+          <li>Asteroids drift noticeably between consecutive exposures taken minutes apart. Variable stars brighten
+            and fade over months.</li>
+          <li>Click a source to see how its brightness changes with wavelength — the measurement SPHEREx was built to make.</li>
+        </ol>
+      </div>
+    </div>
+    <p class="note" style="margin-top:20px">Data: NASA/JPL‑Caltech/IPAC SPHEREx Quick Release, served by
+      <a href="https://irsa.ipac.caltech.edu/Missions/spherex.html" target="_blank" rel="noopener">IRSA</a>.
+      Spectra shown here are quick‑look aperture sums for exploration, not calibrated photometry.
+      <span id="prov"></span></p>
+  </section>
+</div>
+
+<script>
+const IDX = /*__INDEX__*/null;
+
+/* ---------- constants ---------- */
+const SIZE = IDX.cutout, NPIX = SIZE * SIZE, PIXSCALE = IDX.pixelScale;
+const BANDS = [
+  {d:1, lo:0.75, hi:1.12, c:"#B3402B"},
+  {d:2, lo:1.10, hi:1.65, c:"#CB5E2B"},
+  {d:3, lo:1.63, hi:2.43, c:"#DD8438"},
+  {d:4, lo:2.40, hi:3.85, c:"#EBAB53"},
+  {d:5, lo:3.81, hi:4.43, c:"#F1CC80"},
+  {d:6, lo:4.41, hi:5.01, c:"#F4E4BC"},
+];
+const bandOf = d => BANDS[Math.min(5, Math.max(0, d - 1))];
+
+/* float16 -> float32 lookup, built once */
+const F16 = new Float32Array(65536);
+for (let i = 0; i < 65536; i++) {
+  const s = (i & 0x8000) ? -1 : 1, e = (i >> 10) & 0x1f, m = i & 0x3ff;
+  F16[i] = e === 0 ? s * Math.pow(2, -14) * (m / 1024)
+         : e === 31 ? (m ? NaN : s * Infinity)
+         : s * Math.pow(2, e - 15) * (1 + m / 1024);
+}
+
+/* ---------- colour maps ---------- */
+const RAMPS = {
+  grey:     [[0,0,0],[255,255,255]],
+  ember:    [[4,3,8],[52,16,32],[130,38,36],[206,86,32],[240,156,56],[250,215,140],[255,252,238]],
+  ice:      [[3,5,12],[12,34,72],[16,80,130],[38,142,168],[126,200,208],[216,240,246]],
+  spectral: [[8,5,20],[46,22,92],[110,36,116],[180,58,94],[226,110,58],[244,182,70],[252,246,190]],
+  diff:     [[40,110,190],[16,44,80],[6,7,10],[86,26,20],[220,98,52]],
+};
+function lut(name) {
+  const cps = RAMPS[name] || RAMPS.grey, out = new Uint8Array(768);
+  for (let i = 0; i < 256; i++) {
+    const t = i / 255 * (cps.length - 1), j = Math.min(cps.length - 2, Math.floor(t)), f = t - j;
+    for (let k = 0; k < 3; k++) out[i * 3 + k] = Math.round(cps[j][k] * (1 - f) + cps[j + 1][k] * f);
+  }
+  return out;
+}
+const LUTS = {}; for (const k in RAMPS) LUTS[k] = lut(k);
+
+/* ---------- state ---------- */
+const S = {
+  target: null, frames: [], order: [], i: 0, ref: 0,
+  mode: "single", cmap: "ember", scale: "asinh",
+  black: 45, whiteT: 0.82, flatten: false, smooth: false,
+  sort: "time", bands: new Set([1,2,3,4,5,6]),
+  playing: false, blinkOn: false, pick: null, loading: false, loadId: 0,
+};
+
+const $ = id => document.getElementById(id);
+const view = $("view"), vctx = view.getContext("2d", {alpha:false});
+const off = document.createElement("canvas"); off.width = off.height = SIZE;
+const octx = off.getContext("2d");
+const oimg = octx.createImageData(SIZE, SIZE);
+
+/* ---------- data loading ---------- */
+async function loadTarget(t) {
+  const token = ++S.loadId;          // a later click wins; stale responses are dropped
+  S.loading = true;
+  $("loading").hidden = false; $("loading").style.opacity = 1;
+  $("loading").textContent = "Loading " + t.name + "…";
+  S.target = t; S.frames = []; S.pick = null; S.i = 0; S.ref = 0;
+  renderChrome();
+  let u16;
+  try {
+    const r = await fetch(t.file);
+    if (!r.ok) throw new Error("HTTP " + r.status);
+    const j = await r.json();
+    const s = atob(j.d), bytes = new Uint8Array(s.length);
+    for (let i = 0; i < s.length; i++) bytes[i] = s.charCodeAt(i);
+    u16 = new Uint16Array(bytes.buffer);
+  } catch (err) {
+    if (token === S.loadId) $("loading").textContent = "Could not load frame data";
+    return;
+  }
+  if (token !== S.loadId) return;
+  t.frames.forEach((meta, n) => {
+    const d = new Float32Array(NPIX);
+    const base = n * NPIX;
+    for (let p = 0; p < NPIX; p++) d[p] = F16[u16[base + p]];
+    let bad = 0;
+    for (let p = 0; p < NPIX; p++) if (!Number.isFinite(d[p])) bad++;
+    meta.bad = bad;
+    S.frames.push({meta, data: d, flat: null, sorted: sortFinite(d), thumb: null});
+  });
+  S.loading = false;
+  $("loading").style.opacity = 0;
+  setTimeout(() => { if (!S.loading) $("loading").hidden = true; }, 320);
+  applyOrder();
+  buildStrip();
+  draw();
+}
+
+function sortFinite(d) {
+  const a = [];
+  for (let p = 0; p < d.length; p++) if (Number.isFinite(d[p])) a.push(d[p]);
+  const f = Float32Array.from(a); f.sort();
+  return f;
+}
+const pct = (sorted, p) => sorted.length ? sorted[Math.min(sorted.length - 1,
+  Math.max(0, Math.round(p / 100 * (sorted.length - 1))))] : 0;
+
+/* Separable box blur, NaN-aware; subtracting it removes the off-axis glow. */
+function flatten(d) {
+  const R = 11, w = SIZE, tmp = new Float32Array(NPIX), cnt = new Float32Array(NPIX), out = new Float32Array(NPIX);
+  for (let y = 0; y < w; y++) {
+    let s = 0, c = 0;
+    for (let x = -R; x <= R; x++) { const v = d[y*w + Math.min(w-1, Math.max(0, x))]; if (Number.isFinite(v)) { s += v; c++; } }
+    for (let x = 0; x < w; x++) {
+      tmp[y*w + x] = s; cnt[y*w + x] = c;
+      const ax = Math.min(w-1, Math.max(0, x - R)), bx = Math.min(w-1, Math.max(0, x + R + 1));
+      const a = d[y*w + ax], b = d[y*w + bx];
+      if (Number.isFinite(a)) { s -= a; c--; }
+      if (Number.isFinite(b)) { s += b; c++; }
+    }
+  }
+  for (let x = 0; x < w; x++) {
+    let s = 0, c = 0;
+    for (let y = -R; y <= R; y++) { const j = Math.min(w-1, Math.max(0, y)); s += tmp[j*w + x]; c += cnt[j*w + x]; }
+    for (let y = 0; y < w; y++) {
+      const bg = c > 0 ? s / c : 0;
+      out[y*w + x] = d[y*w + x] - bg;
+      const ay = Math.min(w-1, Math.max(0, y - R)), by = Math.min(w-1, Math.max(0, y + R + 1));
+      s -= tmp[ay*w + x]; c -= cnt[ay*w + x];
+      s += tmp[by*w + x]; c += cnt[by*w + x];
+    }
+  }
+  return out;
+}
+function pixels(f) {
+  if (!S.flatten) return f.data;
+  if (!f.flat) { f.flat = flatten(f.data); f.flatSorted = sortFinite(f.flat); }
+  return f.flat;
+}
+function pixSorted(f) { return S.flatten ? (pixels(f), f.flatSorted) : f.sorted; }
+
+/* ---------- stretch ---------- */
+const whitePct = t => 100 - 10 * Math.pow(1 - t, 2.2);
+function stretchFn(x) {
+  switch (S.scale) {
+    case "linear": return x;
+    case "sqrt":   return Math.sqrt(x);
+    case "log":    return Math.log10(1 + 99 * x) / 2;
+    default:       return Math.asinh(10 * x) / Math.asinh(10);
+  }
+}
+
+function paint(f, other) {
+  const L = LUTS[S.cmap], px = oimg.data;
+  if (S.mode === "diff" && other) {
+    const a = pixels(f), b = pixels(other);
+    const sa = pixSorted(f), sb = pixSorted(other);
+    const ma = pct(sa, 50), mb = pct(sb, 50);
+    const wa = Math.max(1e-6, pct(sa, 99) - ma), wb = Math.max(1e-6, pct(sb, 99) - mb);
+    const D = LUTS.diff, gain = 1 / Math.max(0.05, 1 - S.whiteT * 0.9);
+    for (let p = 0; p < NPIX; p++) {
+      const va = a[p], vb = b[p];
+      let t;
+      if (!Number.isFinite(va) || !Number.isFinite(vb)) t = 0.5;
+      else t = 0.5 + 0.5 * Math.max(-1, Math.min(1, Math.asinh(((va - ma)/wa - (vb - mb)/wb) * gain * 3) / 3));
+      const c = Math.max(0, Math.min(255, Math.round(t * 255))) * 3;
+      px[p*4] = D[c]; px[p*4+1] = D[c+1]; px[p*4+2] = D[c+2]; px[p*4+3] = 255;
+    }
+  } else {
+    const d = pixels(f), s = pixSorted(f);
+    const lo = pct(s, S.black), hi = pct(s, whitePct(S.whiteT));
+    const span = Math.max(1e-9, hi - lo);
+    for (let p = 0; p < NPIX; p++) {
+      const v = d[p];
+      let c;
+      if (!Number.isFinite(v)) { px[p*4] = 30; px[p*4+1] = 28; px[p*4+2] = 34; px[p*4+3] = 255; continue; }
+      c = Math.max(0, Math.min(255, Math.round(stretchFn(Math.max(0, Math.min(1, (v - lo) / span))) * 255))) * 3;
+      px[p*4] = L[c]; px[p*4+1] = L[c+1]; px[p*4+2] = L[c+2]; px[p*4+3] = 255;
+    }
+  }
+  octx.putImageData(oimg, 0, 0);
+  vctx.imageSmoothingEnabled = S.smooth;
+  vctx.fillStyle = "#08090C"; vctx.fillRect(0, 0, view.width, view.height);
+  vctx.drawImage(off, 0, 0, view.width, view.height);
+  if (S.pick) markPick();
+}
+
+function markPick() {
+  const k = view.width / SIZE;
+  vctx.strokeStyle = "rgba(240,228,188,.9)"; vctx.lineWidth = 2;
+  vctx.beginPath(); vctx.arc((S.pick.x + .5) * k, (S.pick.y + .5) * k, 5.5 * k, 0, 6.2832); vctx.stroke();
+}
+
+/* ---------- ordering / filtering ---------- */
+function applyOrder() {
+  const idx = S.target.frames.map((m, n) => n).filter(n => S.bands.has(S.target.frames[n].det));
+  idx.sort((a, b) => S.sort === "lam"
+    ? S.target.frames[a].lam - S.target.frames[b].lam
+    : S.target.frames[a].mjd - S.target.frames[b].mjd);
+  S.order = idx.length ? idx : S.target.frames.map((m, n) => n);
+  S.i = Math.min(S.i, S.order.length - 1);
+  if (!S.order.includes(S.ref)) S.ref = S.order[0];
+  $("scrub").max = Math.max(0, S.order.length - 1);
+}
+
+/* ---------- drawing the whole view ---------- */
+function draw() {
+  if (!S.target) return;
+  renderChrome();
+  drawSky();
+  if (!S.frames.length) return;
+  const n = S.order[S.i], f = S.frames[n];
+  if (!f) return;
+  const showRef = (S.mode === "blink" && S.blinkOn);
+  paint(S.mode === "diff" ? f : (showRef ? S.frames[S.ref] : f), S.frames[S.ref]);
+  const shown = (S.mode === "diff") ? f : (showRef ? S.frames[S.ref] : f);
+  renderMeta(shown.meta, showRef, S.mode === "diff" && S.frames[S.ref] ? S.frames[S.ref].meta : null);
+  drawTimeline();
+  updateStrip();
+  if (S.pick) drawSpectrum();
+}
+
+function renderChrome() {
+  const t = S.target; if (!t) return;
+  $("ovTarget").textContent = t.name;
+  $("ovMode").textContent = S.mode === "single" ? "Single" : S.mode === "blink" ? "Blink vs reference" : "Difference";
+  $("counter").textContent = S.order.length ? (S.i + 1) + " / " + S.order.length : "— / —";
+  $("scrub").value = S.i;
+  const bar = 5 * 60 / PIXSCALE / SIZE;     // 5 arcmin as a fraction of the frame
+  $("sbarLn").style.width = Math.round(bar * 100) + "%";
+  $("sbarTxt").textContent = "5′";
+}
+
+function renderMeta(m, isRef, refMeta) {
+  const b = bandOf(m.det);
+  $("ovDate").textContent = refMeta
+    ? fmtDate(m.date) + "  −  " + fmtDate(refMeta.date)
+    : fmtDate(m.date) + (isRef ? "  · reference" : "");
+  const lamEl = $("ovLam");
+  lamEl.querySelector("i").style.background = b.c;
+  lamEl.querySelector("span").textContent = refMeta
+    ? m.lam.toFixed(2) + " µm  −  " + refMeta.lam.toFixed(2) + " µm"
+    : m.lam.toFixed(2) + " µm  ·  band " + m.det;
+  const R = Math.round(m.lam / m.bw);
+  $("meta").innerHTML = row("Observed", fmtDate(m.date))
+    + row("MJD", m.mjd.toFixed(3))
+    + row("Wavelength", m.lam.toFixed(3) + " µm")
+    + row("Bandwidth", m.bw.toFixed(3) + " µm  (R≈" + R + ")")
+    + row("Detector", "band " + m.det + " · " + bandOf(m.det).lo + "–" + bandOf(m.det).hi + " µm")
+    + row("Exposure", m.obs)
+    + row("Release", m.coll.replace("spherex_", "").replace("_", " "))
+    + (m.bad ? row("Flagged pixels", m.bad + " of " + NPIX) : "");
+}
+const row = (k, v) => "<dt>" + k + "</dt><dd>" + v + "</dd>";
+function fmtDate(iso) {
+  const [y, mo, d] = iso.split("-");
+  return ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"][+mo - 1] + " " + (+d) + ", " + y;
+}
+
+/* ---------- all-sky locator (Hammer projection, RA increasing to the left) ---------- */
+function hammer(ra, dec) {
+  const rad = Math.PI / 180;
+  let lam = (180 - ra) * rad, phi = dec * rad;
+  while (lam > Math.PI) lam -= 2 * Math.PI;
+  while (lam < -Math.PI) lam += 2 * Math.PI;
+  const z = Math.sqrt(1 + Math.cos(phi) * Math.cos(lam / 2));
+  return [2 * Math.SQRT2 * Math.cos(phi) * Math.sin(lam / 2) / z, Math.SQRT2 * Math.sin(phi) / z];
+}
+function skyXY(c, ra, dec) {
+  const [u, v] = hammer(ra, dec);
+  const m = 6, w = c.width - 2 * m, h = c.height - 2 * m;
+  return [m + (u / (4 * Math.SQRT2) + 0.5) * w, m + (0.5 - v / (2 * Math.SQRT2)) * h];
+}
+function drawSky() {
+  const c = $("sky"), g = c.getContext("2d");
+  const cs = getComputedStyle(document.body);
+  g.clearRect(0, 0, c.width, c.height);
+  const line = cs.getPropertyValue("--line").trim(), soft = cs.getPropertyValue("--line-soft").trim();
+
+  g.strokeStyle = soft; g.lineWidth = 1.5;
+  for (let d = -60; d <= 60; d += 30) {          // parallels
+    g.beginPath();
+    for (let a = 0; a <= 360; a += 3) { const [x, y] = skyXY(c, a, d); a ? g.lineTo(x, y) : g.moveTo(x, y); }
+    g.stroke();
+  }
+  for (let a = 0; a < 360; a += 60) {            // meridians
+    g.beginPath();
+    for (let d = -89; d <= 89; d += 2) { const [x, y] = skyXY(c, a, d); d === -89 ? g.moveTo(x, y) : g.lineTo(x, y); }
+    g.stroke();
+  }
+  g.strokeStyle = line; g.lineWidth = 2;         // outline
+  g.beginPath();
+  for (let d = -90; d <= 90; d += 1) { const [x, y] = skyXY(c, 0.0001, d); d === -90 ? g.moveTo(x, y) : g.lineTo(x, y); }
+  for (let d = 90; d >= -90; d -= 1) { const [x, y] = skyXY(c, 359.9999, d); g.lineTo(x, y); }
+  g.stroke();
+
+  const rad = Math.PI / 180, eps = 23.4393 * rad;   // the ecliptic, SPHEREx's survey reference
+  g.beginPath();
+  g.strokeStyle = cs.getPropertyValue("--accent").trim(); g.lineWidth = 2; g.globalAlpha = .5;
+  let prev = null;
+  for (let l = 0; l <= 360; l += 2) {
+    const ra = (Math.atan2(Math.sin(l * rad) * Math.cos(eps), Math.cos(l * rad)) / rad + 360) % 360;
+    const dec = Math.asin(Math.sin(l * rad) * Math.sin(eps)) / rad;
+    const [x, y] = skyXY(c, ra, dec);
+    if (prev && Math.abs(x - prev[0]) < c.width * 0.4) g.lineTo(x, y); else g.moveTo(x, y);
+    prev = [x, y];
+  }
+  g.stroke(); g.globalAlpha = 1;
+
+  IDX.targets.forEach(t => {                      // markers
+    const [x, y] = skyXY(c, t.ra, t.dec);
+    const cur = S.target && t.id === S.target.id;
+    g.beginPath(); g.arc(x, y, cur ? 7 : 4.5, 0, 6.2832);
+    g.fillStyle = cur ? cs.getPropertyValue("--accent").trim() : cs.getPropertyValue("--faint").trim();
+    g.fill();
+    if (cur) { g.strokeStyle = cs.getPropertyValue("--surface").trim(); g.lineWidth = 2.5; g.stroke(); }
+  });
+}
+$("sky").addEventListener("click", e => {
+  const c = $("sky"), r = c.getBoundingClientRect();
+  const px = (e.clientX - r.left) / r.width * c.width, py = (e.clientY - r.top) / r.height * c.height;
+  let best = -1, bd = 26 * 26;
+  IDX.targets.forEach((t, k) => {
+    const [x, y] = skyXY(c, t.ra, t.dec);
+    const d = (x - px) ** 2 + (y - py) ** 2;
+    if (d < bd) { bd = d; best = k; }
+  });
+  if (best >= 0) selectTarget(best);
+});
+
+/* ---------- timeline axis ---------- */
+function drawTimeline() {
+  const c = $("tlaxis"), g = c.getContext("2d");
+  const W = c.width, H = c.height, pad = 10;
+  g.clearRect(0, 0, W, H);
+  const all = S.target.frames;
+  const t0 = Math.min(...all.map(f => f.mjd)), t1 = Math.max(...all.map(f => f.mjd));
+  const span = Math.max(1, t1 - t0);
+  const cs = getComputedStyle(document.body);
+  const line = cs.getPropertyValue("--line").trim() || "#ccc";
+  const faint = cs.getPropertyValue("--faint").trim() || "#999";
+  g.strokeStyle = line; g.lineWidth = 2;
+  g.beginPath(); g.moveTo(pad, H - 22); g.lineTo(W - pad, H - 22); g.stroke();
+  // month ticks
+  g.fillStyle = faint; g.font = "500 17px " + cs.getPropertyValue("--mono");
+  g.textAlign = "center";
+  const d0 = mjdDate(t0), d1 = mjdDate(t1);
+  let y = d0.getUTCFullYear(), mo = d0.getUTCMonth();
+  for (let k = 0; k < 40; k++) {
+    const dt = Date.UTC(y, mo, 1);
+    if (dt > d1.getTime()) break;
+    const mjd = dt / 86400000 + 40587;
+    if (mjd >= t0) {
+      const x = pad + (mjd - t0) / span * (W - 2 * pad);
+      g.strokeStyle = line; g.beginPath(); g.moveTo(x, H - 28); g.lineTo(x, H - 16); g.stroke();
+      if (mo % 3 === 0) g.fillText(["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"][mo]
+        + " " + String(y).slice(2), x, H - 2);
+    }
+    mo++; if (mo > 11) { mo = 0; y++; }
+  }
+  // one tick per frame, coloured by infrared band
+  S.order.forEach((n, k) => {
+    const f = all[n], x = pad + (f.mjd - t0) / span * (W - 2 * pad);
+    const cur = k === S.i, ref = n === S.ref;
+    g.strokeStyle = bandOf(f.det).c;
+    g.lineWidth = cur ? 5 : 2.5;
+    g.globalAlpha = cur ? 1 : .62;
+    g.beginPath(); g.moveTo(x, cur ? 6 : 12); g.lineTo(x, H - 24); g.stroke();
+    if (ref && !cur) { g.globalAlpha = 1; g.lineWidth = 2.5; g.setLineDash([3,3]);
+      g.beginPath(); g.moveTo(x, 8); g.lineTo(x, H - 24); g.stroke(); g.setLineDash([]); }
+    g.globalAlpha = 1;
+  });
+}
+const mjdDate = mjd => new Date((mjd - 40587) * 86400000);
+
+/* ---------- filmstrip ---------- */
+function buildStrip() {
+  const el = $("strip"); el.innerHTML = "";
+  S.order.forEach((n, k) => {
+    const f = S.frames[n]; if (!f) return;
+    const b = document.createElement("button");
+    b.type = "button"; b.className = "thumb"; b.dataset.k = k;
+    b.setAttribute("aria-label", "Frame " + (k + 1) + ", " + f.meta.date);
+    const cv = document.createElement("canvas"); cv.width = cv.height = SIZE;
+    const u = document.createElement("u"); u.style.background = bandOf(f.meta.det).c;
+    b.appendChild(cv); b.appendChild(u); el.appendChild(b);
+    thumbInto(cv, f);
+    b.addEventListener("click", () => { S.i = k; stop(); draw(); });
+  });
+  updateStrip();
+}
+function thumbInto(cv, f) {
+  const g = cv.getContext("2d"), im = g.createImageData(SIZE, SIZE), px = im.data;
+  const d = f.data, s = f.sorted, L = LUTS.ember;
+  const lo = pct(s, 4), hi = pct(s, 99.6), span = Math.max(1e-9, hi - lo);
+  for (let p = 0; p < NPIX; p++) {
+    const v = d[p];
+    const t = Number.isFinite(v) ? Math.asinh(10 * Math.max(0, Math.min(1, (v - lo) / span))) / Math.asinh(10) : 0;
+    const c = Math.round(t * 255) * 3;
+    px[p*4] = L[c]; px[p*4+1] = L[c+1]; px[p*4+2] = L[c+2]; px[p*4+3] = 255;
+  }
+  g.putImageData(im, 0, 0);
+}
+function updateStrip() {
+  [...$("strip").children].forEach((b, k) => {
+    b.setAttribute("aria-pressed", k === S.i ? "true" : "false");
+    b.classList.toggle("isref", S.order[k] === S.ref);
+  });
+  const strip = $("strip"), cur = strip.children[S.i];
+  if (cur) {                       // scroll the strip itself, never the page
+    const l = cur.offsetLeft, r = l + cur.offsetWidth;
+    if (l < strip.scrollLeft) strip.scrollLeft = l - 8;
+    else if (r > strip.scrollLeft + strip.clientWidth) strip.scrollLeft = r - strip.clientWidth + 8;
+  }
+}
+
+/* ---------- spectrum ---------- */
+function photometry(f, x, y) {
+  const d = pixels(f);
+  let sum = 0, n = 0, bg = [];
+  for (let dy = -2; dy <= 2; dy++) for (let dx = -2; dx <= 2; dx++) {
+    const X = x + dx, Y = y + dy; if (X < 0 || Y < 0 || X >= SIZE || Y >= SIZE) continue;
+    const v = d[Y*SIZE + X]; if (!Number.isFinite(v)) continue;
+    if (dx*dx + dy*dy <= 5) { sum += v; n++; }
+  }
+  for (let dy = -9; dy <= 9; dy++) for (let dx = -9; dx <= 9; dx++) {
+    const r2 = dx*dx + dy*dy; if (r2 < 36 || r2 > 81) continue;
+    const X = x + dx, Y = y + dy; if (X < 0 || Y < 0 || X >= SIZE || Y >= SIZE) continue;
+    const v = d[Y*SIZE + X]; if (Number.isFinite(v)) bg.push(v);
+  }
+  if (!n) return null;
+  bg.sort((a, b) => a - b);
+  const med = bg.length ? bg[bg.length >> 1] : 0;
+  return sum / n - med;
+}
+
+function drawSpectrum() {
+  const c = $("spec"), g = c.getContext("2d");
+  const pts = [];
+  S.order.forEach(n => {
+    const f = S.frames[n]; if (!f) return;
+    const v = photometry(f, S.pick.x, S.pick.y);
+    if (v !== null) pts.push({lam: f.meta.lam, v, det: f.meta.det, date: f.meta.date});
+  });
+  c.hidden = pts.length < 2; $("specEmpty").hidden = pts.length >= 2;
+  $("specNote").hidden = pts.length < 2;
+  if (pts.length < 2) return;
+  const W = c.width, H = c.height, L = 52, Rp = 12, T = 12, B = 34;
+  const cs = getComputedStyle(document.body);
+  g.clearRect(0, 0, W, H);
+  const lam0 = 0.7, lam1 = 5.1;
+  const vs = pts.map(p => p.v);
+  let vmin = Math.min(...vs), vmax = Math.max(...vs);
+  const padv = Math.max(1e-6, (vmax - vmin) * 0.16); vmin -= padv; vmax += padv;
+  const X = l => L + (l - lam0) / (lam1 - lam0) * (W - L - Rp);
+  const Y = v => T + (1 - (v - vmin) / Math.max(1e-9, vmax - vmin)) * (H - T - B);
+  // zero line + axes
+  g.strokeStyle = cs.getPropertyValue("--line-soft").trim() || "#eee"; g.lineWidth = 2;
+  if (vmin < 0 && vmax > 0) { g.beginPath(); g.moveTo(L, Y(0)); g.lineTo(W - Rp, Y(0)); g.stroke(); }
+  g.strokeStyle = cs.getPropertyValue("--line").trim(); g.lineWidth = 2;
+  g.beginPath(); g.moveTo(L, T); g.lineTo(L, H - B); g.lineTo(W - Rp, H - B); g.stroke();
+  g.fillStyle = cs.getPropertyValue("--faint").trim();
+  g.font = "500 17px " + cs.getPropertyValue("--mono"); g.textAlign = "center";
+  [1, 2, 3, 4, 5].forEach(l => { g.fillText(l + (l === 5 ? " µm" : ""), X(l), H - 12); });
+  g.textAlign = "right";
+  g.fillText(vmax.toPrecision(2), L - 6, Y(vmax) + 6);
+  g.fillText(vmin.toPrecision(2), L - 6, Y(vmin) + 6);
+  // connect in wavelength order, then plot points coloured by band
+  const inOrder = [...pts].sort((a, b) => a.lam - b.lam);
+  g.strokeStyle = cs.getPropertyValue("--line").trim(); g.lineWidth = 2.5;
+  g.beginPath(); inOrder.forEach((p, i) => i ? g.lineTo(X(p.lam), Y(p.v)) : g.moveTo(X(p.lam), Y(p.v))); g.stroke();
+  inOrder.forEach(p => {
+    g.fillStyle = bandOf(p.det).c;
+    g.beginPath(); g.arc(X(p.lam), Y(p.v), 5, 0, 6.2832); g.fill();
+    g.strokeStyle = "rgba(0,0,0,.35)"; g.lineWidth = 1.5; g.stroke();
+  });
+  $("specNote").textContent = "Aperture sum minus local sky at the marked pixel, MJy/sr, "
+    + pts.length + " visits spanning " + inOrder[0].lam.toFixed(2) + "–"
+    + inOrder[inOrder.length-1].lam.toFixed(2) + " µm.";
+}
+
+/* ---------- sky coordinates (inverse gnomonic) ---------- */
+function skyAt(px, py) {
+  const t = S.target, rad = Math.PI / 180;
+  const cx = SIZE / 2 - 0.5;
+  const xi = -(px - cx) * PIXSCALE / 3600 * rad;   // east to the left
+  const eta = (py - cx) * PIXSCALE / 3600 * rad;
+  const r = Math.hypot(xi, eta);
+  const d0 = t.dec * rad, a0 = t.ra * rad;
+  if (r < 1e-12) return [t.ra, t.dec];
+  const c = Math.atan(r);
+  const dec = Math.asin(Math.cos(c) * Math.sin(d0) + eta * Math.sin(c) * Math.cos(d0) / r);
+  const ra = a0 + Math.atan2(xi * Math.sin(c), r * Math.cos(d0) * Math.cos(c) - eta * Math.sin(d0) * Math.sin(c));
+  return [((ra / rad) % 360 + 360) % 360, dec / rad];
+}
+const hms = ra => { const h = ra / 15, H = Math.floor(h), m = (h - H) * 60, M = Math.floor(m);
+  return H + "h " + String(M).padStart(2,"0") + "m " + ((m - M) * 60).toFixed(1) + "s"; };
+const dms = dec => { const s = dec < 0 ? "−" : "+", a = Math.abs(dec), D = Math.floor(a), m = (a - D) * 60, M = Math.floor(m);
+  return s + D + "° " + String(M).padStart(2,"0") + "′ " + ((m - M) * 60).toFixed(0) + "″"; };
+
+/* ---------- playback ---------- */
+let timer = null, blinkTimer = null;
+function play() {
+  if (S.playing || !S.order.length) return;
+  S.playing = true; $("playIcon").setAttribute("d", "M4 2.5h3.2v11H4zm4.8 0H12v11H8.8z");
+  $("play").setAttribute("aria-label", "Pause");
+  $("hint").style.opacity = 0;
+  timer = setInterval(() => { S.i = (S.i + 1) % S.order.length; draw(); }, 420);
+}
+function stop() {
+  S.playing = false; if (timer) clearInterval(timer); timer = null;
+  $("playIcon").setAttribute("d", "M4 2.5v11l10-5.5z");
+  $("play").setAttribute("aria-label", "Play");
+}
+function setMode(m) {
+  S.mode = m;
+  [...$("mode").children].forEach(b => b.setAttribute("aria-pressed", b.dataset.mode === m ? "true" : "false"));
+  if (blinkTimer) { clearInterval(blinkTimer); blinkTimer = null; }
+  S.blinkOn = false;
+  if (m === "blink") blinkTimer = setInterval(() => { S.blinkOn = !S.blinkOn; draw(); }, 620);
+  draw();
+}
+
+/* ---------- build target buttons + band filter ---------- */
+function buildTargets() {
+  const el = $("targets");
+  IDX.targets.forEach((t, k) => {
+    const dets = new Set(t.frames.map(f => f.det));
+    const lams = t.frames.map(f => f.lam);
+    const b = document.createElement("button");
+    b.type = "button"; b.className = "tgt"; b.setAttribute("aria-pressed", k === 0 ? "true" : "false");
+    b.innerHTML = "<b>" + t.name + "</b><span>" + t.frames.length + " visits · "
+      + Math.min(...lams).toFixed(1) + "–" + Math.max(...lams).toFixed(1) + " µm</span>"
+      + '<span class="bandbar">' + BANDS.map(bd =>
+          '<i class="' + (dets.has(bd.d) ? "on" : "") + '" style="background:' + bd.c + '"></i>').join("") + "</span>";
+    b.addEventListener("click", () => selectTarget(k));
+    el.appendChild(b);
+  });
+}
+function selectTarget(k) {
+  const t = IDX.targets[k], el = $("targets");
+  [...el.children].forEach((x, j) => x.setAttribute("aria-pressed", j === k ? "true" : "false"));
+  stop();
+  S.bands = new Set([1, 2, 3, 4, 5, 6]);
+  buildBands(t);
+  loadTarget(t);
+  try { history.replaceState(null, "", "#" + t.id); } catch (_) {}
+}
+
+function buildBands(t) {
+  const el = $("bands"); el.innerHTML = "";
+  const have = new Set(t.frames.map(f => f.det));
+  BANDS.forEach(bd => {
+    const b = document.createElement("button");
+    b.type = "button"; b.disabled = !have.has(bd.d);
+    b.setAttribute("aria-pressed", S.bands.has(bd.d) && have.has(bd.d) ? "true" : "false");
+    b.innerHTML = '<u style="background:' + bd.c + '"></u>' + bd.lo.toFixed(1);
+    b.title = "Band " + bd.d + ": " + bd.lo + "–" + bd.hi + " µm";
+    b.addEventListener("click", () => {
+      if (S.bands.has(bd.d)) { if (S.bands.size > 1) S.bands.delete(bd.d); } else S.bands.add(bd.d);
+      b.setAttribute("aria-pressed", S.bands.has(bd.d) ? "true" : "false");
+      applyOrder(); buildStrip(); draw(); updateBandNote(t);
+    });
+    el.appendChild(b);
+  });
+  updateBandNote(t);
+}
+function updateBandNote(t) {
+  const n = t.frames.filter(f => S.bands.has(f.det)).length;
+  $("bandNote").textContent = n + " of " + t.frames.length
+    + " visits shown. Filtering to one band keeps brightness comparable between frames.";
+}
+
+/* ---------- wiring ---------- */
+$("play").addEventListener("click", () => S.playing ? stop() : play());
+$("prev").addEventListener("click", () => { stop(); S.i = (S.i - 1 + S.order.length) % S.order.length; draw(); });
+$("next").addEventListener("click", () => { stop(); S.i = (S.i + 1) % S.order.length; draw(); });
+$("scrub").addEventListener("input", e => { stop(); S.i = +e.target.value; draw(); });
+$("setref").addEventListener("click", () => { S.ref = S.order[S.i]; draw(); });
+[...$("mode").children].forEach(b => b.addEventListener("click", () => setMode(b.dataset.mode)));
+$("cmap").addEventListener("change", e => { S.cmap = e.target.value; draw(); });
+$("scale").addEventListener("change", e => { S.scale = e.target.value; draw(); });
+$("black").addEventListener("input", e => { S.black = +e.target.value; $("blackV").textContent = S.black.toFixed(1) + "%"; draw(); });
+$("white").addEventListener("input", e => { S.whiteT = +e.target.value / 1000; $("whiteV").textContent = whitePct(S.whiteT).toFixed(2) + "%"; draw(); });
+$("flatten").addEventListener("change", e => { S.flatten = e.target.checked; draw(); });
+$("smooth").addEventListener("change", e => { S.smooth = e.target.checked; draw(); });
+$("sort").addEventListener("change", e => { S.sort = e.target.value; applyOrder(); buildStrip(); draw(); });
+
+view.addEventListener("click", e => {
+  const r = view.getBoundingClientRect();
+  const x = Math.floor((e.clientX - r.left) / r.width * SIZE), y = Math.floor((e.clientY - r.top) / r.height * SIZE);
+  if (x < 0 || y < 0 || x >= SIZE || y >= SIZE) return;
+  S.pick = {x, y};
+  $("hint").style.opacity = 0;
+  draw();
+});
+view.addEventListener("mousemove", e => {
+  const r = view.getBoundingClientRect();
+  const x = Math.floor((e.clientX - r.left) / r.width * SIZE), y = Math.floor((e.clientY - r.top) / r.height * SIZE);
+  if (x < 0 || y < 0 || x >= SIZE || y >= SIZE || !S.frames.length) return;
+  const f = S.frames[S.order[S.i]]; if (!f) return;
+  const v = f.data[y*SIZE + x];
+  const [ra, dec] = skyAt(x, y);
+  $("ovCursor").innerHTML = "N ↑ &nbsp; E ←<br>" + hms(ra) + "<br>" + dms(dec)
+    + "<br>" + (Number.isFinite(v) ? v.toFixed(2) + " MJy/sr" : "no data");
+});
+view.addEventListener("mouseleave", () => { $("ovCursor").innerHTML = "N ↑ &nbsp; E ←"; });
+$("tlaxis").addEventListener("click", e => {
+  const r = e.target.getBoundingClientRect(), frac = (e.clientX - r.left) / r.width;
+  const all = S.target.frames, t0 = Math.min(...all.map(f => f.mjd)), t1 = Math.max(...all.map(f => f.mjd));
+  const want = t0 + frac * (t1 - t0);
+  let best = 0, bd = Infinity;
+  S.order.forEach((n, k) => { const d = Math.abs(all[n].mjd - want); if (d < bd) { bd = d; best = k; } });
+  stop(); S.i = best; draw();
+});
+document.addEventListener("keydown", e => {
+  if (/^(INPUT|SELECT|TEXTAREA)$/.test(e.target.tagName)) return;
+  if (e.key === " ") { e.preventDefault(); S.playing ? stop() : play(); }
+  else if (e.key === "ArrowLeft") { stop(); S.i = (S.i - 1 + S.order.length) % S.order.length; draw(); }
+  else if (e.key === "ArrowRight") { stop(); S.i = (S.i + 1) % S.order.length; draw(); }
+});
+$("theme").addEventListener("click", () => {
+  const cur = document.documentElement.getAttribute("data-theme");
+  const dark = cur ? cur === "dark" : matchMedia("(prefers-color-scheme: dark)").matches;
+  document.documentElement.setAttribute("data-theme", dark ? "light" : "dark");
+  try { localStorage.setItem("sx-theme", dark ? "light" : "dark"); } catch (_) {}
+  draw(); drawSky();
+});
+try { const t = localStorage.getItem("sx-theme"); if (t) document.documentElement.setAttribute("data-theme", t); } catch (_) {}
+
+/* ---------- go ---------- */
+$("prov").textContent = "Frame index built " + IDX.generated + ".";
+buildTargets();
+let start = 0;
+try {
+  const want = decodeURIComponent((location.hash || "").replace(/^#/, ""));
+  const k = IDX.targets.findIndex(t => t.id === want);
+  if (k >= 0) start = k;
+} catch (_) {}
+[...$("targets").children].forEach((x, j) => x.setAttribute("aria-pressed", j === start ? "true" : "false"));
+buildBands(IDX.targets[start]);
+loadTarget(IDX.targets[start]);
+addEventListener("hashchange", () => {
+  const want = (location.hash || "").replace(/^#/, "");
+  const k = IDX.targets.findIndex(t => t.id === want);
+  if (k >= 0 && IDX.targets[k] !== S.target) selectTarget(k);
+});
+addEventListener("resize", () => { if (S.target) { drawTimeline(); drawSky(); } });
+</script>

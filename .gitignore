@@ -1,0 +1,13 @@
+# Cached IRSA TAP responses: ~157 MB, rebuilt automatically on the next run
+data/weekcache/
+
+# Per-process index shards from parallel builds; merge.py folds these into index.json
+data/out/index.*.json
+data/build*.log
+
+# The artifact build of the page; docs/ is the one that gets served
+app/dist/
+
+__pycache__/
+*.pyc
+.DS_Store
