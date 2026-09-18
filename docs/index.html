@@ -238,7 +238,8 @@ a{color:var(--accent);text-decoration-thickness:1px;text-underline-offset:2px}
           <div class="counter" id="counter">— / —</div>
         </div>
         <div class="tl">
-          <canvas class="tlaxis" id="tlaxis" width="1600" height="72"></canvas>
+          <canvas class="tlaxis" id="tlaxis" width="1600" height="72" role="img"
+            aria-label="When each visit happened, on a date axis. Click to jump to the nearest visit; the thumbnails below do the same from the keyboard."></canvas>
           <div class="strip" id="strip" role="group" aria-label="Frame thumbnails"></div>
         </div>
       </div>
@@ -247,7 +248,8 @@ a{color:var(--accent);text-decoration-thickness:1px;text-underline-offset:2px}
     <div class="panel">
       <div class="card">
         <h3>Where you are looking</h3>
-        <canvas id="sky" width="620" height="310"></canvas>
+        <canvas id="sky" width="620" height="310" role="img"
+          aria-label="All-sky map with the ecliptic marked, showing where each target sits. Click a marker to jump there; the target buttons above do the same from the keyboard."></canvas>
         <p class="note" id="skyNote">The whole sky, with the ecliptic drawn in. SPHEREx sweeps along it,
           which is why its two deep fields sit at the ecliptic poles. Click a marker to jump there.</p>
       </div>
@@ -421,7 +423,7 @@ const S = {
   target: null, frames: [], order: [], i: 0, ref: 0,
   mode: "single", cmap: "ember", scale: "asinh",
   black: 45, whiteT: 0.82, flatten: false, smooth: false,
-  sort: "time", bands: new Set([1,2,3,4,5,6]),
+  sort: "time", bands: new Set(),
   playing: false, blinkOn: false, pick: null, loading: false, loadId: 0,
 };
 
@@ -718,6 +720,8 @@ function drawTimeline() {
   g.fillStyle = faint; g.font = "500 17px " + cs.getPropertyValue("--mono");
   g.textAlign = "center";
   const d0 = mjdDate(t0), d1 = mjdDate(t1);
+  const perMonth = (c.clientWidth || 600) / Math.max(1, span / 30.44);
+  const step = perMonth >= 46 ? 1 : perMonth >= 23 ? 2 : perMonth >= 15 ? 3 : perMonth >= 8 ? 6 : 12;
   let y = d0.getUTCFullYear(), mo = d0.getUTCMonth();
   for (let k = 0; k < 40; k++) {
     const dt = Date.UTC(y, mo, 1);
@@ -726,7 +730,7 @@ function drawTimeline() {
     if (mjd >= t0) {
       const x = pad + (mjd - t0) / span * (W - 2 * pad);
       g.strokeStyle = line; g.beginPath(); g.moveTo(x, H - 28); g.lineTo(x, H - 16); g.stroke();
-      if (mo % 3 === 0) g.fillText(["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"][mo]
+      if (mo % step === 0) g.fillText(["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"][mo]
         + " " + String(y).slice(2), x, H - 2);
     }
     mo++; if (mo > 11) { mo = 0; y++; }
@@ -910,11 +914,13 @@ function buildTargets() {
     el.appendChild(b);
   });
 }
+const bandsOf = t => new Set(t.frames.map(f => f.det));
+
 function selectTarget(k) {
   const t = IDX.targets[k], el = $("targets");
   [...el.children].forEach((x, j) => x.setAttribute("aria-pressed", j === k ? "true" : "false"));
   stop();
-  S.bands = new Set([1, 2, 3, 4, 5, 6]);
+  S.bands = bandsOf(t);
   buildBands(t);
   loadTarget(t);
   try { history.replaceState(null, "", "#" + t.id); } catch (_) {}
@@ -930,7 +936,8 @@ function buildBands(t) {
     b.innerHTML = '<u style="background:' + bd.c + '"></u>' + bd.lo.toFixed(1);
     b.title = "Band " + bd.d + ": " + bd.lo + "–" + bd.hi + " µm";
     b.addEventListener("click", () => {
-      if (S.bands.has(bd.d)) { if (S.bands.size > 1) S.bands.delete(bd.d); } else S.bands.add(bd.d);
+      const live = [...S.bands].filter(d => have.has(d));
+      if (S.bands.has(bd.d)) { if (live.length > 1) S.bands.delete(bd.d); } else S.bands.add(bd.d);
       b.setAttribute("aria-pressed", S.bands.has(bd.d) ? "true" : "false");
       applyOrder(); buildStrip(); draw(); updateBandNote(t);
     });
@@ -967,7 +974,7 @@ view.addEventListener("click", e => {
   $("hint").style.opacity = 0;
   draw();
 });
-view.addEventListener("mousemove", e => {
+view.addEventListener("pointermove", e => {
   const r = view.getBoundingClientRect();
   const x = Math.floor((e.clientX - r.left) / r.width * SIZE), y = Math.floor((e.clientY - r.top) / r.height * SIZE);
   if (x < 0 || y < 0 || x >= SIZE || y >= SIZE || !S.frames.length) return;
@@ -977,7 +984,7 @@ view.addEventListener("mousemove", e => {
   $("ovCursor").innerHTML = "N ↑ &nbsp; E ←<br>" + hms(ra) + "<br>" + dms(dec)
     + "<br>" + (Number.isFinite(v) ? v.toFixed(2) + " MJy/sr" : "no data");
 });
-view.addEventListener("mouseleave", () => { $("ovCursor").innerHTML = "N ↑ &nbsp; E ←"; });
+view.addEventListener("pointerleave", () => { $("ovCursor").innerHTML = "N ↑ &nbsp; E ←"; });
 $("tlaxis").addEventListener("click", e => {
   const r = e.target.getBoundingClientRect(), frac = (e.clientX - r.left) / r.width;
   const all = S.target.frames, t0 = Math.min(...all.map(f => f.mjd)), t1 = Math.max(...all.map(f => f.mjd));
@@ -987,7 +994,7 @@ $("tlaxis").addEventListener("click", e => {
   stop(); S.i = best; draw();
 });
 document.addEventListener("keydown", e => {
-  if (/^(INPUT|SELECT|TEXTAREA)$/.test(e.target.tagName)) return;
+  if (/^(INPUT|SELECT|TEXTAREA|BUTTON)$/.test(e.target.tagName)) return;
   if (e.key === " ") { e.preventDefault(); S.playing ? stop() : play(); }
   else if (e.key === "ArrowLeft") { stop(); S.i = (S.i - 1 + S.order.length) % S.order.length; draw(); }
   else if (e.key === "ArrowRight") { stop(); S.i = (S.i + 1) % S.order.length; draw(); }
@@ -1011,6 +1018,7 @@ try {
   if (k >= 0) start = k;
 } catch (_) {}
 [...$("targets").children].forEach((x, j) => x.setAttribute("aria-pressed", j === start ? "true" : "false"));
+S.bands = bandsOf(IDX.targets[start]);
 buildBands(IDX.targets[start]);
 loadTarget(IDX.targets[start]);
 addEventListener("hashchange", () => {
