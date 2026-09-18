@@ -11,3 +11,6 @@ app/dist/
 __pycache__/
 *.pyc
 .DS_Store
+
+# Packaged bundles produced for deployment
+*.zip
