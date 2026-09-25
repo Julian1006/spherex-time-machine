@@ -21,6 +21,11 @@ Built against the live NASA/IPAC IRSA archive. No mock data anywhere.
 - **Band filtering and wavelength sorting**, so you can hold the band fixed for a fair brightness
   comparison, or re-order by wavelength to sweep the spectrum instead of time.
 - Live sky coordinates (RA/Dec) and surface brightness in MJy/sr under the cursor.
+- **Keep it centred**, for the moving targets: each frame is shifted so the body sits in the
+  middle and the stars stream past instead. The same motion seen from the other side.
+- **The body's own spectrum**: aperture photometry follows the moving target from frame to
+  frame, so a planet's infrared spectrum falls out of the survey's repeat visits.
+- Playback speed, and keyboard control (space, arrow keys).
 
 ## The data
 

@@ -112,6 +112,11 @@ h1 em{font-style:italic;color:var(--accent)}
 input[type=range]{width:100%;accent-color:var(--accent);height:22px}
 .counter{font-family:var(--mono);font-size:12px;color:var(--muted);white-space:nowrap;
   font-variant-numeric:tabular-nums}
+.speed{background:var(--surface-2);border:1px solid var(--line);border-radius:8px;padding:6px 8px;
+  font:inherit;font-size:12px;color:var(--text);cursor:pointer;flex:0 0 auto}
+.speed:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+.keys{margin-top:9px;font-family:var(--mono);font-size:11px;color:var(--faint);letter-spacing:.03em}
+.keys b{color:var(--muted);font-weight:500}
 
 /* ---------- timeline + filmstrip ---------- */
 .tl{margin-top:12px}
@@ -238,7 +243,13 @@ a{color:var(--accent);text-decoration-thickness:1px;text-underline-offset:2px}
           </button>
           <div class="scrub"><input type="range" id="scrub" min="0" max="0" value="0" aria-label="Frame"></div>
           <div class="counter" id="counter">— / —</div>
+          <select class="speed" id="speed" aria-label="Playback speed">
+            <option value="900">Slow</option>
+            <option value="420" selected>Normal</option>
+            <option value="180">Fast</option>
+          </select>
         </div>
+        <p class="keys"><b>Space</b> play · <b>← →</b> step a frame · <b>click</b> the image for a spectrum</p>
         <div class="tl">
           <canvas class="tlaxis" id="tlaxis" width="1600" height="72" role="img"
             aria-label="When each visit happened, on a date axis. Click to jump to the nearest visit; the thumbnails below do the same from the keyboard."></canvas>
@@ -261,7 +272,9 @@ a{color:var(--accent);text-decoration-thickness:1px;text-underline-offset:2px}
         <p class="note" id="movingNote" style="margin-top:0"></p>
         <div class="checks">
           <label class="chk"><input type="checkbox" id="showTrack" checked> Mark its predicted position</label>
+          <label class="chk"><input type="checkbox" id="follow"> Keep it centred</label>
         </div>
+        <button class="btn" id="bodySpec" type="button">Show its infrared spectrum</button>
       </div>
 
       <div class="card">
@@ -435,6 +448,7 @@ const S = {
   black: 45, whiteT: 0.82, flatten: false, smooth: false,
   sort: "time", bands: new Set(),
   playing: false, blinkOn: false, pick: null, loading: false, loadId: 0, showTrack: true,
+  follow: false, speed: 420,
 };
 
 const $ = id => document.getElementById(id);
@@ -535,6 +549,19 @@ function stretchFn(x) {
   }
 }
 
+/* With "keep it centred" on, every frame is shifted so the body sits in the middle. The
+   stars then stream past instead of the body walking across them — the same motion seen from
+   the other side. Everything that maps a mouse position to a pixel goes through this. */
+function viewOffset(meta) {
+  if (!S.follow || !S.target || !S.target.moving || !meta || meta.mx === undefined) return {ox: 0, oy: 0};
+  return {ox: SIZE / 2 - 0.5 - meta.mx, oy: SIZE / 2 - 0.5 - meta.my};
+}
+function shownMeta() {
+  const f = S.frames[S.order[S.i]];
+  if (!f) return null;
+  return (S.mode === "blink" && S.blinkOn && S.frames[S.ref]) ? S.frames[S.ref].meta : f.meta;
+}
+
 function paint(f, other) {
   const L = LUTS[S.cmap], px = oimg.data;
   if (S.mode === "diff" && other) {
@@ -564,10 +591,11 @@ function paint(f, other) {
     }
   }
   octx.putImageData(oimg, 0, 0);
+  const k = view.width / SIZE, o = viewOffset(f.meta);
   vctx.imageSmoothingEnabled = S.smooth;
   vctx.fillStyle = "#08090C"; vctx.fillRect(0, 0, view.width, view.height);
-  vctx.drawImage(off, 0, 0, view.width, view.height);
-  if (S.pick) markPick();
+  vctx.drawImage(off, o.ox * k, o.oy * k, view.width, view.height);
+  if (S.pick && !S.pick.follow) markPick();
 }
 
 /* The body's position in each frame comes from JPL Horizons, evaluated at that exposure's
@@ -577,6 +605,16 @@ function drawTrack(meta) {
   const t = S.target;
   if (!t.moving || !S.showTrack || meta.mx === undefined) return;
   const k = view.width / SIZE;
+  if (S.follow) {                       // the body is pinned to the middle; a track would be a dot
+    const cx = (SIZE / 2) * k;
+    vctx.strokeStyle = "rgba(150,220,255,.95)"; vctx.lineWidth = 2.5;
+    vctx.beginPath(); vctx.arc(cx, cx, 9 * k / 4, 0, 6.2832); vctx.stroke();
+    vctx.font = "500 " + Math.round(13 * k / 8) + "px " +
+      getComputedStyle(document.body).getPropertyValue("--mono");
+    vctx.fillStyle = "rgba(180,230,255,.95)"; vctx.textAlign = "left";
+    vctx.fillText(t.moving, cx + 9 * k / 3, cx + 4);
+    return;
+  }
   const pts = S.order.map(n => t.frames[n]).filter(f => f.mx !== undefined);
 
   vctx.strokeStyle = "rgba(120,200,235,.45)";
@@ -605,9 +643,12 @@ function drawTrack(meta) {
 }
 
 function markPick() {
-  const k = view.width / SIZE;
+  const k = view.width / SIZE, o = viewOffset(shownMeta());
+  vctx.save();
+  vctx.translate(o.ox * k, o.oy * k);
   vctx.strokeStyle = "rgba(240,228,188,.9)"; vctx.lineWidth = 2;
   vctx.beginPath(); vctx.arc((S.pick.x + .5) * k, (S.pick.y + .5) * k, 5.5 * k, 0, 6.2832); vctx.stroke();
+  vctx.restore();
 }
 
 /* ---------- ordering / filtering ---------- */
@@ -876,7 +917,10 @@ function drawSpectrum() {
   const pts = [];
   S.order.forEach(n => {
     const f = S.frames[n]; if (!f) return;
-    const v = photometry(f, S.pick.x, S.pick.y);
+    const x = S.pick.follow ? Math.round(f.meta.mx) : S.pick.x;
+    const y = S.pick.follow ? Math.round(f.meta.my) : S.pick.y;
+    if (x === undefined || y === undefined) return;
+    const v = photometry(f, x, y);
     if (v !== null) pts.push({lam: f.meta.lam, v, det: f.meta.det, date: f.meta.date});
   });
   c.hidden = pts.length < 2; $("specEmpty").hidden = pts.length >= 2;
@@ -911,7 +955,9 @@ function drawSpectrum() {
     g.beginPath(); g.arc(X(p.lam), Y(p.v), 5, 0, 6.2832); g.fill();
     g.strokeStyle = "rgba(0,0,0,.35)"; g.lineWidth = 1.5; g.stroke();
   });
-  $("specNote").textContent = "Aperture sum minus local sky at the marked pixel, MJy/sr, "
+  $("specNote").textContent = (S.pick.follow
+      ? "Aperture sum minus local sky at " + S.target.moving + "'s own position in each frame, MJy/sr, "
+      : "Aperture sum minus local sky at the marked pixel, MJy/sr, ")
     + pts.length + " visits spanning " + inOrder[0].lam.toFixed(2) + "–"
     + inOrder[inOrder.length-1].lam.toFixed(2) + " µm.";
 }
@@ -942,7 +988,7 @@ function play() {
   S.playing = true; $("playIcon").setAttribute("d", "M4 2.5h3.2v11H4zm4.8 0H12v11H8.8z");
   $("play").setAttribute("aria-label", "Pause");
   $("hint").style.opacity = 0;
-  timer = setInterval(() => { S.i = (S.i + 1) % S.order.length; draw(); }, 420);
+  timer = setInterval(() => { S.i = (S.i + 1) % S.order.length; draw(); }, S.speed);
 }
 function stop() {
   S.playing = false; if (timer) clearInterval(timer); timer = null;
@@ -954,7 +1000,8 @@ function setMode(m) {
   [...$("mode").children].forEach(b => b.setAttribute("aria-pressed", b.dataset.mode === m ? "true" : "false"));
   if (blinkTimer) { clearInterval(blinkTimer); blinkTimer = null; }
   S.blinkOn = false;
-  if (m === "blink") blinkTimer = setInterval(() => { S.blinkOn = !S.blinkOn; draw(); }, 620);
+  if (m === "blink") blinkTimer = setInterval(() => { S.blinkOn = !S.blinkOn; draw(); },
+    Math.max(240, S.speed * 1.5));
   draw();
 }
 
@@ -980,6 +1027,8 @@ function selectTarget(k) {
   const t = IDX.targets[k], el = $("targets");
   [...el.children].forEach((x, j) => x.setAttribute("aria-pressed", j === k ? "true" : "false"));
   stop();
+  S.follow = false;
+  $("follow").checked = false;
   S.bands = bandsOf(t);
   buildBands(t);
   loadTarget(t);
@@ -1023,21 +1072,35 @@ $("scale").addEventListener("change", e => { S.scale = e.target.value; draw(); }
 $("black").addEventListener("input", e => { S.black = +e.target.value; $("blackV").textContent = S.black.toFixed(1) + "%"; draw(); });
 $("white").addEventListener("input", e => { S.whiteT = +e.target.value / 1000; $("whiteV").textContent = whitePct(S.whiteT).toFixed(2) + "%"; draw(); });
 $("showTrack").addEventListener("change", e => { S.showTrack = e.target.checked; draw(); });
+$("follow").addEventListener("change", e => { S.follow = e.target.checked; draw(); });
+$("bodySpec").addEventListener("click", () => {
+  S.pick = {follow: true};
+  $("hint").style.opacity = 0;
+  draw();
+});
+$("speed").addEventListener("change", e => {
+  S.speed = +e.target.value;
+  if (S.playing) { stop(); play(); }
+  if (S.mode === "blink") setMode("blink");
+});
 $("flatten").addEventListener("change", e => { S.flatten = e.target.checked; draw(); });
 $("smooth").addEventListener("change", e => { S.smooth = e.target.checked; draw(); });
 $("sort").addEventListener("change", e => { S.sort = e.target.value; applyOrder(); buildStrip(); draw(); });
 
+function atPointer(e) {
+  const r = view.getBoundingClientRect(), o = viewOffset(shownMeta());
+  return [Math.floor((e.clientX - r.left) / r.width * SIZE - o.ox),
+          Math.floor((e.clientY - r.top) / r.height * SIZE - o.oy)];
+}
 view.addEventListener("click", e => {
-  const r = view.getBoundingClientRect();
-  const x = Math.floor((e.clientX - r.left) / r.width * SIZE), y = Math.floor((e.clientY - r.top) / r.height * SIZE);
+  const [x, y] = atPointer(e);
   if (x < 0 || y < 0 || x >= SIZE || y >= SIZE) return;
   S.pick = {x, y};
   $("hint").style.opacity = 0;
   draw();
 });
 view.addEventListener("pointermove", e => {
-  const r = view.getBoundingClientRect();
-  const x = Math.floor((e.clientX - r.left) / r.width * SIZE), y = Math.floor((e.clientY - r.top) / r.height * SIZE);
+  const [x, y] = atPointer(e);
   if (x < 0 || y < 0 || x >= SIZE || y >= SIZE || !S.frames.length) return;
   const f = S.frames[S.order[S.i]]; if (!f) return;
   const v = f.data[y*SIZE + x];
