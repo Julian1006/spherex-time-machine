@@ -1,0 +1,31 @@
+{
+  "v": 4,
+  "createdOnFiles": { "v": 1, "at": "2026-09-24T12:00:00Z" },
+  "title": "SPHEREx Time Machine",
+  "order": ["resumen", "p1", "p2", "p3", "p4", "p5", "p6"],
+  "sections": {
+    "s1": {
+      "description": "Qué es la herramienta, en una página",
+      "start": "resumen"
+    },
+    "s2": {
+      "description": "Los seis pasos de la construcción, en lenguaje llano",
+      "start": "p1"
+    }
+  },
+  "faces": {
+    "instrument-serif": {
+      "family": "Instrument Serif",
+      "href": "https://fonts.googleapis.com/css2?family=Instrument+Serif&display=swap"
+    },
+    "ibm-plex-sans": {
+      "family": "IBM Plex Sans",
+      "href": "https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&display=swap"
+    },
+    "ibm-plex-mono": {
+      "family": "IBM Plex Mono",
+      "href": "https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&display=swap"
+    }
+  },
+  "designSystems": []
+}

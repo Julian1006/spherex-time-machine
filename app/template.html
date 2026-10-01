@@ -456,6 +456,31 @@ const octx = off.getContext("2d");
 const oimg = octx.createImageData(SIZE, SIZE);
 
 /* ---------- data loading ---------- */
+/* Served over http this fetches the .json. On file:// - a USB stick, a folder on a laptop -
+   fetch is refused by the browser, so the offline build ships .js twins that assign into
+   window.__SX and a script tag pulls them in instead. */
+function viaScript(t) {
+  window.__SX = window.__SX || {};
+  if (window.__SX[t.id]) return Promise.resolve(window.__SX[t.id]);
+  return new Promise((resolve, reject) => {
+    const s = document.createElement("script");
+    s.src = t.file.replace(/\.json$/, ".js");
+    s.onload = () => window.__SX[t.id] ? resolve(window.__SX[t.id])
+                                       : reject(new Error("no data in " + s.src));
+    s.onerror = () => reject(new Error("could not load " + s.src));
+    document.head.appendChild(s);
+  });
+}
+
+function loadFrames(t) {
+  if (location.protocol === "file:") return viaScript(t);
+  // served over http, but fall back to the .js twins so the offline bundle also works
+  // if someone happens to put it behind a server
+  return fetch(t.file)
+    .then(r => { if (!r.ok) throw new Error("HTTP " + r.status); return r.json(); })
+    .catch(() => viaScript(t));
+}
+
 async function loadTarget(t) {
   const token = ++S.loadId;          // a later click wins; stale responses are dropped
   S.loading = true;
@@ -465,9 +490,7 @@ async function loadTarget(t) {
   renderChrome();
   let u16;
   try {
-    const r = await fetch(t.file);
-    if (!r.ok) throw new Error("HTTP " + r.status);
-    const j = await r.json();
+    const j = await loadFrames(t);
     const s = atob(j.d), bytes = new Uint8Array(s.length);
     for (let i = 0; i < s.length; i++) bytes[i] = s.charCodeAt(i);
     u16 = new Uint16Array(bytes.buffer);

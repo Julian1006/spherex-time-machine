@@ -194,6 +194,23 @@ To try it locally:
 python -m http.server 8777 --directory docs
 ```
 
+## Offline bundle
+
+For a venue with no wifi, or a USB stick:
+
+```bash
+python build/make_usb.py
+```
+
+That writes `usb/SPHEREx/` with two files to double-click and no dependencies: the deck as a
+single self-contained HTML page, and the tool. Typefaces are embedded as data URIs, so the
+look survives with no network.
+
+The tool needs one change to run with no server: a `file://` page cannot use `fetch`, so the
+frame data also ships as `.js` files that assign into one global and are pulled in with a
+script tag. The page picks that path on `file://`, and falls back to it if a fetch fails, so
+the same build works from a stick, from a folder, or behind a server.
+
 ## Publishing
 
 `docs/` is a plain static directory — no backend, no build step, ~13 MB. It works on any static host.

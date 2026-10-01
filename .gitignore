@@ -14,3 +14,6 @@ __pycache__/
 
 # Packaged bundles produced for deployment
 *.zip
+
+# Offline bundle built by build/make_usb.py
+usb/
