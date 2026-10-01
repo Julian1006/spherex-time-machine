@@ -176,11 +176,31 @@ def build_deck(fonts):
                      % (len(parts), os.path.getsize(os.path.join(OUT, 'Presentacion.html')) / 1024))
 
 
-README = """SPHEREx Time Machine
+README = """
+================================================================
+                                                                
+      P A R A   A B R I R   L A   H E R R A M I E N T A         
+                                                                
+          file:///D:/SPHEREx/Herramienta.html                   
+                                                                
+                                                                
+      P A R A   L A   P R E S E N T A C I O N                   
+                                                                
+          file:///D:/SPHEREx/Presentacion.html                  
+                                                                
+================================================================
+
+Copia una de esas lineas y pegala en la barra de Chrome.
+O mas facil todavia: doble clic en el archivo y se abre solo.
+
+Si el pendrive aparece con otra letra (E:, F:...), cambia la D
+por la que te salga.
+
+
+SPHEREx Time Machine
 ====================
 
-Dos archivos para abrir. Haz doble clic y se abren en el navegador.
-No hace falta internet ni instalar nada.
+Dos archivos para abrir. No hace falta internet ni instalar nada.
 
   Presentacion.html   Las 7 diapositivas.
                       Flechas o clic para pasar. N muestra las notas.
