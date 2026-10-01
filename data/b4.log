@@ -1,0 +1,71 @@
+
+=== Sombrero Galaxy (m104) ===
+  250 usable candidates
+  week qr2/2025W22_1B -> 11019 files
+  week qr2/2025W22_2B -> 10507 files
+  week qr2/2025W52_2A -> 10702 files
+  week qr2/2026W01_1A -> 10838 files
+  week qr2/2026W01_2A -> 10942 files
+  week qr2/2026W22_2A -> 11112 files
+  week qr2/2026W23_1A -> 11069 files
+  week qr2/2026W23_2A -> 10994 files
+  week qr2/2026W24_1A -> 10848 files
+  retry 1: <urlopen error [WinError 10060] A connection attempt failed because the connected party did not properly respond after a period of time, or established connection failed because connected host has fai
+  retry 2: <urlopen error [WinError 10060] A connection attempt failed because the connected party did not properly respond after a period of time, or established connection failed because connected host has fai
+  week qr2/2026W28_1A -> 10338 files
+  resolved 89/89 S3 keys
+  -> 30 frames, 960 KB
+  saved index: 1 targets, 30 frames
+
+=== Bode's Galaxy (m81) ===
+  153 usable candidates
+  week qr2/2025W42_1A -> 10114 files
+  week qr2/2025W42_2A -> 10590 files
+  week qr2/2025W43_1A -> 10657 files
+  week qr2/2026W14_2A -> 10588 files
+  week qr2/2026W15_1A -> 10768 files
+  week qr2/2026W15_2A -> 10665 files
+  week qr2/2026W16_1A -> 10984 files
+  week qr2/2026W18_2A -> 10559 files
+  resolved 89/89 S3 keys
+  -> 30 frames, 960 KB
+  saved index: 2 targets, 60 frames
+
+=== Cigar Galaxy (m82) ===
+  138 usable candidates
+  resolved 89/89 S3 keys
+  -> 30 frames, 960 KB
+  saved index: 3 targets, 90 frames
+
+=== Triangulum Galaxy (m33) ===
+  140 usable candidates
+  week qr2/2025W30_2B -> 10888 files
+  week qr2/2025W31_1A -> 10929 files
+  week qr2/2026W03_1A -> 10642 files
+  week qr2/2026W03_2A -> 10838 files
+  week qr2/2026W04_2A -> 9714 files
+  week qr3/2026W30_2A -> 11015 files
+  week qr3/2026W31_1B -> 10982 files
+  resolved 89/89 S3 keys
+  -> 30 frames, 960 KB
+  saved index: 4 targets, 120 frames
+
+=== Centaurus A (cena) ===
+  240 usable candidates
+  week qr2/2025W31_2A -> 10730 files
+  week qr2/2026W27_2A -> 11011 files
+  week qr3/2026W31_2A -> 11117 files
+  resolved 89/89 S3 keys
+  -> 30 frames, 960 KB
+  saved index: 5 targets, 150 frames
+
+=== Small Magellanic Cloud (smc) ===
+  211 usable candidates
+  retry 1: <urlopen error [WinError 10060] A connection attempt failed because the connected party did not properly respond after a period of time, or established connection failed because connected host has fai
+  week qr2/2025W19_1B -> 10436 files
+  week qr2/2025W47_1A -> 10191 files
+  week qr2/2025W47_2A -> 10372 files
+  resolved 89/89 S3 keys
+  -> 30 frames, 960 KB
+  saved index: 6 targets, 180 frames
+  saved index: 6 targets, 180 frames

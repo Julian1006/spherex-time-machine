@@ -1,0 +1,74 @@
+
+=== Dumbbell Nebula (m27) ===
+  retry 1: <urlopen error [WinError 10060] A connection attempt failed because the connected party did not properly respond after a period of time, or established connection failed because connected host has fai
+  147 usable candidates
+  week qr2/2025W17_4B -> 10237 files
+  retry 1: <urlopen error [WinError 10060] A connection attempt failed because the connected party did not properly respond after a period of time, or established connection failed because connected host has fai
+  week qr2/2025W18_1B -> 9341 files
+  week qr2/2025W18_2B -> 10707 files
+  week qr2/2025W19_2B -> 10789 files
+  week qr2/2025W21_2C -> 10932 files
+  week qr2/2025W39_1A -> 10899 files
+  week qr2/2025W39_2A -> 11017 files
+  week qr2/2025W40_1A -> 10344 files
+  week qr2/2025W40_2B -> 9785 files
+  week qr2/2025W41_1A -> 10181 files
+  week qr2/2025W41_2B -> 10369 files
+  week qr2/2025W44_2B -> 10101 files
+  week qr2/2026W16_2A -> 11017 files
+  week qr2/2026W17_2A -> 10583 files
+  week qr2/2026W18_1A -> 10822 files
+  week qr2/2026W19_1A -> 10047 files
+  week qr2/2026W19_2A -> 9858 files
+  week qr2/2026W20_1A -> 10068 files
+  resolved 89/89 S3 keys
+  -> 30 frames, 960 KB
+  saved index: 1 targets, 30 frames
+
+=== Crab Nebula (m1) ===
+  127 usable candidates
+  week qr2/2025W38_2C -> 10619 files
+  retry 1: <urlopen error [WinError 10060] A connection attempt failed because the connected party did not properly respond after a period of time, or established connection failed because connected host has fai
+  week qr2/2026W09_1A -> 10713 files
+  retry 1: <urlopen error [WinError 10060] A connection attempt failed because the connected party did not properly respond after a period of time, or established connection failed because connected host has fai
+  week qr2/2026W10_1A -> 11083 files
+  week qr2/2026W10_2B -> 10953 files
+  week qr2/2026W11_1A -> 10887 files
+  week qr2/2026W11_2A -> 10811 files
+  resolved 89/89 S3 keys
+  -> 30 frames, 960 KB
+  saved index: 2 targets, 60 frames
+
+=== Ring Nebula (m57) ===
+  146 usable candidates
+  week qr2/2025W21_1B -> 10832 files
+  resolved 89/89 S3 keys
+  -> 30 frames, 960 KB
+  saved index: 3 targets, 90 frames
+
+=== Omega Centauri (omegacen) ===
+  174 usable candidates
+  week qr2/2025W29_1A -> 10748 files
+  retry 1: <urlopen error [WinError 10060] A connection attempt failed because the connected party did not properly respond after a period of time, or established connection failed because connected host has fai
+  week qr2/2025W29_2A -> 10376 files
+  week qr2/2026W29_2A -> 11027 files
+  resolved 89/89 S3 keys
+  -> 30 frames, 960 KB
+  saved index: 4 targets, 120 frames
+
+=== 47 Tucanae (tuc47) ===
+  222 usable candidates
+  week qr2/2025W19_1B -> 10436 files
+  week qr2/2025W47_1A -> 10191 files
+  week qr2/2025W47_2A -> 10372 files
+  resolved 89/89 S3 keys
+  -> 30 frames, 960 KB
+  saved index: 5 targets, 150 frames
+
+=== Cluster M22 (m22) ===
+  retry 1: <urlopen error [WinError 10060] A connection attempt failed because the connected party did not properly respond after a period of time, or established connection failed because connected host has fai
+  54 usable candidates
+  resolved 54/89 S3 keys
+  -> 30 frames, 960 KB
+  saved index: 6 targets, 180 frames
+  saved index: 6 targets, 180 frames

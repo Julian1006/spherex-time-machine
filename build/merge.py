@@ -35,6 +35,13 @@ def main():
     def travel(t):
         pts = [f for f in t['frames'] if 'mx' in f]
         return -((pts[-1]['mx'] - pts[0]['mx']) ** 2 + (pts[-1]['my'] - pts[0]['my']) ** 2) if pts else 0
+    # the opening set stays visible; everything added later folds behind a toggle
+    FEATURED = {'nep', 'sep', 'm42', 'm31', 'm45', '30dor', 'rhooph', 'carina', 'helix', 'm13'}
+    for t in seen.values():
+        if not t.get('moving') and t['id'] not in FEATURED:
+            t['adv'] = 1
+        else:
+            t.pop('adv', None)
     movers = sorted([t for t in seen.values() if t.get('moving')], key=travel)
     targets = movers + [seen[i] for i in ORDER if i in seen and not seen[i].get('moving')]
     missing = [i for i in ORDER if i not in seen]

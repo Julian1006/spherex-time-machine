@@ -1,0 +1,82 @@
+
+=== Cluster M3 (m3) ===
+  180 usable candidates
+  week qr2/2025W23_1C -> 9668 files
+  retry 1: <urlopen error [WinError 10060] A connection attempt failed because the connected party did not properly respond after a period of time, or established connection failed because connected host has fai
+  week qr2/2025W23_2B -> 9726 files
+  week qr2/2025W24_1A -> 10286 files
+  week qr2/2025W24_2D -> 10525 files
+  week qr2/2025W27_1A -> 10803 files
+  week qr2/2025W27_2A -> 10664 files
+  week qr2/2025W52_1A -> 10868 files
+  retry 1: <urlopen error [WinError 10060] A connection attempt failed because the connected party did not properly respond after a period of time, or established connection failed because connected host has fai
+  week qr2/2026W02_1A -> 10993 files
+  retry 1: <urlopen error [WinError 10060] A connection attempt failed because the connected party did not properly respond after a period of time, or established connection failed because connected host has fai
+  week qr2/2026W24_2B -> 11152 files
+  resolved 89/89 S3 keys
+  -> 30 frames, 960 KB
+  saved index: 1 targets, 30 frames
+
+=== Cluster M5 (m5) ===
+  243 usable candidates
+  week qr2/2025W28_2A -> 10981 files
+  week qr2/2026W05_2A -> 10330 files
+  week qr2/2026W28_2A -> 10974 files
+  week qr2/2026W29_1A -> 10994 files
+  week qr3/2026W33_2A -> 11140 files
+  resolved 89/89 S3 keys
+  -> 30 frames, 960 KB
+  saved index: 2 targets, 60 frames
+
+=== Double Cluster (doublecl) ===
+  213 usable candidates
+  week qr2/2025W32_1A -> 10838 files
+  week qr2/2025W32_2D -> 10741 files
+  week qr2/2025W33_1B -> 10546 files
+  week qr2/2025W33_2C -> 10036 files
+  week qr2/2026W02_2A -> 10600 files
+  week qr2/2026W03_1A -> 10642 files
+  week qr2/2026W03_2A -> 10838 files
+  week qr2/2026W04_1A -> 10101 files
+  week qr2/2026W04_2A -> 9714 files
+  week qr2/2026W05_1A -> 9860 files
+  week qr3/2026W32_1A -> 10591 files
+  week qr3/2026W32_2A -> 10854 files
+  week qr3/2026W33_1A -> 11052 files
+  resolved 89/89 S3 keys
+    2026W34_1A_0235_2: HTTP Error 404: Not Found
+    2026W34_1A_0400_2: HTTP Error 404: Not Found
+    2026W34_1A_0400_2: HTTP Error 404: Not Found
+    2026W34_1A_0235_2: HTTP Error 404: Not Found
+    2026W34_1A_0235_1: HTTP Error 404: Not Found
+  -> 28 frames, 896 KB
+  saved index: 3 targets, 88 frames
+
+=== Beehive Cluster (m44) ===
+  150 usable candidates
+  week qr2/2025W43_2A -> 10791 files
+  week qr2/2025W44_1A -> 10618 files
+  week qr2/2026W17_1B -> 10915 files
+  resolved 89/89 S3 keys
+  -> 30 frames, 960 KB
+  saved index: 4 targets, 118 frames
+
+=== Wild Duck Cluster (m11) ===
+  44 usable candidates
+  resolved 44/89 S3 keys
+  -> 30 frames, 960 KB
+  saved index: 5 targets, 148 frames
+
+=== Whirlpool Galaxy (m51) ===
+  161 usable candidates
+  week qr2/2025W49_1A -> 10195 files
+  week qr2/2025W49_2A -> 10305 files
+  retry 1: <urlopen error [WinError 10060] A connection attempt failed because the connected party did not properly respond after a period of time, or established connection failed because connected host has fai
+  week qr2/2025W51_1A -> 10814 files
+  week qr2/2026W21_1A -> 11095 files
+  week qr2/2026W21_2A -> 11053 files
+  week qr2/2026W22_1A -> 11189 files
+  resolved 89/89 S3 keys
+  -> 30 frames, 960 KB
+  saved index: 6 targets, 178 frames
+  saved index: 6 targets, 178 frames

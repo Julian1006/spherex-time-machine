@@ -40,7 +40,8 @@ Built against the live NASA/IPAC IRSA archive. No mock data anywhere.
 
 ## What's in the bundle
 
-368 frames across 13 targets, every one a separate SPHEREx exposure. Ten are fixed patches of
+1073 frames across 37 targets, every one a separate SPHEREx exposure. Thirteen open the page;
+the other twenty-four fold behind a toggle, and a deep link to one unfolds it.
 sky with 30 visits each; three are solar system bodies crossing a fixed field.
 
 | Target | Baseline | Wavelengths sampled | Bands |

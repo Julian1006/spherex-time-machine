@@ -1,0 +1,90 @@
+
+=== Eagle Nebula (m16) ===
+  53 usable candidates
+  retry 1: <urlopen error [WinError 10060] A connection attempt failed because the connected party did not properly respond after a period of time, or established connection failed because connected host has fai
+  week qr2/2025W34_2B -> 10611 files
+  week qr2/2025W35_1A -> 10591 files
+  week qr2/2025W35_2A -> 10473 files
+  week qr2/2025W36_1A -> 10703 files
+  week qr2/2025W36_2B -> 10322 files
+  week qr2/2026W12_2A -> 10664 files
+  week qr2/2026W13_1A -> 9855 files
+  retry 1: <urlopen error [WinError 10060] A connection attempt failed because the connected party did not properly respond after a period of time, or established connection failed because connected host has fai
+  week qr2/2026W13_2A -> 10196 files
+  week qr2/2026W14_1A -> 10623 files
+  resolved 53/89 S3 keys
+  -> 30 frames, 960 KB
+  saved index: 1 targets, 30 frames
+
+=== Omega Nebula (m17) ===
+  retry 1: <urlopen error [WinError 10060] A connection attempt failed because the connected party did not properly respond after a period of time, or established connection failed because connected host has fai
+  26 usable candidates
+  week qr2/2025W37_1A -> 10480 files
+  week qr2/2025W37_2A -> 10347 files
+  week qr2/2025W38_1A -> 10432 files
+  week qr2/2026W15_1A -> 10768 files
+  resolved 26/77 S3 keys
+  -> 26 frames, 832 KB
+  saved index: 2 targets, 56 frames
+
+=== Rosette Nebula (rosette) ===
+  127 usable candidates
+  week qr2/2025W46_1A -> 8502 files
+  resolved 89/89 S3 keys
+  -> 30 frames, 960 KB
+  saved index: 3 targets, 86 frames
+
+=== California Nebula (california) ===
+  168 usable candidates
+  week qr2/2026W08_1A -> 10819 files
+  week qr2/2026W08_2A -> 10869 files
+  week qr3/2026W34_1A -> 11032 files
+  week qr3/2026W34_2A -> 10781 files
+  resolved 89/89 S3 keys
+    2026W34_1A_0611_3: HTTP Error 404: Not Found
+    2026W34_1A_0654_3: HTTP Error 404: Not Found
+    2026W34_2A_0010_2: HTTP Error 404: Not Found
+    2026W34_2A_0202_3: HTTP Error 404: Not Found
+    2026W34_2A_0174_1: HTTP Error 404: Not Found
+    2026W34_2A_0675_1: HTTP Error 404: Not Found
+    2026W34_2A_0753_4: HTTP Error 404: Not Found
+    2026W34_2A_0753_1: HTTP Error 404: Not Found
+    2026W34_1A_0654_1: HTTP Error 404: Not Found
+    2026W34_1A_0654_3: HTTP Error 404: Not Found
+    2026W34_2A_0010_2: HTTP Error 404: Not Found
+    2026W34_2A_0174_1: HTTP Error 404: Not Found
+    2026W34_2A_0202_3: HTTP Error 404: Not Found
+    2026W34_2A_0722_1: HTTP Error 404: Not Found
+    2026W34_2A_0753_4: HTTP Error 404: Not Found
+    2026W34_2A_0753_2: HTTP Error 404: Not Found
+    2026W34_1A_0611_3: HTTP Error 404: Not Found
+    2026W34_1A_0654_2: HTTP Error 404: Not Found
+    2026W34_2A_0010_1: HTTP Error 404: Not Found
+    2026W34_2A_0010_4: HTTP Error 404: Not Found
+    2026W34_2A_0174_3: HTTP Error 404: Not Found
+    2026W34_2A_0675_1: HTTP Error 404: Not Found
+    2026W34_2A_0753_1: HTTP Error 404: Not Found
+  -> 22 frames, 704 KB
+  saved index: 4 targets, 108 frames
+
+=== Horsehead Nebula (horsehead) ===
+  116 usable candidates
+  week qr2/2026W12_1A -> 10851 files
+  resolved 89/89 S3 keys
+  -> 30 frames, 960 KB
+  saved index: 5 targets, 138 frames
+
+=== Cat's Eye Nebula (catseye) ===
+  21115 usable candidates
+  week qr2/2025W20_1C -> 11082 files
+  week qr2/2025W34_1B -> 10659 files
+  week qr2/2025W45_1A -> 10483 files
+  week qr2/2025W50_1A -> 10377 files
+  week qr2/2026W20_2A -> 11139 files
+  week qr3/2026W30_1B -> 10906 files
+  resolved 89/89 S3 keys
+    2026W34_2A_0741_4: HTTP Error 404: Not Found
+    2026W34_2A_0741_4: HTTP Error 404: Not Found
+  -> 29 frames, 928 KB
+  saved index: 6 targets, 167 frames
+  saved index: 6 targets, 167 frames
