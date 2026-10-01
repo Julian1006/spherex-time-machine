@@ -48,9 +48,16 @@ def strip_font_links(html):
     return html
 
 
+def strip_pwa(html):
+    """The offline copy runs from file://, where none of this can work."""
+    html = re.sub(r'<link rel="manifest"[^>]*>\s*', '', html)
+    html = re.sub(r'<script>\s*/\* A service worker only registers.*?</script>\s*', '', html, flags=re.S)
+    return html
+
+
 def build_tool(fonts):
     page = io.open('docs/index.html', encoding='utf-8').read()
-    page = strip_font_links(page)
+    page = strip_pwa(strip_font_links(page))
     page = page.replace('<title>', fonts + '\n<title>', 1)
     page = page.replace('"file":"frames_', '"file":"datos/frames_')
     io.open(os.path.join(OUT, 'Herramienta.html'), 'w', encoding='utf-8').write(page)

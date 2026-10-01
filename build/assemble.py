@@ -12,6 +12,8 @@ serve only standard web media types, and base64-in-JSON round-trips the float16 
 unlike packing them into an image and reading them back off a canvas.
 """
 import sys, os, json, base64
+sys.path.insert(0, 'build')
+import pwa
 
 SRC_TPL = 'app/template.html'
 SITE_DIR = 'docs'
@@ -32,7 +34,9 @@ def main(index_path):
 
     os.makedirs(SITE_DIR, exist_ok=True)
     os.makedirs(ART_DIR, exist_ok=True)
-    open(os.path.join(SITE_DIR, 'index.html'), 'w', encoding='utf-8').write(META + html)
+    # only the site build is installable: a service worker needs https or localhost
+    site, version = pwa.install(SITE_DIR, META + html)
+    open(os.path.join(SITE_DIR, 'index.html'), 'w', encoding='utf-8').write(site)
     open(os.path.join(ART_DIR, 'index.html'), 'w', encoding='utf-8').write(html)
 
     data = 0
@@ -43,8 +47,8 @@ def main(index_path):
                   open(dst, 'w'), separators=(',', ':'))
         data += os.path.getsize(dst)
 
-    print("%-28s %7.1f KB   (static site, with meta tags)"
-          % ('docs/index.html', os.path.getsize(os.path.join(SITE_DIR, 'index.html')) / 1024))
+    print("%-28s %7.1f KB   (static site, installable, cache %s)"
+          % ('docs/index.html', os.path.getsize(os.path.join(SITE_DIR, 'index.html')) / 1024, version))
     print("%-28s %7.1f KB   (artifact build)"
           % ('app/dist/index.html', os.path.getsize(os.path.join(ART_DIR, 'index.html')) / 1024))
     print("%-28s %7.1f MB   (%d targets, %d frames)"

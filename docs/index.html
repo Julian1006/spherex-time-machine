@@ -1,3 +1,7 @@
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#0E0D0C">
+<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="icon" type="image/png" href="icon-192.png">
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>SPHEREx Time Machine</title>
@@ -1174,4 +1178,15 @@ addEventListener("hashchange", () => {
   if (k >= 0 && IDX.targets[k] !== S.target) selectTarget(k);
 });
 addEventListener("resize", () => { if (S.target) { drawTimeline(); drawSky(); } });
+</script>
+
+<script>
+/* A service worker only registers on a secure origin, so this quietly does nothing when the
+   page is opened from a file. */
+if ("serviceWorker" in navigator &&
+    (location.protocol === "https:" || location.hostname === "localhost")) {
+  addEventListener("load", function () {
+    navigator.serviceWorker.register("sw.js").catch(function () {});
+  });
+}
 </script>

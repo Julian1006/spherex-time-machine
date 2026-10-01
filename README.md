@@ -194,6 +194,20 @@ To try it locally:
 python -m http.server 8777 --directory docs
 ```
 
+## Installing it as an app
+
+The web build is a progressive web app: deployed over https (or opened on localhost), Chrome
+and Edge offer **Install** in the address bar, and it gets its own icon and window. A service
+worker caches the shell on install and each target's frames the first time it is opened, so
+after one visit it runs with the network off.
+
+`build/pwa.py` writes `manifest.webmanifest` and `sw.js` into `docs/` and wires them into that
+build only. The artifact build never sees them, and `make_usb.py` strips them from the offline
+copy: a service worker cannot register on `file://`, and an app cannot be installed from one.
+
+`build/icons.py` draws the icons - a warm infrared source with the track of something that
+moved running into it.
+
 ## Offline bundle
 
 For a venue with no wifi, or a USB stick:
