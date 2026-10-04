@@ -35,9 +35,10 @@ people who want it without shutting anyone else out. Open panels survive the red
 does on every frame.
 
 
-The page carries its own provenance. A section at the end states what the data is, where it came
-from and how each frame was made, with the figures computed from the index so they cannot drift,
-and the table of checks below alongside their results.
+The page carries its own provenance. A section at the end states what the data is, with the
+figures computed from the index so they cannot drift, followed by a six-step walkthrough of how a
+frame is made: each step opens to a plain sentence, the technical detail underneath, and the check
+that backs that step up, so the evidence sits with the claim rather than in a table further down.
 
 The frame panel also links to the exact file the frame was cut from, at
 `irsa.ipac.caltech.edu/ibe/data/spherex/...`, and the link follows the frame on screen. Anyone
