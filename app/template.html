@@ -208,30 +208,6 @@ select:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
   padding:1px 4px;border-radius:4px;overflow-wrap:anywhere}
 a{color:var(--accent);text-decoration-thickness:1px;text-underline-offset:2px}
 .lede{color:var(--muted);font-size:14.5px;max-width:70ch;margin:0 0 20px}
-.walk{list-style:none;padding:0;margin:0 0 22px;counter-reset:w;border-top:1px solid var(--line-soft)}
-.walk li{counter-increment:w;border-bottom:1px solid var(--line-soft)}
-.walk .wbtn{width:100%;display:flex;align-items:center;gap:13px;background:none;border:0;
-  padding:14px 4px;text-align:left;cursor:pointer;color:var(--text);font-size:15px;font-weight:600}
-.walk .wbtn:hover{color:var(--accent)}
-.walk .wbtn:focus-visible{outline:2px solid var(--accent);outline-offset:-2px}
-.walk .wbtn::before{content:counter(w);flex:0 0 26px;height:26px;border-radius:50%;
-  background:var(--surface-2);border:1px solid var(--line);font-family:var(--mono);font-size:11px;
-  font-weight:400;display:grid;place-items:center;color:var(--muted)}
-.walk .wbtn[aria-expanded="true"]::before{background:var(--accent);border-color:var(--accent);
-  color:var(--accent-ink)}
-.walk .wbtn i{margin-left:auto;font-style:normal;font-family:var(--mono);font-size:16px;
-  color:var(--faint);line-height:1}
-.walk .wbody{padding:0 4px 18px 39px}
-.walk .wplain{margin:0 0 12px;color:var(--text);font-size:14.5px;line-height:1.5;max-width:66ch}
-.walk .wtech{margin:0;color:var(--muted);font-size:13px;line-height:1.5;max-width:70ch}
-.walk .wcheck{margin:12px 0 0;display:flex;gap:9px;align-items:flex-start;font-size:12.5px;
-  color:var(--muted);background:var(--surface-2);border-left:2px solid #7EC8E3;padding:9px 12px;
-  border-radius:0 6px 6px 0;max-width:70ch}
-.walk .wcheck b{color:var(--text);font-weight:600;white-space:nowrap}
-.walkall{background:none;border:0;padding:0;font-family:var(--mono);font-size:11px;
-  letter-spacing:.08em;text-transform:uppercase;color:var(--muted);cursor:pointer;
-  border-bottom:1px dashed var(--line);margin-bottom:14px}
-.walkall:hover{color:var(--accent);border-bottom-color:var(--accent)}
 
 /* six facts, so the column count has to divide six or one is left stranded in its own row */
 .facts{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;
@@ -475,19 +451,9 @@ a{color:var(--accent);text-decoration-thickness:1px;text-underline-offset:2px}
 
     <dl class="facts" id="facts"></dl>
 
-    <button class="walkall" id="walkAll" type="button">Open all steps</button>
-    <ul class="walk" id="walk">
-<li><button class="wbtn" type="button" aria-expanded="true" aria-controls="w0">Find where the photos are<i aria-hidden="true">+</i></button><div class="wbody" id="w0"><p class="wplain">NASA keeps a catalogue of everything SPHEREx has ever photographed. You ask it about one point in the sky and it tells you which images contain it.</p><p class="wtech">An ADQL query against the <code>spherex.obscore</code> table, 1.4 million observations. Each one is resolved to its file in the archive through <code>spherex.artifact</code>, because the pipeline version in the path changes even within a single week.</p></div></li>
-<li><button class="wbtn" type="button" aria-expanded="false" aria-controls="w1">Download only what is needed<i aria-hidden="true">+</i></button><div class="wbody" id="w1" hidden><p class="wplain">Each image weighs 71 MB and I only wanted a small square out of the middle. So instead of downloading the whole thing, I asked for exactly the bytes covering that patch — like tearing one page out instead of carrying the book.</p><p class="wtech">The science image is an uncompressed float array at a known offset, so the rows covering the target can be requested with an HTTP range header against the public S3 mirror. About 1.3 MB per frame.</p><p class="wcheck"><b>Checked:</b> <span>A cutout read this way is <b>bit-identical</b> to reading the whole 71 MB file.</span></p></div></li>
-<li><button class="wbtn" type="button" aria-expanded="false" aria-controls="w2">Straighten them out<i aria-hidden="true">+</i></button><div class="wbody" id="w2" hidden><p class="wplain">The telescope returns to the same spot, but rotated. Leave that uncorrected and the stars dance from frame to frame, and you cannot tell what actually moved.</p><p class="wtech">Every frame is resampled onto one shared tangent plane — north up, east left, at the native 6.15″ pixel scale — using the full <code>TAN‑SIP</code> astrometric solution carried in its own header.</p><p class="wcheck"><b>Checked:</b> <span>Two separate epochs cross-correlate to a <b>0 px offset</b>, and the affine shortcut the page uses stays within <b>0.03 px</b> of the full solution.</span></p></div></li>
-<li><button class="wbtn" type="button" aria-expanded="false" aria-controls="w3">Work out each photo's colour<i aria-hidden="true">+</i></button><div class="wbody" id="w3" hidden><p class="wplain">SPHEREx has no colour filters. Which colour a pixel records depends on where the source happens to land on the detector — so every visit to the same star samples a different one.</p><p class="wtech">A <code>WCS‑WAVE</code> lookup grid inside each file gives the wavelength at any pixel. Its dimensions differ per detector, from 9×9 to 13×20, which is where an early version of this went wrong and returned 0.05 µm for an instrument that starts at 0.75.</p><p class="wcheck"><b>Checked:</b> <span>Every interpolated wavelength falls inside the band limits IRSA publishes, and the implied resolving power comes out at <b>R ≈ 34–125</b>, matching the instrument design.</span></p></div></li>
-<li><button class="wbtn" type="button" aria-expanded="false" aria-controls="w4">Check I did not make it up<i aria-hidden="true">+</i></button><div class="wbody" id="w4" hidden><p class="wplain">I measured one star's brightness across all thirty visits. The visits that happen to land on the same colour, months apart, give the same number back.</p><p class="wtech">Quick-look aperture photometry, sky subtracted from an annulus. The resulting spectrum is a smooth stellar curve peaking near 1.4 µm, which is what a star should do.</p><p class="wcheck"><b>Checked:</b> <span>Repeat visits at the same wavelength, months apart, <b>agree to about 1%</b>. That only happens if the straightening, the wavelength lookup and the photometry are all right at once.</span></p></div></li>
-<li><button class="wbtn" type="button" aria-expanded="false" aria-controls="w5">Look for something that moves<i aria-hidden="true">+</i></button><div class="wbody" id="w5" hidden><p class="wplain">Then I asked JPL where Vesta, Neptune and Uranus were at each moment, and went to see whether anything was sitting at those coordinates. Something was.</p><p class="wtech">Positions come from JPL Horizons evaluated at each exposure's own timestamp and projected onto the cutout grid. Nothing is fitted to the pixels, so the marker landing on a source is a test rather than a decoration.</p><p class="wcheck"><b>Checked:</b> <span><b>65 of 68</b> frames show a source above 8σ exactly where the ephemeris puts it, against <b>0.1–0.8σ</b> at a mirrored control position in the same frames.</span></p></div></li>
-</ul>
-
-    <p class="note" style="margin-top:4px">The last two steps are the ones that matter. Independent
-      visits only agree at the percent level, and a planet only lands on an ephemeris prediction, if the
-      straightening, the wavelength lookup and the photometry are all correct at the same time.
+    <p class="note" style="margin-top:4px">Every frame keeps the brightness the pipeline measured, in
+      MJy/sr. Nothing is stacked, rescaled or retouched, and the panel on each frame links to the file it
+      was cut from so any of it can be checked against the source.
       <span id="prov"></span> Data: NASA/JPL‑Caltech/IPAC.</p>
   </section>
 </div>
@@ -1390,27 +1356,5 @@ function buildGuide() {
 }
 buildGuide();
 
-
-/* The walkthrough: one step open to start, so the page is not a stack of closed lids. */
-(function () {
-  const walk = document.getElementById("walk");
-  if (!walk) return;
-  const btns = [...walk.querySelectorAll(".wbtn")];
-  const setOpen = (b, open) => {
-    b.setAttribute("aria-expanded", open);
-    b.querySelector("i").textContent = open ? "\u2212" : "+";
-    document.getElementById(b.getAttribute("aria-controls")).hidden = !open;
-  };
-  btns.forEach(b => {
-    setOpen(b, b.getAttribute("aria-expanded") === "true");
-    b.onclick = () => setOpen(b, b.getAttribute("aria-expanded") !== "true");
-  });
-  const all = document.getElementById("walkAll");
-  all.onclick = () => {
-    const open = btns.some(b => b.getAttribute("aria-expanded") !== "true");
-    btns.forEach(b => setOpen(b, open));
-    all.textContent = open ? "Close all steps" : "Open all steps";
-  };
-})();
 
 </script>

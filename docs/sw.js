@@ -1,7 +1,7 @@
 /* Cache-first for everything this app owns, so it keeps working with no network.
    Frame data is cached the first time a target is opened rather than all at once: the
    full set is 16 MB and most people look at two or three. */
-const VERSION = "sx-4692a5d605";
+const VERSION = "sx-644c6fc630";
 const SHELL = ["./", "./index.html", "./manifest.webmanifest", "./icon-192.png", "./icon-512.png"];
 const FONT_HOSTS = ["fonts.googleapis.com", "fonts.gstatic.com"];
 
