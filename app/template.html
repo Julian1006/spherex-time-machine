@@ -143,15 +143,6 @@ input[type=range]{width:100%;accent-color:var(--accent);height:22px}
 .kv dt{color:var(--muted)}
 .kv dd{margin:0;font-family:var(--mono);font-size:12px;text-align:right;overflow-wrap:anywhere;
   font-variant-numeric:tabular-nums}
-.kv dt button{background:none;border:0;padding:0;font:inherit;color:inherit;text-align:left;
-  cursor:pointer;border-bottom:1px dotted var(--line)}
-.kv dt button:hover{color:var(--accent);border-bottom-color:var(--accent)}
-.kv dt button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
-.kv dt button[aria-expanded="true"]{color:var(--accent);border-bottom-color:var(--accent)}
-.kv dd.help{grid-column:1/-1;font-family:var(--sans);font-size:12px;text-align:left;
-  color:var(--muted);line-height:1.45;background:var(--surface-2);border-left:2px solid var(--accent);
-  padding:8px 11px;border-radius:0 6px 6px 0;margin:3px 0 5px}
-.kvhint{margin-top:11px;font-size:11.5px;color:var(--faint);line-height:1.4}
 .qmark{margin-left:7px;width:16px;height:16px;border-radius:50%;border:1px solid var(--line);
   background:var(--surface-2);color:var(--muted);font-family:var(--mono);font-size:10px;line-height:1;
   cursor:pointer;padding:0;display:inline-grid;place-items:center;vertical-align:middle;flex:0 0 auto}
@@ -333,7 +324,6 @@ a{color:var(--accent);text-decoration-thickness:1px;text-underline-offset:2px}
       <div class="card">
         <h3>This frame</h3>
         <dl class="kv" id="meta"></dl>
-        <p class="kvhint">Tap any label to see what it means.</p>
       </div>
 
       <div class="card" id="compareCard">
@@ -597,7 +587,7 @@ const S = {
   black: 45, whiteT: 0.82, flatten: false, smooth: false,
   sort: "time", bands: new Set(),
   playing: false, blinkOn: false, pick: null, loading: false, loadId: 0, showTrack: true,
-  follow: false, speed: 420, helpOpen: new Set(),
+  follow: false, speed: 420,
 };
 
 const $ = id => document.getElementById(id);
@@ -900,43 +890,8 @@ function renderMeta(m, isRef, refMeta) {
         + m.key + '" target="_blank" rel="noopener">open at IRSA</a>') : "")
     + (m.au ? row("Distance", m.au.toFixed(2) + " AU") : "")
     + (m.bad ? row("Flagged pixels", m.bad + " of " + NPIX) : "");
-  bindHelp();
 }
-/* Written for someone who has never opened an astronomy tool before. Each one answers the
-   question the label raises, in one or two sentences, without sending anyone elsewhere. */
-const HELP = {
-  "Observed": "The day this exposure was taken. SPHEREx comes back to most of the sky a few times a year, which is what makes a time-lapse possible at all.",
-  "MJD": "Modified Julian Date — a plain running count of days, so two dates can be subtracted without calendar arithmetic. Day zero was 17 November 1858.",
-  "Wavelength": "The exact colour of infrared light this frame recorded, in microns. The reddest light your eye can see is about 0.7; everything here is past that.",
-  "Bandwidth": "How wide a slice of colour the frame covers. R is the resolving power — the wavelength divided by that width. Higher R means a narrower, more precise slice.",
-  "Detector": "Which of SPHEREx's six detector arrays caught the target, and the range of colours that array covers. Each one sees a different part of the infrared.",
-  "Exposure": "SPHEREx's own name for this exposure: the year, the week of the survey, which segment of it, and the number within that segment.",
-  "Release": "Which public data release this came from. \u201cdeep\u201d marks a pointing at one of the two deep fields, which get revisited far more often than the rest of the sky.",
-  "Source file": "Opens the original file this cutout was taken from, in NASA\u2019s public archive. It is a 71 MB FITS image; only the few hundred kilobytes around the target were ever downloaded.",
-  "Distance": "How far the body was from Earth at that moment, in astronomical units. One unit is the distance from the Earth to the Sun, about 150 million km.",
-  "Flagged pixels": "Pixels the pipeline marked unusable — saturated by a bright source, struck by a cosmic ray, or simply dead. They appear as dark specks, and nothing is invented to fill them in."
-};
-
-function row(k, v) {
-  const h = HELP[k];
-  if (!h) return "<dt>" + k + "</dt><dd>" + v + "</dd>";
-  const id = "h-" + k.replace(/\W+/g, "");
-  const open = S.helpOpen.has(k);
-  return '<dt><button type="button" data-k="' + k + '" aria-expanded="' + open + '" aria-controls="'
-    + id + '">' + k + "</button></dt><dd>" + v + "</dd>"
-    + '<dd class="help" id="' + id + '"' + (open ? "" : " hidden") + ">" + h + "</dd>";
-}
-function bindHelp() {
-  $("meta").querySelectorAll("button[data-k]").forEach(b => {
-    b.onclick = () => {
-      const k = b.dataset.k, open = !S.helpOpen.has(k);
-      open ? S.helpOpen.add(k) : S.helpOpen.delete(k);
-      b.setAttribute("aria-expanded", open);
-      const el = document.getElementById(b.getAttribute("aria-controls"));
-      if (el) el.hidden = !open;
-    };
-  });
-}
+const row = (k, v) => "<dt>" + k + "</dt><dd>" + v + "</dd>";
 
 function fmtDate(iso) {
   const [y, mo, d] = iso.split("-");

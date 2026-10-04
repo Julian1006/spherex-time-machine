@@ -29,12 +29,12 @@ Built against the live NASA/IPAC IRSA archive. No mock data anywhere.
 
 ## Provenance on the page
 
-Everything on the page explains itself, with one gesture throughout. Every label in the frame
-panel is a button that opens a plain sentence — MJD, resolving power, what a band number means,
-what a flagged pixel is — and those survive the redraw the panel does on every frame. Beside each
-card heading and each control label sits a small ?, which does the same for the all-sky map, the
-three compare modes, the spectrum, and every display and filtering control: what a black point
+A small ? beside each card heading and control label opens a plain sentence: the all-sky map, the
+three compare modes, the spectrum, and every display and filtering control — what a black point
 actually does, why asinh rather than linear, what switching a band off is for.
+
+The frame panel itself stays plain. Its ten lines are explained in full by the glossary table at
+the end of the page, so repeating that inside the panel only crowded it.
 
 The jargon stays for people who want it, without shutting anyone else out.
 
