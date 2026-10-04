@@ -38,8 +38,7 @@ the end of the page, so repeating that inside the panel only crowded it.
 
 The jargon stays for people who want it, without shutting anyone else out.
 
-Two sections at the end walk the panels — reading a frame, and the controls — answering what a ?
-cannot: what each panel is for, which parts are worth attention, and how to use them together.
+A section at the end lays the frame panel's ten lines out as a table, label facing meaning.
 
 
 The page carries its own provenance. A section at the end states what the data is, with the
