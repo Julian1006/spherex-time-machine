@@ -158,6 +158,17 @@ input[type=range]{width:100%;accent-color:var(--accent);height:22px}
   color:var(--muted);line-height:1.45;background:var(--surface-2);border-left:2px solid var(--accent);
   padding:8px 11px;border-radius:0 6px 6px 0;margin:3px 0 5px}
 .kvhint{margin-top:11px;font-size:11.5px;color:var(--faint);line-height:1.4}
+.qmark{margin-left:7px;width:16px;height:16px;border-radius:50%;border:1px solid var(--line);
+  background:var(--surface-2);color:var(--muted);font-family:var(--mono);font-size:10px;line-height:1;
+  cursor:pointer;padding:0;display:inline-grid;place-items:center;vertical-align:middle;flex:0 0 auto}
+.qmark:hover{border-color:var(--accent);color:var(--accent)}
+.qmark:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.qmark[aria-expanded="true"]{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.ghelp{font-size:12px;line-height:1.45;color:var(--muted);background:var(--surface-2);
+  border-left:2px solid var(--accent);padding:9px 11px;border-radius:0 6px 6px 0;margin:9px 0 0}
+.field label{justify-content:flex-start}
+.field label b{margin-left:auto}
+
 .seg{display:flex;gap:0;border:1px solid var(--line);border-radius:8px;overflow:hidden}
 .seg button{flex:1;background:var(--surface-2);border:0;border-right:1px solid var(--line);padding:7px 4px;
   font-size:11.5px;cursor:pointer;color:var(--muted);transition:background .12s,color .12s}
@@ -324,7 +335,7 @@ a{color:var(--accent);text-decoration-thickness:1px;text-underline-offset:2px}
     </div>
 
     <div class="panel">
-      <div class="card">
+      <div class="card" id="skyCard">
         <h3>Where you are looking</h3>
         <canvas id="sky" width="620" height="310" role="img"
           aria-label="All-sky map with the ecliptic marked, showing where each target sits. Click a marker to jump there; the target buttons above do the same from the keyboard."></canvas>
@@ -348,7 +359,7 @@ a{color:var(--accent);text-decoration-thickness:1px;text-underline-offset:2px}
         <p class="kvhint">Tap any label to see what it means.</p>
       </div>
 
-      <div class="card">
+      <div class="card" id="compareCard">
         <h3>Compare</h3>
         <div class="seg" id="mode" role="group" aria-label="Comparison mode">
           <button type="button" data-mode="single" aria-pressed="true">Single</button>
@@ -360,7 +371,7 @@ a{color:var(--accent);text-decoration-thickness:1px;text-underline-offset:2px}
           subtracts them, so only what changed stays visible.</p>
       </div>
 
-      <div class="card">
+      <div class="card" id="specCard">
         <h3>Spectrum at cursor</h3>
         <canvas id="spec" width="600" height="264" hidden></canvas>
         <p class="specempty" id="specEmpty">Click a star or galaxy in the image. Every visit samples a different
@@ -368,7 +379,7 @@ a{color:var(--accent);text-decoration-thickness:1px;text-underline-offset:2px}
         <p class="note" id="specNote" hidden></p>
       </div>
 
-      <div class="card">
+      <div class="card" id="displayCard">
         <h3>Display</h3>
         <div class="field">
           <label for="cmap">Colour map</label>
@@ -404,7 +415,7 @@ a{color:var(--accent);text-decoration-thickness:1px;text-underline-offset:2px}
           that gradient so faint sources stand out.</p>
       </div>
 
-      <div class="card">
+      <div class="card" id="framesCard">
         <h3>Frames shown</h3>
         <div class="field" style="margin-top:0">
           <label for="sort">Order by</label>
@@ -414,7 +425,7 @@ a{color:var(--accent);text-decoration-thickness:1px;text-underline-offset:2px}
           </select>
         </div>
         <div class="field">
-          <label>Infrared band</label>
+          <label id="bandLabel">Infrared band</label>
           <div class="bandsel" id="bands"></div>
         </div>
         <p class="note" id="bandNote"></p>
@@ -1348,6 +1359,43 @@ addEventListener("hashchange", () => {
   if (k >= 0 && IDX.targets[k] !== S.target) selectTarget(k);
 });
 addEventListener("resize", () => { if (S.target) { drawTimeline(); drawSky(); } });
+
+/* One gesture for the whole page: a ? beside a heading or a label opens a sentence under it.
+   Built from a table rather than written into the markup, so the controls stay readable. */
+const GUIDE = [["#skyCard h3", "g-sky", "The whole sky squashed onto an oval, the way a world map flattens the globe. Each grey dot is one of the patches this tool holds; the orange one is where you are now. The curved line is the ecliptic \\u2014 the path the Sun traces across the year. SPHEREx sweeps along it, which is why its two deep fields sit at either end. Click any dot to jump there."], ["#compareCard h3", "g-compare", "Three ways of looking at the same patch. Single shows one frame at a time. Blink flips back and forth between the frame you pinned as reference and the current one, and your eye catches whatever shifts. Difference subtracts the two, so everything unchanged goes flat and only what moved or brightened is left."], ["#specCard h3", "g-spec", "Click any star or galaxy in the image and this plots its brightness against colour. It works because SPHEREx records a different wavelength on every visit, so thirty visits to one star become thirty points of a spectrum."], ["#displayCard h3", "g-display", "These change how the numbers are turned into something you can see. They never change the data: every frame keeps the brightness actually measured, and you are only choosing where to put black, where to put white, and what colours to stretch in between."], ["#framesCard h3", "g-frames", "Which visits appear, and in what order."], ["label[for=cmap]", "g-cmap", "Just the palette used to paint the numbers. Ember is warm, like the infrared it stands for. Greyscale is the most honest for judging brightness by eye. The others make different features easier to pick out."], ["label[for=scale]", "g-scale", "How brightness gets compressed to fit a screen. Space is mostly very faint things next to a few blinding ones, so a straight linear scale wastes almost all of its range. Asinh squashes the bright end and lets the faint end breathe \\u2014 usually the one to leave alone."], ["label[for=black]", "g-black", "Anything dimmer than this is painted pure black. Raise it to clean background noise out of the picture, lower it to dig faint things out of the murk."], ["label[for=white]", "g-white", "Anything brighter than this is painted pure white. Lower it to make faint things jump out, raise it to keep detail inside bright cores instead of burning them flat."], ["label[for=sort]", "g-sort", "By date you get a time-lapse, which is what the tool is for. By wavelength the same frames are reordered from blue to red, so you watch the patch change colour instead of change over time."], ["#bandLabel", "g-band", "SPHEREx carries six detectors, each covering its own stretch of infrared. Switching some off keeps only visits of a similar colour, which makes brightness comparable from one frame to the next."]];
+
+function buildGuide() {
+  GUIDE.forEach(g => {
+    const host = document.querySelector(g[0]);
+    if (!host || host.querySelector(".qmark")) return;
+    const b = document.createElement("button");
+    b.type = "button";
+    b.className = "qmark";
+    b.textContent = "?";
+    b.setAttribute("aria-expanded", "false");
+    b.setAttribute("aria-controls", g[1]);
+    b.setAttribute("aria-label", "What is this?");
+    host.appendChild(b);
+
+    const p = document.createElement("p");
+    p.className = "ghelp";
+    p.id = g[1];
+    p.hidden = true;
+    p.textContent = g[2];
+    const field = host.closest(".field");
+    if (field) field.appendChild(p);
+    else host.parentNode.insertBefore(p, host.nextSibling);
+
+    b.onclick = e => {
+      e.preventDefault();
+      const open = b.getAttribute("aria-expanded") !== "true";
+      b.setAttribute("aria-expanded", open);
+      p.hidden = !open;
+    };
+  });
+}
+buildGuide();
+
 
 /* The walkthrough: one step open to start, so the page is not a stack of closed lids. */
 (function () {

@@ -29,10 +29,14 @@ Built against the live NASA/IPAC IRSA archive. No mock data anywhere.
 
 ## Provenance on the page
 
-Every label in the frame panel is a button that opens a plain sentence explaining the term —
-MJD, resolving power, what a band number means, what a flagged pixel is. The jargon stays for
-people who want it without shutting anyone else out. Open panels survive the redraw the panel
-does on every frame.
+Everything on the page explains itself, with one gesture throughout. Every label in the frame
+panel is a button that opens a plain sentence — MJD, resolving power, what a band number means,
+what a flagged pixel is — and those survive the redraw the panel does on every frame. Beside each
+card heading and each control label sits a small ?, which does the same for the all-sky map, the
+three compare modes, the spectrum, and every display and filtering control: what a black point
+actually does, why asinh rather than linear, what switching a band off is for.
+
+The jargon stays for people who want it, without shutting anyone else out.
 
 
 The page carries its own provenance. A section at the end states what the data is, with the
