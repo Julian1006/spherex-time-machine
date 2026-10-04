@@ -38,9 +38,8 @@ the end of the page, so repeating that inside the panel only crowded it.
 
 The jargon stays for people who want it, without shutting anyone else out.
 
-Three sections at the end then walk the panels in reading order — reading a frame, finding your
-way around the sky, and the controls — answering what a ? cannot: what each panel is for, which
-parts are worth attention, and how to use them together.
+Two sections at the end walk the panels — reading a frame, and the controls — answering what a ?
+cannot: what each panel is for, which parts are worth attention, and how to use them together.
 
 
 The page carries its own provenance. A section at the end states what the data is, with the
