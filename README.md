@@ -27,6 +27,16 @@ Built against the live NASA/IPAC IRSA archive. No mock data anywhere.
   frame, so a planet's infrared spectrum falls out of the survey's repeat visits.
 - Playback speed, and keyboard control (space, arrow keys).
 
+## Provenance on the page
+
+The page carries its own provenance. A section at the end states what the data is, where it came
+from and how each frame was made, with the figures computed from the index so they cannot drift,
+and the table of checks below alongside their results.
+
+The frame panel also links to the exact file the frame was cut from, at
+`irsa.ipac.caltech.edu/ibe/data/spherex/...`, and the link follows the frame on screen. Anyone
+can click through from a pixel on the page to the original 71 MB exposure in NASA's archive.
+
 ## The data
 
 | | |

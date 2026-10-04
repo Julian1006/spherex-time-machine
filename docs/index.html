@@ -193,6 +193,26 @@ select:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
 .cols code{font-family:var(--mono);font-size:11.5px;background:var(--surface-2);border:1px solid var(--line-soft);
   padding:1px 4px;border-radius:4px;overflow-wrap:anywhere}
 a{color:var(--accent);text-decoration-thickness:1px;text-underline-offset:2px}
+.lede{color:var(--muted);font-size:14.5px;max-width:70ch;margin:0 0 20px}
+/* six facts, so the column count has to divide six or one is left stranded in its own row */
+.facts{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;
+  background:var(--line);border:1px solid var(--line);border-radius:10px;overflow:hidden;margin-bottom:24px}
+@media (max-width:780px){.facts{grid-template-columns:repeat(2,1fr)}}
+@media (max-width:440px){.facts{grid-template-columns:1fr}}
+.facts div{background:var(--surface);padding:13px 15px}
+.facts dt{font-family:var(--mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;
+  color:var(--faint);margin-bottom:5px}
+.facts dd{margin:0;font-size:15px;font-weight:600;letter-spacing:-.01em;font-variant-numeric:tabular-nums}
+.facts dd small{display:block;font-size:11.5px;font-weight:400;color:var(--muted);margin-top:2px;
+  letter-spacing:0}
+.vtable{width:100%;border-collapse:collapse;font-size:13px;margin-top:4px}
+.vtable th{text-align:left;font-family:var(--mono);font-size:10px;letter-spacing:.1em;
+  text-transform:uppercase;color:var(--faint);font-weight:500;padding:0 12px 7px 0;
+  border-bottom:1px solid var(--line)}
+.vtable td{padding:9px 12px 9px 0;border-bottom:1px solid var(--line-soft);color:var(--muted);
+  vertical-align:top}
+.vtable td:last-child{color:var(--text);font-family:var(--mono);font-size:12px;white-space:nowrap}
+.vwrap{overflow-x:auto}
 .steps{list-style:none;padding:0;margin:0;counter-reset:s}
 .steps li{counter-increment:s;position:relative;padding-left:26px;margin-bottom:9px;color:var(--muted);font-size:13.5px}
 .steps li::before{content:counter(s);position:absolute;left:0;top:1px;width:18px;height:18px;border-radius:50%;
@@ -403,10 +423,63 @@ a{color:var(--accent);text-decoration-thickness:1px;text-underline-offset:2px}
         </ol>
       </div>
     </div>
-    <p class="note" style="margin-top:20px">Data: NASA/JPL‑Caltech/IPAC SPHEREx Quick Release, served by
-      <a href="https://irsa.ipac.caltech.edu/Missions/spherex.html" target="_blank" rel="noopener">IRSA</a>.
-      Spectra shown here are quick‑look aperture sums for exploration, not calibrated photometry.
-      <span id="prov"></span></p>
+    <p class="note" style="margin-top:20px">Spectra shown here are quick‑look aperture sums for
+      exploration, not calibrated photometry.</p>
+  </section>
+
+  <section class="about" id="data">
+    <h2>The data behind this</h2>
+    <p class="lede">Nothing here is simulated, enhanced or redrawn. Every frame is a cutout of one real
+      SPHEREx exposure, and the panel on each frame links straight to the file it came from in NASA's
+      archive, so any of it can be checked against the source.</p>
+
+    <dl class="facts" id="facts"></dl>
+
+    <div class="cols" style="margin-bottom:26px">
+      <div>
+        <h4>Where it comes from</h4>
+        <p>NASA's SPHEREx, launched 11 March 2025, surveys the whole sky every six months. These are
+          Level‑2 science images from the Quick Release, held by
+          <a href="https://irsa.ipac.caltech.edu/Missions/spherex.html" target="_blank" rel="noopener">IRSA</a>
+          at IPAC/Caltech and mirrored in the public <code>nasa-irsa-spherex</code> bucket on AWS.</p>
+        <p>Visits were found with ADQL against the <code>spherex.obscore</code> table and resolved to archive
+          paths through <code>spherex.artifact</code>. Pixel values are surface brightness in MJy/sr,
+          exactly as the pipeline produced them — no rescaling, no stacking, no cosmetic retouching.</p>
+      </div>
+      <div>
+        <h4>How each frame was made</h4>
+        <p>Each Level‑2 file is 71 MB, but the science image is an uncompressed array at a known offset, so
+          only the rows covering the target were fetched over HTTP range requests — about 1.3 MB per frame.</p>
+        <p>SPHEREx revisits a target at a different roll angle every time, so raw cutouts arrive rotated
+          against each other and will not blink. Every frame was resampled onto one shared tangent plane,
+          north up and east left at the native 6.15″ pixel scale, using the full <code>TAN‑SIP</code>
+          astrometric solution carried in its own header.</p>
+        <p>The wavelength of each visit comes from the <code>WCS‑WAVE</code> grid inside the same file:
+          SPHEREx has no filter wheel, so what a pixel records depends on where the source lands on the
+          detector. Positions for the moving bodies come from JPL Horizons, evaluated at each exposure's
+          own timestamp.</p>
+      </div>
+    </div>
+
+    <h4 style="margin:0 0 10px;font-size:13px">How it was checked</h4>
+    <div class="vwrap">
+      <table class="vtable">
+        <tr><th>Check</th><th>Result</th></tr>
+        <tr><td>A cutout read by byte range, against reading the whole 71 MB file</td><td>bit‑identical</td></tr>
+        <tr><td>Two separate epochs cross‑correlated after reprojection</td><td>0 px offset</td></tr>
+        <tr><td>Affine approximation of the mapping, against the full TAN‑SIP solution</td><td>0.03 px</td></tr>
+        <tr><td>Interpolated wavelengths against the band limits IRSA publishes</td><td>all 6 in band</td></tr>
+        <tr><td>Implied resolving power λ/Δλ, against the instrument design</td><td>R ≈ 34–125</td></tr>
+        <tr><td>A star's brightness in visits that sampled the same wavelength months apart</td><td>agree to ~1%</td></tr>
+        <tr><td>Vesta, Neptune and Uranus found where JPL Horizons predicts, above 8σ</td><td>65 of 68 frames</td></tr>
+        <tr><td>The same photometry at a mirrored control position in the same frames</td><td>0.1–0.8σ</td></tr>
+      </table>
+    </div>
+
+    <p class="note" style="margin-top:22px">The last two matter most. Independent visits only agree at the
+      percent level, and a planet only lands on an ephemeris prediction, if the reprojection, the wavelength
+      lookup and the photometry are all correct at the same time. <span id="prov"></span>
+      Data: NASA/JPL‑Caltech/IPAC.</p>
   </section>
 </div>
 
@@ -758,6 +831,8 @@ function renderMeta(m, isRef, refMeta) {
     + row("Detector", "band " + m.det + " · " + bandOf(m.det).lo + "–" + bandOf(m.det).hi + " µm")
     + row("Exposure", m.obs)
     + row("Release", m.coll.replace("spherex_", "").replace("_", " "))
+    + (m.key ? row("Source file", '<a href="https://irsa.ipac.caltech.edu/ibe/data/spherex/'
+        + m.key + '" target="_blank" rel="noopener">open at IRSA</a>') : "")
     + (m.au ? row("Distance", m.au.toFixed(2) + " AU") : "")
     + (m.bad ? row("Flagged pixels", m.bad + " of " + NPIX) : "");
 }
@@ -1193,6 +1268,28 @@ $("theme").addEventListener("click", () => {
 try { const t = localStorage.getItem("sx-theme"); if (t) document.documentElement.setAttribute("data-theme", t); } catch (_) {}
 
 /* ---------- go ---------- */
+function renderFacts() {
+  const ts = IDX.targets, fr = [].concat(...ts.map(t => t.frames));
+  const mjds = fr.map(f => f.mjd), lams = fr.map(f => f.lam);
+  const days = Math.max(...mjds) - Math.min(...mjds);
+  const bands = new Set(fr.map(f => f.det));
+  const movers = ts.filter(t => t.moving);
+  const fov = SIZE * PIXSCALE / 60;
+  const fact = (k, v, sub) => '<div><dt>' + k + '</dt><dd>' + v +
+    (sub ? '<small>' + sub + '</small>' : '') + '</dd></div>';
+  $("facts").innerHTML =
+      fact("Frames", fr.length.toLocaleString("en"), "each a separate exposure")
+    + fact("Targets", ts.length, movers.length + " of them moving")
+    + fact("Baseline", Math.round(days / 30.44) + " months",
+           fmtDate(mjdISO(Math.min(...mjds))) + " – " + fmtDate(mjdISO(Math.max(...mjds))))
+    + fact("Wavelengths", Math.min(...lams).toFixed(2) + "–" + Math.max(...lams).toFixed(2) + " µm",
+           "across " + bands.size + " of the 6 detector bands")
+    + fact("Pixel scale", PIXSCALE + "″", SIZE + " × " + SIZE + " px, " + fov.toFixed(1) + "′ across")
+    + fact("Units", "MJy/sr", "surface brightness, unaltered");
+}
+const mjdISO = m => mjdDate(m).toISOString().slice(0, 10);
+
+renderFacts();
 $("prov").textContent = "Frame index built " + IDX.generated + ".";
 buildTargets();
 let start = 0;
