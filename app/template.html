@@ -220,13 +220,20 @@ a{color:var(--accent);text-decoration-thickness:1px;text-underline-offset:2px}
 .facts dd{margin:0;font-size:15px;font-weight:600;letter-spacing:-.01em;font-variant-numeric:tabular-nums}
 .facts dd small{display:block;font-size:11.5px;font-weight:400;color:var(--muted);margin-top:2px;
   letter-spacing:0}
-.vtable{width:100%;border-collapse:collapse;font-size:13px;margin-top:4px}
-.vtable th{text-align:left;font-family:var(--mono);font-size:10px;letter-spacing:.1em;
-  text-transform:uppercase;color:var(--faint);font-weight:500;padding:0 12px 7px 0;
+.deftable{width:100%;border-collapse:collapse;font-size:13.5px;margin-top:2px}
+.deftable th{text-align:left;font-family:var(--mono);font-size:10px;letter-spacing:.1em;
+  text-transform:uppercase;color:var(--faint);font-weight:500;padding:0 18px 8px 0;
   border-bottom:1px solid var(--line)}
-.vtable td{padding:9px 12px 9px 0;border-bottom:1px solid var(--line-soft);color:var(--muted);
-  vertical-align:top}
-.vtable td:last-child{color:var(--text);font-family:var(--mono);font-size:12px;white-space:nowrap}
+.deftable td{padding:11px 18px 11px 0;border-bottom:1px solid var(--line-soft);
+  color:var(--muted);vertical-align:top;line-height:1.5}
+.deftable td:first-child{color:var(--text);font-weight:600;white-space:nowrap;width:1%}
+.deftable td:last-child{padding-right:0;max-width:62ch}
+@media (max-width:560px){
+  .deftable td{display:block;border-bottom:0;padding:0}
+  .deftable td:first-child{padding-top:12px}
+  .deftable td:last-child{padding-bottom:12px;border-bottom:1px solid var(--line-soft)}
+  .deftable th{display:none}
+}
 .vwrap{overflow-x:auto}
 .steps{list-style:none;padding:0;margin:0;counter-reset:s}
 .steps li{counter-increment:s;position:relative;padding-left:26px;margin-bottom:9px;color:var(--muted);font-size:13.5px}
@@ -447,31 +454,20 @@ a{color:var(--accent);text-decoration-thickness:1px;text-underline-offset:2px}
     <h2>Reading a frame</h2>
     <p class="lede">The panel beside the image is the identity card of the one exposure on screen. Every
       line of it is a button: tap a label and it tells you what the term means.</p>
-    <div class="cols">
-      <div>
-        <h4>When it was taken</h4>
-        <p><b>Observed</b> is the calendar date. <b>MJD</b> is the same instant as a running count of days,
-          which is how the frames are ordered and how gaps between visits are measured — subtracting two
-          dates is then just subtraction.</p>
-      </div>
-      <div>
-        <h4>What colour it is</h4>
-        <p><b>Wavelength</b> is the exact infrared colour this frame caught, and it changes on every visit,
-          because SPHEREx has no filter wheel. <b>Bandwidth</b> is how wide that slice is, and <b>R</b> is
-          the wavelength divided by it. <b>Detector</b> says which of the six arrays did the catching.</p>
-      </div>
-      <div>
-        <h4>Which exposure, exactly</h4>
-        <p><b>Exposure</b> is SPHEREx's own name for it: year, survey week, segment, number.
-          <b>Release</b> is the public data release it belongs to. <b>Distance</b> appears only for the
-          moving bodies, in astronomical units.</p>
-      </div>
-      <div>
-        <h4>The line worth clicking</h4>
-        <p><b>Source file</b> opens the original exposure in NASA's archive — the whole 71 MB of it, from
-          which only a small square was ever downloaded. <b>Flagged pixels</b> counts the ones the pipeline
-          marked unusable; they are the dark specks, and nothing is invented to fill them.</p>
-      </div>
+    <div class="vwrap">
+      <table class="deftable">
+        <tr><th>Line</th><th>What it means</th></tr>
+        <tr><td>Observed</td><td>The calendar date this exposure was taken.</td></tr>
+        <tr><td>MJD</td><td>The same instant as a running count of days, so the gap between two visits is just a subtraction. Day zero was 17 November 1858.</td></tr>
+        <tr><td>Wavelength</td><td>The exact infrared colour this frame recorded. It is different on almost every visit, because SPHEREx has no filter wheel — what a pixel catches depends on where the source lands on the detector.</td></tr>
+        <tr><td>Bandwidth</td><td>How wide a slice of colour the frame covers. <b>R</b> is the wavelength divided by that width, so a higher R means a finer slice.</td></tr>
+        <tr><td>Detector</td><td>Which of the six detector arrays caught the target, and the stretch of infrared that array covers.</td></tr>
+        <tr><td>Exposure</td><td>SPHEREx's own name for this exposure: the year, the week of the survey, which segment of it, and the number within that segment.</td></tr>
+        <tr><td>Release</td><td>The public data release it belongs to. <i>deep</i> marks a pointing at one of the two deep fields, which are revisited far more often than the rest of the sky.</td></tr>
+        <tr><td>Source file</td><td>Opens the original exposure in NASA's archive — all 71 MB of it, from which only a small square was ever downloaded. This is the line worth clicking.</td></tr>
+        <tr><td>Distance</td><td>How far the body was from Earth at that moment, in astronomical units. Shown only for the moving targets.</td></tr>
+        <tr><td>Flagged pixels</td><td>Pixels the pipeline marked unusable: saturated by something bright, struck by a cosmic ray, or simply dead. They are the dark specks, and nothing is invented to fill them in.</td></tr>
+      </table>
     </div>
   </section>
 
