@@ -38,6 +38,10 @@ actually does, why asinh rather than linear, what switching a band off is for.
 
 The jargon stays for people who want it, without shutting anyone else out.
 
+Three sections at the end then walk the panels in reading order — reading a frame, finding your
+way around the sky, and the controls — answering what a ? cannot: what each panel is for, which
+parts are worth attention, and how to use them together.
+
 
 The page carries its own provenance. A section at the end states what the data is, with the
 figures computed from the index so they cannot drift. The full account of how a frame is made, and

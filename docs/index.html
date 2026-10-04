@@ -449,6 +449,100 @@ a{color:var(--accent);text-decoration-thickness:1px;text-underline-offset:2px}
       exploration, not calibrated photometry.</p>
   </section>
 
+  <section class="about" id="guide-frame">
+    <h2>Reading a frame</h2>
+    <p class="lede">The panel beside the image is the identity card of the one exposure on screen. Every
+      line of it is a button: tap a label and it tells you what the term means.</p>
+    <div class="cols">
+      <div>
+        <h4>When it was taken</h4>
+        <p><b>Observed</b> is the calendar date. <b>MJD</b> is the same instant as a running count of days,
+          which is how the frames are ordered and how gaps between visits are measured — subtracting two
+          dates is then just subtraction.</p>
+      </div>
+      <div>
+        <h4>What colour it is</h4>
+        <p><b>Wavelength</b> is the exact infrared colour this frame caught, and it changes on every visit,
+          because SPHEREx has no filter wheel. <b>Bandwidth</b> is how wide that slice is, and <b>R</b> is
+          the wavelength divided by it. <b>Detector</b> says which of the six arrays did the catching.</p>
+      </div>
+      <div>
+        <h4>Which exposure, exactly</h4>
+        <p><b>Exposure</b> is SPHEREx's own name for it: year, survey week, segment, number.
+          <b>Release</b> is the public data release it belongs to. <b>Distance</b> appears only for the
+          moving bodies, in astronomical units.</p>
+      </div>
+      <div>
+        <h4>The line worth clicking</h4>
+        <p><b>Source file</b> opens the original exposure in NASA's archive — the whole 71 MB of it, from
+          which only a small square was ever downloaded. <b>Flagged pixels</b> counts the ones the pipeline
+          marked unusable; they are the dark specks, and nothing is invented to fill them.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="about" id="guide-sky">
+    <h2>Finding your way around the sky</h2>
+    <p class="lede">The small oval under <i>Where you are looking</i> is the entire sky, flattened the way a
+      world map flattens the globe. It is there so you never lose track of which direction you are pointing.</p>
+    <div class="cols">
+      <div>
+        <h4>The dots</h4>
+        <p>Each grey dot is one of the patches this tool holds. The orange one is the patch on screen.
+          Clicking any dot jumps straight to it, and if that patch is one of the folded-away ones, the list
+          above unfolds itself to show you where it came from.</p>
+        <p>The two deep fields sit at opposite ends of the map, which is not a coincidence — they are
+          opposite points on the sky.</p>
+      </div>
+      <div>
+        <h4>The curved line</h4>
+        <p>That is the ecliptic: the path the Sun traces against the stars across a year, and roughly the
+          plane the planets move in. It explains most of what the tool does.</p>
+        <p>SPHEREx surveys by sweeping along it, so the two points furthest from it — the ecliptic poles —
+          are the places the telescope passes over again and again. That is why the deep fields are there,
+          and why they have far more visits than anywhere else.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="about" id="guide-controls">
+    <h2>The controls</h2>
+    <p class="lede">Nothing below the image changes the data. Every frame keeps the brightness the pipeline
+      measured; the controls only change what you do with it and how it is drawn.</p>
+    <div class="cols">
+      <div>
+        <h4>Compare</h4>
+        <p>The way to actually find something. Step to a frame worth comparing against and press
+          <b>Pin this frame as reference</b>. <b>Blink</b> then flips between that frame and the current one
+          — your eye is very good at catching what jumps. <b>Difference</b> subtracts them instead, so
+          everything unchanged goes flat and only what moved or brightened survives.</p>
+      </div>
+      <div>
+        <h4>Spectrum at cursor</h4>
+        <p>Click any star or galaxy in the image. Because each visit records a different wavelength, the
+          visits to one source become points of its spectrum, plotted brightness against colour. On a
+          moving target there is a button to follow the body itself from frame to frame instead of a fixed
+          pixel. These are quick-look sums, not calibrated photometry.</p>
+      </div>
+      <div>
+        <h4>Display</h4>
+        <p>Where to put black, where to put white, and what colours to stretch between them. <b>Asinh</b>
+          scaling suits a sky that is mostly faint things beside a few blinding ones. Lower the
+          <b>white point</b> to make faint sources jump out; raise the <b>black point</b> to clean up noise.
+          <b>Flatten background</b> removes the glow a bright star just off the edge throws across a frame.</p>
+      </div>
+      <div>
+        <h4>Frames shown, and playback</h4>
+        <p>Order by <b>date</b> for a time-lapse, or by <b>wavelength</b> to sweep the same patch through
+          colour. Switching infrared bands off leaves only visits of similar colour, which makes brightness
+          comparable between frames — worth doing before judging whether something really changed. Space
+          plays, the arrow keys step one frame, and the strip of thumbnails and the date axis both jump
+          straight to a visit.</p>
+      </div>
+    </div>
+  </section>
+
+
   <section class="about" id="data">
     <h2>The data behind this</h2>
     <p class="lede">Nothing here is simulated, enhanced or redrawn. Every frame is a cutout of one real
