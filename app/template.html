@@ -349,7 +349,11 @@ a{color:var(--accent);text-decoration-thickness:1px;text-underline-offset:2px}
       <div class="card" id="displayCard">
         <h3>Display</h3>
         <div class="field">
-          <label for="cmap">Colour map</label>
+          <label for="bright">Brightness <b id="brightV">Normal</b></label>
+          <input type="range" id="bright" min="0" max="100" step="1" value="30">
+        </div>
+        <div class="field">
+          <label for="cmap">Colour</label>
           <select id="cmap">
             <option value="grey">Greyscale</option>
             <option value="ember" selected>Ember (infrared)</option>
@@ -357,29 +361,33 @@ a{color:var(--accent);text-decoration-thickness:1px;text-underline-offset:2px}
             <option value="spectral">Spectral</option>
           </select>
         </div>
-        <div class="field">
-          <label for="scale">Brightness scaling</label>
-          <select id="scale">
-            <option value="asinh" selected>Asinh (best for faint things)</option>
-            <option value="linear">Linear</option>
-            <option value="sqrt">Square root</option>
-            <option value="log">Logarithmic</option>
-          </select>
+        <button class="advtoggle" id="dispToggle" type="button" aria-expanded="false"
+          aria-controls="dispAdv" style="margin:14px 0 0">More options</button>
+        <div id="dispAdv" hidden>
+          <div class="field">
+            <label for="scale">Brightness scaling</label>
+            <select id="scale">
+              <option value="asinh" selected>Asinh (best for faint things)</option>
+              <option value="linear">Linear</option>
+              <option value="sqrt">Square root</option>
+              <option value="log">Logarithmic</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="black">Black point <b id="blackV">45.0%</b></label>
+            <input type="range" id="black" min="0" max="80" step="0.5" value="45">
+          </div>
+          <div class="field">
+            <label for="white">White point <b id="whiteV">99.70%</b></label>
+            <input type="range" id="white" min="0" max="1000" step="1" value="820">
+          </div>
+          <div class="checks">
+            <label class="chk"><input type="checkbox" id="flatten"> Flatten background</label>
+            <label class="chk"><input type="checkbox" id="smooth"> Smooth pixels</label>
+          </div>
+          <p class="note">SPHEREx frames often carry a glow from bright stars just off the edge. Flattening
+            removes that gradient so faint sources stand out.</p>
         </div>
-        <div class="field">
-          <label for="black">Black point <b id="blackV">45.0%</b></label>
-          <input type="range" id="black" min="0" max="80" step="0.5" value="45">
-        </div>
-        <div class="field">
-          <label for="white">White point <b id="whiteV">99.70%</b></label>
-          <input type="range" id="white" min="0" max="1000" step="1" value="820">
-        </div>
-        <div class="checks">
-          <label class="chk"><input type="checkbox" id="flatten"> Flatten background</label>
-          <label class="chk"><input type="checkbox" id="smooth"> Smooth pixels</label>
-        </div>
-        <p class="note">SPHEREx frames often carry a glow from bright stars just off the edge. Flattening removes
-          that gradient so faint sources stand out.</p>
       </div>
 
       <div class="card" id="framesCard">
@@ -1200,7 +1208,7 @@ $("setref").addEventListener("click", () => { S.ref = S.order[S.i]; draw(); });
 $("cmap").addEventListener("change", e => { S.cmap = e.target.value; draw(); });
 $("scale").addEventListener("change", e => { S.scale = e.target.value; draw(); });
 $("black").addEventListener("input", e => { S.black = +e.target.value; $("blackV").textContent = S.black.toFixed(1) + "%"; draw(); });
-$("white").addEventListener("input", e => { S.whiteT = +e.target.value / 1000; $("whiteV").textContent = whitePct(S.whiteT).toFixed(2) + "%"; draw(); });
+$("white").addEventListener("input", e => { S.whiteT = +e.target.value / 1000; $("whiteV").textContent = whitePct(S.whiteT).toFixed(2) + "%"; setBrightFromWhite(); draw(); });
 $("showTrack").addEventListener("change", e => { S.showTrack = e.target.checked; draw(); });
 $("follow").addEventListener("change", e => { S.follow = e.target.checked; draw(); });
 $("bodySpec").addEventListener("click", () => {
@@ -1304,9 +1312,41 @@ addEventListener("hashchange", () => {
 });
 addEventListener("resize", () => { if (S.target) { drawTimeline(); drawSky(); } });
 
+/* One slider standing in for the pair of percentile ones. It drives the white point, which is
+   the control that actually decides how bright a frame reads; the precise sliders stay, and the
+   two are kept in step so neither can contradict the other. */
+const BRIGHT_T = b => 0.98 - (b / 100) * 0.5333;          // slider 0..100 -> whiteT 0.98..0.447, hitting the 0.82 default exactly at 30
+const T_BRIGHT = t => Math.round((0.98 - t) / 0.5333 * 100);
+const BRIGHT_WORD = b => b < 18 ? "Dim" : b < 42 ? "Normal" : b < 72 ? "Bright" : "Very bright";
+
+function setBrightFromWhite() {
+  const b = Math.max(0, Math.min(100, T_BRIGHT(S.whiteT)));
+  $("bright").value = b;
+  $("brightV").textContent = BRIGHT_WORD(b);
+}
+
+$("bright").addEventListener("input", e => {
+  const b = +e.target.value;
+  S.whiteT = BRIGHT_T(b);
+  $("brightV").textContent = BRIGHT_WORD(b);
+  $("white").value = Math.round(S.whiteT * 1000);
+  $("whiteV").textContent = whitePct(S.whiteT).toFixed(2) + "%";
+  draw();
+});
+
+$("dispToggle").addEventListener("click", () => {
+  const open = $("dispAdv").hidden;
+  $("dispAdv").hidden = !open;
+  $("dispToggle").setAttribute("aria-expanded", open);
+  $("dispToggle").textContent = open ? "Fewer options" : "More options";
+});
+
+setBrightFromWhite();
+
+
 /* One gesture for the whole page: a ? beside a heading or a label opens a sentence under it.
    Built from a table rather than written into the markup, so the controls stay readable. */
-const GUIDE = [["#skyCard h3", "g-sky", "The whole sky squashed onto an oval, the way a world map flattens the globe. Each grey dot is one of the patches this tool holds; the orange one is where you are now. The curved line is the ecliptic \\u2014 the path the Sun traces across the year. SPHEREx sweeps along it, which is why its two deep fields sit at either end. Click any dot to jump there."], ["#compareCard h3", "g-compare", "Three ways of looking at the same patch. Single shows one frame at a time. Blink flips back and forth between the frame you pinned as reference and the current one, and your eye catches whatever shifts. Difference subtracts the two, so everything unchanged goes flat and only what moved or brightened is left."], ["#specCard h3", "g-spec", "Click any star or galaxy in the image and this plots its brightness against colour. It works because SPHEREx records a different wavelength on every visit, so thirty visits to one star become thirty points of a spectrum."], ["#displayCard h3", "g-display", "These change how the numbers are turned into something you can see. They never change the data: every frame keeps the brightness actually measured, and you are only choosing where to put black, where to put white, and what colours to stretch in between."], ["#framesCard h3", "g-frames", "Which visits appear, and in what order."], ["label[for=cmap]", "g-cmap", "Just the palette used to paint the numbers. Ember is warm, like the infrared it stands for. Greyscale is the most honest for judging brightness by eye. The others make different features easier to pick out."], ["label[for=scale]", "g-scale", "How brightness gets compressed to fit a screen. Space is mostly very faint things next to a few blinding ones, so a straight linear scale wastes almost all of its range. Asinh squashes the bright end and lets the faint end breathe \\u2014 usually the one to leave alone."], ["label[for=black]", "g-black", "Anything dimmer than this is painted pure black. Raise it to clean background noise out of the picture, lower it to dig faint things out of the murk."], ["label[for=white]", "g-white", "Anything brighter than this is painted pure white. Lower it to make faint things jump out, raise it to keep detail inside bright cores instead of burning them flat."], ["label[for=sort]", "g-sort", "By date you get a time-lapse, which is what the tool is for. By wavelength the same frames are reordered from blue to red, so you watch the patch change colour instead of change over time."], ["#bandLabel", "g-band", "SPHEREx carries six detectors, each covering its own stretch of infrared. Switching some off keeps only visits of a similar colour, which makes brightness comparable from one frame to the next."]];
+const GUIDE = [["#skyCard h3", "g-sky", "The whole sky squashed onto an oval, the way a world map flattens the globe. Each grey dot is one of the patches this tool holds; the orange one is where you are now. The curved line is the ecliptic — the path the Sun traces across the year. SPHEREx sweeps along it, which is why its two deep fields sit at either end. Click any dot to jump there."], ["#compareCard h3", "g-compare", "Three ways of looking at the same patch. Single shows one frame at a time. Blink flips back and forth between the frame you pinned as reference and the current one, and your eye catches whatever shifts. Difference subtracts the two, so everything unchanged goes flat and only what moved or brightened is left."], ["#specCard h3", "g-spec", "Click any star or galaxy in the image and this plots its brightness against colour. It works because SPHEREx records a different wavelength on every visit, so thirty visits to one star become thirty points of a spectrum."], ["#displayCard h3", "g-display", "These change how the numbers are turned into something you can see. They never change the data: every frame keeps the brightness actually measured, and you are only choosing where to put black, where to put white, and what colours to stretch in between."], ["#framesCard h3", "g-frames", "Which visits appear, and in what order."], ["label[for=cmap]", "g-cmap", "Just the palette used to paint the numbers. Ember is warm, like the infrared it stands for. Greyscale is the most honest for judging brightness by eye. The others make different features easier to pick out."], ["label[for=bright]", "g-bright", "The one control most people want. Drag it right and faint things lift out of the dark; drag it left and only the brightest sources stay. It is purely how the numbers are painted — the measured brightness never changes. Under More options you can set the same thing by percentile, plus a few others."], ["label[for=scale]", "g-scale", "How brightness gets compressed to fit a screen. Space is mostly very faint things next to a few blinding ones, so a straight linear scale wastes almost all of its range. Asinh squashes the bright end and lets the faint end breathe — usually the one to leave alone."], ["label[for=black]", "g-black", "Anything dimmer than this is painted pure black. Raise it to clean background noise out of the picture, lower it to dig faint things out of the murk."], ["label[for=white]", "g-white", "Anything brighter than this is painted pure white. Lower it to make faint things jump out, raise it to keep detail inside bright cores instead of burning them flat."], ["label[for=sort]", "g-sort", "By date you get a time-lapse, which is what the tool is for. By wavelength the same frames are reordered from blue to red, so you watch the patch change colour instead of change over time."], ["#bandLabel", "g-band", "SPHEREx carries six detectors, each covering its own stretch of infrared. Switching some off keeps only visits of a similar colour, which makes brightness comparable from one frame to the next."]];
 
 function buildGuide() {
   GUIDE.forEach(g => {
