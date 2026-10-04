@@ -29,6 +29,12 @@ Built against the live NASA/IPAC IRSA archive. No mock data anywhere.
 
 ## Provenance on the page
 
+Every label in the frame panel is a button that opens a plain sentence explaining the term —
+MJD, resolving power, what a band number means, what a flagged pixel is. The jargon stays for
+people who want it without shutting anyone else out. Open panels survive the redraw the panel
+does on every frame.
+
+
 The page carries its own provenance. A section at the end states what the data is, where it came
 from and how each frame was made, with the figures computed from the index so they cannot drift,
 and the table of checks below alongside their results.
