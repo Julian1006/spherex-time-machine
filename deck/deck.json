@@ -1,16 +1,33 @@
 {
   "v": 4,
-  "createdOnFiles": { "v": 1, "at": "2026-09-24T12:00:00Z" },
+  "createdOnFiles": {
+    "v": 1,
+    "at": "2026-09-24T12:00:00Z"
+  },
   "title": "SPHEREx Time Machine",
-  "order": ["resumen", "p1", "p2", "p3", "p4", "p5", "p6"],
+  "order": [
+    "resumen",
+    "demo",
+    "p1",
+    "p2",
+    "p3",
+    "p4",
+    "p5",
+    "p6",
+    "cierre"
+  ],
   "sections": {
     "s1": {
-      "description": "Qué es la herramienta, en una página",
+      "description": "Que es la herramienta y la demo en vivo",
       "start": "resumen"
     },
     "s2": {
-      "description": "Los seis pasos de la construcción, en lenguaje llano",
+      "description": "Los seis pasos de la construccion, en lenguaje llano",
       "start": "p1"
+    },
+    "s3": {
+      "description": "Cierre",
+      "start": "cierre"
     }
   },
   "faces": {
