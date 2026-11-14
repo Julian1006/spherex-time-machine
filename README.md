@@ -4,12 +4,24 @@ A public web tool for watching the infrared sky change. Pick a patch of sky, pre
 real NASA SPHEREx survey images blink past in date order — anything that moves or varies
 stands out immediately.
 
+Type any coordinates, or the name of a star, and the page reads that spot straight out of NASA's
+archive while you wait. Thirty-seven well-known places come saved with it, so it also opens
+instantly and works with no network.
+
 Built against the live NASA/IPAC IRSA archive. No mock data anywhere.
 
 ---
 
 ## What it does
 
+- **Any coordinates.** Under *Go to any coordinates*: right ascension and declination in whatever
+  form you have them (`08h55m10.831s`, `08:55:10.8`, `133.795`; `-7d14m42.53s`, `-7.245`), a choice
+  of field of view, and the images arrive live. A name works too, looked up at SIMBAD.
+- **Stars that move are followed.** For a star with a large proper motion the page works out where
+  it is now rather than where the catalogue put it decades ago, centres on that, and marks where
+  the motion says it should be in every frame.
+- **Links that carry a place.** `?ra=133.795&dec=-7.245` opens that spot; add `&embed=1` and only
+  the viewer is shown, for dropping into another page.
 - **Time-lapse playback** of every SPHEREx visit to a target, in date order, over a 15-month baseline.
 - **Blink and difference modes** against a pinned reference frame — the classic way to find moving
   or variable objects. A flat field means nothing changed; a black-and-white dot pair means something moved.
@@ -59,6 +71,72 @@ can click through from a pixel on the page to the original 71 MB exposure in NAS
 | Coverage used | MJD 60789–61262 (Apr 2025 – Aug 2026) |
 | Detector | 2040 × 2040 px, 6.15″/px, 6 arrays spanning 0.75–5.01 µm in 102 channels |
 | Units | MJy/sr, straight from the pipeline |
+
+## Any place in the sky, live
+
+The saved targets were cut out ahead of time by the Python build. Everything under *Go to any
+coordinates* happens in the browser at the moment you ask, with no server of ours in between.
+
+**The pixels come straight from NASA.** The public bucket `nasa-irsa-spherex` answers HTTP range
+requests and sends CORS headers, so a page can ask for the few hundred kilobytes it needs out of a
+65 MB exposure. `app/live/sxlive.js` reads the FITS header, applies the TAN-SIP astrometry that
+each file carries, downloads only the detector rows the cutout touches and resamples them north up.
+It is a port of `frames.py`, `fitshdr.py` and `waves.py`, and it is folded into the single page by
+`assemble.py`.
+
+**Which exposures cover a spot is answered from a small index.** Nothing a browser may call will
+say which of the 1,628,230 images hold a given position: IRSA's search services send no CORS headers,
+and a query takes from fifteen seconds to several minutes. So `build/pointing_index.py` writes it
+down ahead of time, from the bucket alone. It lists what exists, reads 11 KB of one file per
+exposure, and keeps a single attitude: the six detectors hold a fixed layout to better than 2″, so
+one pointing describes all six images. A fitted model of that layout turns an attitude into the
+pixel a target lands on, on each detector, to a fraction of a pixel — which also gives the
+wavelength before anything is downloaded.
+
+| | |
+|---|---|
+| Exposures on record | 273,367 (1,628,230 images), releases dr1 and qr3 |
+| Size of the index | 5.8 MB in 151 week files. A search reads only the weeks that come near the spot: 23 to 46 of them for the five test stars (1–2 MB), all of them for a place beside an ecliptic pole |
+| Search time in the browser | 20–80 ms |
+| Predicted pixel vs. the file's own astrometry | within 0.31 px across 50 files |
+| One image at the normal 13′ field | about 1.3 MB: whole detector rows have to be read |
+
+**It keeps itself current.** A GitHub Action (`.github/workflows/pointing-index.yml`) runs the
+indexer every day and commits whatever is new, and reads everything again each Sunday. Deleting
+a week from the index and running it put back a byte-identical file. When the
+same week exists in more than one release, the data release wins over the quick release and the
+higher number over the lower, so a new release is picked up without anyone editing anything. A
+saved target also offers *Load the newest ones from NASA*, which runs the same live search at its
+coordinates.
+
+### Address parameters
+
+| | |
+|---|---|
+| `ra`, `dec` | The place, in any form the boxes accept: `?ra=08h55m10.831s&dec=-7d14m42.53s` or `?ra=133.795&dec=-7.245` |
+| `name` | A label. Given alone, without `ra` and `dec`, it is looked up at SIMBAD |
+| `fov` | Field of view in arcminutes, 3 to 60. Default 13.1 |
+| `n` | How many images, 2 to 90. Default 30 |
+| `band` | 1 to 6 to stay on one detector |
+| `when=new` | The newest images instead of a spread over every date |
+| `pmra`, `pmdec` | Proper motion in mas/yr; `ra` and `dec` then mean the year 2000 |
+| `embed=1` | Only the viewer and its controls |
+
+### Checked against
+
+| Check | Result |
+|---|---|
+| Six saved frames read again live, pixel by pixel against the build | 99.99–100% identical at the stored precision |
+| Position of the cutout centre vs. astropy's | within 0.013 px |
+| Wavelength vs. the build's | equal to four decimals |
+| Images on record vs. IRSA's own count, per release | equal: 1,179,406 in dr1 and 448,824 in qr3 |
+| Index search vs. IRSA's own `CONTAINS` query, five objects | 3,909 images listed by IRSA; the 31 the index leaves out all sit within 5 px of a detector edge |
+| The coverage map vs. brute force, 68 points over the sky | hid none of 1,667 real overlaps |
+| Marker for Barnard's Star vs. the star's own centroid, 30 frames | median 2.2″ apart, and the star climbs north as it should |
+| Attitudes from the bucket vs. from IRSA's `obscore` | boresight within 1.4″ |
+
+`app/live/test.html` runs the first four in the browser: serve the repository root and open
+`/app/live/test.html?index=1`.
 
 ## What's in the bundle
 
@@ -188,7 +266,8 @@ The `obscore` band cross-check is what caught it; the grid turned out to be 9×1
 
 ## Running the build
 
-Requires Python 3.11+ with `numpy` and `astropy`.
+The saved targets need Python 3.11+ with `numpy` and `astropy`. The pointing index needs only the
+standard library.
 
 ```bash
 python -u build/make_index.py --resume
@@ -216,6 +295,18 @@ To try it locally:
 ```bash
 python -m http.server 8777 --directory docs
 ```
+
+The pointing index behind the coordinate search is built separately, and normally by the daily
+GitHub Action rather than by hand:
+
+```bash
+python build/pointing_index.py           # add whatever is new: about twenty seconds on a quiet day
+python build/pointing_index.py --full    # read every exposure again: 270,000 small requests, 30 to 60 minutes from home
+```
+
+A daily run lists in full only what can have changed — weeks that are new, that moved to a newer
+release, that gained a processing folder, and the six newest of each release — and leaves the
+manifest untouched when it finds nothing, so a quiet day makes no commit.
 
 ## Installing it as an app
 
@@ -250,7 +341,11 @@ the same build works from a stick, from a folder, or behind a server.
 
 ## Publishing
 
-`docs/` is a plain static directory — no backend, no build step, ~13 MB. It works on any static host.
+`docs/` is a plain static directory — no backend, no build step. It works on any static host.
+
+The coordinate search needs `docs/idx/` to be served next to the page, which any of these do. The
+daily refresh is a GitHub Action, so on another host run `build/pointing_index.py` on a schedule of
+your own.
 
 For GitHub Pages, push this repository and then, under **Settings → Pages**, set the source to the
 `main` branch and the `/docs` folder. The site appears at `https://<user>.github.io/<repo>/`.
@@ -277,9 +372,14 @@ build/
   filesmap.py     print the publish manifest for the staged bundle
   scan.py         check coverage for candidate targets before adding them
   png.py          small PNG writer, for contact sheets when spot-checking frames
+  pointing_index.py   where SPHEREx pointed in every released exposure; writes docs/idx/
+  focal_plane.json    the fitted layout of the six detectors that the index relies on
 app/
-  template.html   the tool; single file, no build step, no runtime dependencies
+  template.html   the tool; single file, no runtime dependencies
+  live/sxlive.js  reads images from NASA's bucket in the browser; assemble.py folds it into the page
+  live/test.html  checks sxlive.js against the build and the index against IRSA
 docs/             the built static site, ready to serve
+docs/idx/         the pointing index, refreshed daily by .github/workflows/pointing-index.yml
 data/out/         reprojected cutout stacks (.bin) and the frame index
 ```
 
@@ -288,7 +388,8 @@ data/out/         reprojected cutout stacks (.bin) and the frame index
 
 ## Credits
 
-Data: NASA/JPL-Caltech/IPAC. SPHEREx Quick Release products served by
-[IRSA](https://irsa.ipac.caltech.edu/Missions/spherex.html).
+Data: NASA/JPL-Caltech/IPAC. SPHEREx data served by
+[IRSA](https://irsa.ipac.caltech.edu/Missions/spherex.html) and read from its public bucket on AWS.
+Names and proper motions come from [SIMBAD](https://simbad.cds.unistra.fr/) at CDS, Strasbourg.
 
 Spectra shown in the tool are quick-look aperture sums for exploration, not calibrated photometry.
