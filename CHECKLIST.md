@@ -132,4 +132,7 @@ Cada carga de 30 fotos tardó entre 9 y 10 segundos y pesó entre 36 y 45 MB. "F
 
 - [x] Buscar por nombre además de por coordenadas.
 - [x] 🆕 Descargar la imagen como PNG.
-- [ ] Descargar el video como GIF.
+- [x] 🆕 Descargar la animación como video: MP4 en Chrome y Edge, WebM donde el navegador no hace MP4. Probado reproduciéndolo: Vesta cruza la imagen igual que en pantalla.
+- [x] 🆕 **Asteroides y cometas conocidos** encima de la imagen, preguntando a SkyBoT (IMCCE) foto por foto. Solo los más brillantes que magnitud 21. En las 8 fotos de Vesta, el rombo de SkyBoT cae a 0,05 píxeles del círculo del JPL.
+- [x] 🆕 **¿A qué distancia está?** Se toca algo en dos fotos y la página calcula su distancia por cómo se movió, suponiendo una órbita casi circular alrededor del Sol. Con clics a mano: Neptuno 3 %, Urano 5 %, Vesta 6 % de diferencia con el JPL. Dice también cuánto se movería un Planeta X a 600 UA. Si algo no se mueve (menos de 3 píxeles) o no cuadra con ninguna órbita, lo dice en vez de inventar una distancia.
+- [x] 🆕 Titular en la portada: "Dale play al cielo. Lo que se mueve se delata solo."
