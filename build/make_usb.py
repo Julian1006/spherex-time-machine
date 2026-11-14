@@ -62,9 +62,12 @@ def build_tool(fonts):
     page = strip_pwa(strip_font_links(page))
     page = page.replace('<title>', fonts + '\n<title>', 1)
     page = page.replace('"file":"frames_', '"file":"datos/frames_')
+    page = page.replace('"file":"cover.png"', '"file":"datos/cover.png"')
     io.open(os.path.join(OUT, 'Herramienta.html'), 'w', encoding='utf-8').write(page)
 
     os.makedirs(os.path.join(OUT, 'datos'), exist_ok=True)
+    if os.path.exists('docs/cover.png'):                    # the wall of frames at the top of the page
+        io.open(os.path.join(OUT, 'datos', 'cover.png'), 'wb').write(io.open('docs/cover.png', 'rb').read())
     n = 0
     for name in sorted(os.listdir('docs')):
         if not name.startswith('frames_') or not name.endswith('.json'):

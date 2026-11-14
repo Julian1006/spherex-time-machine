@@ -27,7 +27,7 @@ SW = """/* Cache-first for everything this app owns, so it keeps working with no
    full set is 16 MB and most people look at two or three. The one exception is the list of
    pointings behind the coordinate search, which is always asked of the network first. */
 const VERSION = "%s";
-const SHELL = ["./", "./index.html", "./manifest.webmanifest", "./icon-192.png", "./icon-512.png"];
+const SHELL = ["./", "./index.html", "./manifest.webmanifest", "./icon-192.png", "./icon-512.png", "./cover.png"];
 const FONT_HOSTS = ["fonts.googleapis.com", "fonts.gstatic.com"];
 
 self.addEventListener("install", e => {

@@ -13,7 +13,7 @@ unlike packing them into an image and reading them back off a canvas.
 """
 import sys, os, json, base64
 sys.path.insert(0, 'build')
-import pwa
+import pwa, cover, lang
 
 SRC_TPL = 'app/template.html'
 LIVE_JS = 'app/live/sxlive.js'
@@ -33,15 +33,32 @@ def main(index_path):
     payload = json.dumps(idx, separators=(',', ':'))
     if '/*__LIVE__*/' not in tpl or '/*__LIVEBASE__*/"idx/"' not in tpl:
         raise SystemExit('live-search markers missing')
+    # The page is written in English; its Spanish lives in app/lang/es.json, keyed by the English.
+    # A sentence reworded in the template would quietly stay in English, so say so here.
+    if '/*__ES__*/{}' not in tpl:
+        raise SystemExit('language marker missing')
+    spanish = json.load(open(lang.ES_PATH, encoding='utf-8'))
+    missing, stale = lang.check(spanish, lang.keys(tpl, idx))
+    for k in missing:
+        print('no Spanish for:        ' + k[:90])
+    for k in stale:
+        print('Spanish for nothing:   ' + k[:90])
+    tpl = tpl.replace('/*__ES__*/{}', json.dumps(spanish, ensure_ascii=False, separators=(',', ':')))
     # the engine that reads images straight from NASA's bucket lives in its own file so that
     # app/live/test.html can check it on its own; here it is folded into the single page
     tpl = tpl.replace('/*__LIVE__*/', open(LIVE_JS, encoding='utf-8').read())
+    if '/*__COVER__*/null' not in tpl:
+        raise SystemExit('cover marker missing')
     html = tpl.replace('/*__INDEX__*/null', payload)
     # the coordinate search needs docs/idx/ next to the page; the artifact build has no such folder
     art = html.replace('/*__LIVEBASE__*/"idx/"', 'null')
 
     os.makedirs(SITE_DIR, exist_ok=True)
     os.makedirs(ART_DIR, exist_ok=True)
+    # the wall of little frames at the top of the page; the artifact build goes without it,
+    # since it has nowhere to keep a picture file
+    sheet = cover.build(idx, 'data/out', os.path.join(SITE_DIR, 'cover.png'))
+    html = html.replace('/*__COVER__*/null', json.dumps(sheet, separators=(',', ':')))
     # only the site build is installable: a service worker needs https or localhost
     site, version = pwa.install(SITE_DIR, META + html)
     open(os.path.join(SITE_DIR, 'index.html'), 'w', encoding='utf-8').write(site)
@@ -57,6 +74,10 @@ def main(index_path):
 
     print("%-28s %7.1f KB   (static site, installable, cache %s)"
           % ('docs/index.html', os.path.getsize(os.path.join(SITE_DIR, 'index.html')) / 1024, version))
+    print("%-28s %7.1f KB   (cover: %d targets x %d frames)"
+          % ('docs/cover.png', os.path.getsize(os.path.join(SITE_DIR, 'cover.png')) / 1024, len(sheet['tiles']), sheet['frames']))
+    print("%-28s %7d      (sentences in Spanish, %d missing)"
+          % (lang.ES_PATH, len(spanish), len(missing)))
     print("%-28s %7.1f KB   (artifact build)"
           % ('app/dist/index.html', os.path.getsize(os.path.join(ART_DIR, 'index.html')) / 1024))
     print("%-28s %7.1f MB   (%d targets, %d frames)"
