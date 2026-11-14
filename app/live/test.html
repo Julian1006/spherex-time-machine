@@ -22,7 +22,7 @@
   figure{margin:0;background:var(--surface);border:1px solid var(--line)}
   canvas{display:block;width:192px;height:192px;image-rendering:pixelated;background:#000}
   figcaption{font:11px/1.35 ui-monospace,Menlo,monospace;color:var(--muted);padding:5px 7px}
-  #sum,#liveSum,#idxSum{font:13px/1.5 ui-monospace,Menlo,monospace;margin:10px 0}
+  #sum,#liveSum,#idxSum,#flagSum{font:13px/1.5 ui-monospace,Menlo,monospace;margin:10px 0}
 </style>
 <main>
   <h1>sxlive self-test</h1>
@@ -57,6 +57,15 @@
   <div class="wrap"><table id="idxTbl"><tr>
     <th>object</th><th>IRSA lists</th><th>index finds</th><th>missed</th><th>of those, at the very edge</th><th>not in IRSA's list</th>
     <th>worst pixel error</th><th>worst wavelength error</th><th>search time</th><th></th></tr></table></div>
+
+  <h2>4. The pixel flags are read the way NASA counts them</h2>
+  <p>Every file carries a layer of warnings, one number per pixel, and its header says how many pixels carry
+    each warning. Here the whole layer of two files is unpacked, one stored compressed and one stored plain,
+    and the pixels are counted again. The two counts should be equal for every kind of warning.</p>
+  <div id="flagSum">not run (add ?flags=1)</div>
+  <div class="wrap"><table id="flagTbl"><tr>
+    <th>file</th><th>stored</th><th>kinds of warning compared</th><th>counts equal</th><th>bits with no meaning</th>
+    <th>downloaded</th><th>time</th><th></th></tr></table></div>
 </main>
 <script src="sxlive.js"></script>
 <script>
@@ -253,6 +262,50 @@ async function indexCheck() {
   $("idxSum").className = pass === R.index.length ? "ok" : "bad";
 }
 
+/* ---------- 4. the pixel flags against the counts in each file's own header ---------- */
+const FLAG_FILES = [
+  "dr1/level2/2025W28_1B/l2b-v27-2026-215/6/level2_2025W28_1B_0001_1D6_spx_l2b-v27-2026-215.fits",       // Rice-compressed
+  "qr2/level2/2025W28_1B/l2b-v20-2025-260/1/level2_2025W28_1B_0220_1D1_spx_l2b-v20-2025-260.fits",       // a plain image
+];
+const COUNT_NAME = { MISSING_DATA: "MISSING", CROSSTALK: "XTALK" };      // where the header shortens a name
+async function flagCheck() {
+  $("flagSum").textContent = "working…";
+  R.flags = [];
+  for (const key of FLAG_FILES) {
+    const row = $("flagTbl").insertRow(), c = Array.from({ length: 8 }, () => row.insertCell());
+    c[0].textContent = key.split("/").pop().replace(/_spx_.*/, "") + " (" + key.split("/")[0] + ")";
+    try {
+      const t0 = performance.now(), b0 = SXLive.stats.bytes;
+      const img = await SXLive.openImage(key), fl = await SXLive.openFlags(key, img.flagsHeaderAt);
+      const names = Object.keys(fl.planes), count = new Float64Array(32);
+      let known = 0, stray = 0;
+      names.forEach(n => { known |= 1 << fl.planes[n]; });
+      for (let y = 0; y < fl.ny; y += 240) {
+        const rows = await SXLive.flagRows(fl, y, Math.min(fl.ny - 1, y + 239));
+        for (let i = 0; i < rows.length; i++) {
+          const v = rows[i];
+          if (!v) continue;
+          if (v & ~known) stray++;
+          for (let b = 0; b < 32; b++) if ((v >>> b) & 1) count[b]++;
+        }
+      }
+      // the header of the image, or of the flags layer itself, says how many pixels carry each flag
+      const stated = n => { const k = "L2 N_" + (COUNT_NAME[n] || n); return img.h[k] !== undefined ? img.h[k] : fl.header[k]; };
+      const compared = names.filter(n => typeof stated(n) === "number"), equal = compared.filter(n => stated(n) === count[fl.planes[n]]);
+      const ok = compared.length >= 5 && equal.length === compared.length && stray === 0;
+      c[1].textContent = fl.kind === "rice" ? "compressed (RICE_1)" : "plain image";
+      c[2].textContent = compared.length + " of " + names.length; c[3].textContent = equal.length + " of " + compared.length;
+      c[4].textContent = stray; c[5].textContent = ((SXLive.stats.bytes - b0) / 1048576).toFixed(1) + " MB";
+      c[6].textContent = ((performance.now() - t0) / 1000).toFixed(1) + " s"; c[7].textContent = ok ? "PASS" : "FAIL"; c[7].className = ok ? "ok" : "bad";
+      R.flags.push({ key, ok, kind: fl.kind, compared: compared.length, equal: equal.length, stray,
+        different: compared.filter(n => stated(n) !== count[fl.planes[n]]).map(n => n + " " + stated(n) + " vs " + count[fl.planes[n]]) });
+    } catch (e) { c[7].textContent = "ERROR " + e.message; c[7].className = "bad"; R.flags.push({ key, ok: false, error: String(e && e.stack || e) }); }
+  }
+  const pass = R.flags.filter(x => x.ok).length;
+  $("flagSum").textContent = pass + " of " + R.flags.length + " files: every count equals the one in the file's header";
+  $("flagSum").className = pass === R.flags.length ? "ok" : "bad";
+}
+
 (async () => {
   try {
     CAND = await (await fetch("candidates.json")).json();
@@ -261,6 +314,7 @@ async function indexCheck() {
     const q = new URLSearchParams(location.search);
     if (q.get("exact") !== "0") await exactness();
     if (q.get("index")) await indexCheck();
+    if (q.get("flags")) await flagCheck();
     if (q.get("live")) {
       $("who").value = q.get("live"); $("size").value = q.get("size") || 96;
       $("count").value = q.get("count") || 12; $("band").value = q.get("band") || 0;

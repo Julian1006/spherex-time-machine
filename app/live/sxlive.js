@@ -296,9 +296,146 @@
              detX: pl.sx[mid], detY: pl.sy[mid], tx: t ? t[0] : NaN, ty: t ? t[1] : NaN };
   }
 
+  /* ---------- pixel flags ----------
+
+     Every Level-2 file carries a FLAGS layer after the image: one 32-bit number per detector
+     pixel, each bit a warning from the pipeline (a cosmic-ray hit, a dead pixel, a ghost...).
+     Older releases store it as a plain image. Newer ones compress it row by row (FITS tile
+     compression, RICE_1), so a row has to be found through a small table and unpacked here. */
+
+  const NONZERO = new Uint8Array(256);                    // how many bits a byte needs
+  for (let i = 1; i < 256; i++) NONZERO[i] = 32 - Math.clz32(i);
+
+  /** Unpack one Rice-compressed tile of 32-bit integers: n pixels from c[p...] into out[o...].
+      A port of fits_rdecomp from CFITSIO. */
+  function unrice(c, p, n, nblock, out, o) {
+    const fsbits = 5, fsmax = 25, bbits = 32;
+    let last = (c[p] << 24) | (c[p + 1] << 16) | (c[p + 2] << 8) | c[p + 3];
+    p += 4;
+    let b = c[p++], nbits = 8;
+    for (let i = 0; i < n;) {
+      nbits -= fsbits;
+      while (nbits < 0) { b = ((b << 8) | c[p++]) >>> 0; nbits += 8; }
+      const fs = (b >>> nbits) - 1;
+      b &= (1 << nbits) - 1;
+      const imax = Math.min(n, i + nblock);
+      if (fs < 0) {                                       // every pixel of the block repeats the last one
+        for (; i < imax; i++) out[o + i] = last;
+      } else if (fs === fsmax) {                          // too noisy to code: the differences are stored whole
+        for (; i < imax; i++) {
+          let k = bbits - nbits, diff = k < 32 ? b << k : 0;
+          for (k -= 8; k >= 0; k -= 8) { b = c[p++]; diff |= b << k; }
+          if (nbits > 0) { b = c[p++]; diff |= b >>> (-k); b &= (1 << nbits) - 1; } else b = 0;
+          diff >>>= 0;
+          last = (((diff & 1) === 0 ? diff >>> 1 : ~(diff >>> 1)) + last) | 0;
+          out[o + i] = last;
+        }
+      } else {                                            // the usual case: a run of zeros, a one, then fs bits
+        for (; i < imax; i++) {
+          while (b === 0) { nbits += 8; b = c[p++]; }
+          const nzero = nbits - NONZERO[b];
+          nbits -= nzero + 1;
+          b ^= 1 << nbits;
+          nbits -= fs;
+          while (nbits < 0) { b = ((b << 8) | c[p++]) >>> 0; nbits += 8; }
+          const diff = ((nzero << fs) | (b >>> nbits)) >>> 0;
+          b &= (1 << nbits) - 1;
+          last = (((diff & 1) === 0 ? diff >>> 1 : ~(diff >>> 1)) + last) | 0;
+          out[o + i] = last;
+        }
+      }
+    }
+    return p;
+  }
+
+  /** Where a file's FLAGS layer is and how it is stored. `at` is the byte where its header
+      starts, which is where the image data ends. One request of 64 KB. */
+  async function openFlags(key, at, signal) {
+    let u8 = new Uint8Array(await range(key, at, at + HDR_PREFIX - 1, signal));
+    const hdu = parseHeader(u8, 0);
+    if (!hdu) throw new Error("the FLAGS header does not fit in " + HDR_PREFIX + " bytes of " + key);
+    const h = hdu.h, planes = {};
+    for (const k in h) {                                  // what each bit means, by name
+      let m = /^MSKN(\d+)$/.exec(k);
+      if (m) { planes[String(h[k]).trim()] = +m[1]; continue; }
+      m = /^MP_(\w+)$/.exec(k);
+      if (m && typeof h[k] === "number") planes[m[1]] = h[k];
+    }
+    if (String(h.EXTNAME).trim() !== "FLAGS") throw new Error("no FLAGS layer where one was expected in " + key);
+    if (String(h.XTENSION).trim() === "IMAGE") {
+      if (h.BITPIX !== 32) throw new Error("unexpected FLAGS type in " + key);
+      return { key: key, kind: "image", nx: h.NAXIS1, ny: h.NAXIS2, dataStart: at + hdu.dataStart, planes: planes, header: h };
+    }
+    const wide = /Q/.test(String(h.TFORM1)), width = wide ? 16 : 8, rows = h.NAXIS2;
+    let block = 32, bytepix = 4;
+    for (let i = 1; h["ZNAME" + i] !== undefined; i++) {
+      if (String(h["ZNAME" + i]).trim() === "BLOCKSIZE") block = h["ZVAL" + i];
+      if (String(h["ZNAME" + i]).trim() === "BYTEPIX") bytepix = h["ZVAL" + i];
+    }
+    if (!h.ZIMAGE || String(h.ZCMPTYPE).trim() !== "RICE_1" || h.ZBITPIX !== 32 || bytepix !== 4
+        || h.ZTILE1 !== h.ZNAXIS1 || (h.ZTILE2 || 1) !== 1 || h.NAXIS1 !== width || rows !== h.ZNAXIS2) {
+      throw new Error("FLAGS are stored in a way this page cannot read in " + key);
+    }
+    const need = hdu.dataStart + rows * width;
+    if (u8.length < need) {                               // the row table ran past the first request
+      const more = new Uint8Array(await range(key, at + u8.length, at + need - 1, signal));
+      const all = new Uint8Array(need); all.set(u8); all.set(more, u8.length); u8 = all;
+    }
+    const dv = new DataView(u8.buffer, u8.byteOffset + hdu.dataStart, rows * width);
+    const len = new Float64Array(rows), off = new Float64Array(rows);
+    for (let r = 0; r < rows; r++) {
+      if (wide) { len[r] = dv.getUint32(r * 16, false) * 4294967296 + dv.getUint32(r * 16 + 4, false);
+                  off[r] = dv.getUint32(r * 16 + 8, false) * 4294967296 + dv.getUint32(r * 16 + 12, false); }
+      else { len[r] = dv.getUint32(r * 8, false); off[r] = dv.getUint32(r * 8 + 4, false); }
+    }
+    return { key: key, kind: "rice", nx: h.ZNAXIS1, ny: h.ZNAXIS2, len: len, off: off, block: block,
+             heap: at + hdu.dataStart + (h.THEAP || rows * width), planes: planes, header: h };
+  }
+
+  /** Flags of detector rows y0..y1 inclusive, one Int32 per pixel. One request. */
+  async function flagRows(fl, y0, y1, signal) {
+    const out = new Int32Array((y1 - y0 + 1) * fl.nx);
+    if (fl.kind === "image") {
+      const dv = new DataView(await range(fl.key, fl.dataStart + y0 * fl.nx * 4, fl.dataStart + (y1 + 1) * fl.nx * 4 - 1, signal));
+      for (let i = 0; i < out.length; i++) out[i] = dv.getInt32(i * 4, false);
+      return out;
+    }
+    let a = Infinity, b = 0;
+    for (let y = y0; y <= y1; y++) if (fl.len[y]) { a = Math.min(a, fl.off[y]); b = Math.max(b, fl.off[y] + fl.len[y]); }
+    if (b <= a) return out;
+    const buf = await range(fl.key, fl.heap + a, fl.heap + b - 1, signal);
+    const c = new Uint8Array(buf.byteLength + 8);          // a few zero bytes so a damaged row cannot run off the end
+    c.set(new Uint8Array(buf));
+    for (let y = y0; y <= y1; y++) if (fl.len[y]) unrice(c, fl.off[y] - a, fl.nx, fl.block, out, (y - y0) * fl.nx);
+    return out;
+  }
+
+  const SHARE = 0.05;                 // a detector pixel counts once it supplies this much of an output pixel
+
+  /** The flags under each pixel of a cutout laid out by plan(): every detector pixel that takes a
+      real part in an output pixel has its bits OR-ed in. One request, plus openFlags' one. */
+  async function flagCutout(fl, pl, signal) {
+    const y0 = Math.max(0, Math.floor(pl.miny) - 1), y1 = Math.min(fl.ny - 1, Math.ceil(pl.maxy) + 1);
+    const rows = await flagRows(fl, y0, y1, signal), nx = fl.nx, per = pl.ss * pl.ss;
+    const out = new Int32Array(pl.size * pl.size);
+    const at = (x, y) => (x >= 0 && x < nx && y >= y0 && y <= y1) ? rows[(y - y0) * nx + x] : 0;
+    for (let k = 0, j = 0; k < out.length; k++) {
+      let v = 0;
+      for (let q = 0; q < per; q++, j++) {
+        const x = pl.sx[j], y = pl.sy[j], xf = Math.floor(x), yf = Math.floor(y), fx = x - xf, fy = y - yf;
+        if ((1 - fx) * (1 - fy) > SHARE) v |= at(xf, yf);
+        if (fx * (1 - fy) > SHARE) v |= at(xf + 1, yf);
+        if ((1 - fx) * fy > SHARE) v |= at(xf, yf + 1);
+        if (fx * fy > SHARE) v |= at(xf + 1, yf + 1);
+      }
+      out[k] = v;
+    }
+    return out;
+  }
+
   /* ---------- wavelength ---------- */
 
-  const ITEM = { J: [4, "getInt32"], E: [4, "getFloat32"], D: [8, "getFloat64"], I: [2, "getInt16"] };
+  const ITEM ={ J: [4, "getInt32"], E: [4, "getFloat32"], D: [8, "getFloat64"], I: [2, "getInt16"] };
 
   /** The wavelength lookup table at the end of a file: control points X, Y and (um, um) values. */
   async function waveTable(key, signal) {
@@ -541,6 +678,7 @@
     S3: S3, PIXSCALE: PIXSCALE, stats: stats, index: index,
     range: range, tail: tail, list: list, parseHeader: parseHeader, makeWcs: makeWcs, frame: frame, unit: unit,
     openImage: openImage, plan: plan, fits: fits, cutout: cutout, waveTable: waveTable, waveAt: waveAt,
+    openFlags: openFlags, flagRows: flagRows, flagCutout: flagCutout, unrice: unrice,
     weekVersions: weekVersions, keyOf: keyOf, openExposure: openExposure, releaseOf: releaseOf, weekOf: weekOf,
     manifest: manifest, search: search, pick: pick, series: series, locate: locate
   };
