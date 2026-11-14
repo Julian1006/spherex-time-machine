@@ -1,0 +1,71 @@
+# Keeps the coordinate search up to date without anyone touching it.
+#
+# Every day this looks at NASA's public SPHEREx bucket, notes any exposure that was not there
+# yesterday, and commits the refreshed index under docs/idx/. Once a week it reads everything
+# again from scratch, so reprocessed files and whole new data releases are picked up too.
+# The page itself reads the images live; this only maintains the list of where SPHEREx pointed.
+name: Refresh the pointing index
+
+on:
+  schedule:
+    - cron: "17 7 * * 1-6"    # every day but Sunday, 07:17 UTC: add what is new
+    - cron: "17 5 * * 0"      # Sundays, 05:17 UTC: rebuild in full
+  workflow_dispatch:
+    inputs:
+      full:
+        description: "Read every exposure again (slower)"
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
+  pages: write
+
+concurrency:
+  group: pointing-index
+  cancel-in-progress: false
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Read the bucket
+        env:
+          SX_THREADS: "128"
+        run: |
+          if [ "${{ github.event.schedule }}" = "17 5 * * 0" ] || [ "${{ inputs.full }}" = "true" ]; then
+            python build/pointing_index.py --full
+          else
+            python build/pointing_index.py
+          fi
+
+      - name: Commit what changed
+        id: commit
+        run: |
+          git add docs/idx
+          if git diff --cached --quiet; then
+            echo "Nothing new today."
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          summary=$(python -c "import json; m = json.load(open('docs/idx/manifest.json')); print('%d exposures, releases %s' % (m['exposures'], ' + '.join(sorted(m['releases']))))")
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -m "Pointing index: $summary"
+          git push
+          echo "changed=true" >> "$GITHUB_OUTPUT"
+
+      # A push made by this workflow's own token does not always start a Pages build,
+      # so ask for one. Harmless if a build was already queued.
+      - name: Ask GitHub Pages to publish
+        if: steps.commit.outputs.changed == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh api -X POST "repos/${{ github.repository }}/pages/builds" || true
