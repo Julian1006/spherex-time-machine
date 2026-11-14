@@ -1,7 +1,7 @@
 <title>SPHEREx Time Machine</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&family=Inter:wght@400;500;600;700&family=DM+Mono:wght@400;500&display=swap">
 <style>
 :root{
   --bg:#F3F1EE; --surface:#FFFFFF; --surface-2:#F7F5F2; --line:#DFD9D1; --line-soft:#ECE7E1;
@@ -232,14 +232,100 @@ a{color:var(--accent);text-decoration-thickness:1px;text-underline-offset:2px}
   background:var(--surface-2);border:1px solid var(--line);font-family:var(--mono);font-size:10px;
   display:grid;place-items:center;color:var(--text)}
 @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+
+/* ---------- NASA-inspired look ---------- */
+:root,:root[data-theme="dark"]{
+  --bg:#0B0B0D; --surface:#141417; --surface-2:#1B1B1F; --line:#26262B; --line-soft:#1F1F23;
+  --text:#F2F1EF; --muted:#A9A9AD; --faint:#727277;
+  --accent:#288BFF; --accent-ink:#FFFFFF; --stage:#000; --stage-line:#26262B;
+  --shadow:none;
+  --mono:"DM Mono",ui-monospace,Menlo,monospace;
+  --sans:"Inter",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --serif:var(--sans);
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#0B0B0D; --surface:#141417; --surface-2:#1B1B1F; --line:#26262B; --line-soft:#1F1F23;
+  --text:#F2F1EF; --muted:#A9A9AD; --faint:#727277; --accent:#288BFF; --accent-ink:#FFFFFF; --stage:#000;
+}}
+:root[data-theme="light"]{
+  --bg:#F7F5F4; --surface:#FFFFFF; --surface-2:#F1F0EF; --line:#E1DFDE; --line-soft:#ECEAE9;
+  --text:#16161A; --muted:#5C5C61; --faint:#8A8A8F; --accent:#1C67E3; --accent-ink:#FFFFFF; --stage:#000;
+}
+header{border-bottom:1px solid var(--line);margin-bottom:24px}
+.hbar{padding-block:30px 24px}
+h1{font-family:var(--sans);font-weight:700;font-size:clamp(28px,4.5vw,40px);line-height:1.05;letter-spacing:-.025em}
+h1 em{font-style:normal;color:var(--muted);font-weight:400}
+.tag{font-size:15px;margin-top:10px}
+.about h2{font-family:var(--sans);font-weight:700;font-size:24px;letter-spacing:-.02em}
+.cols h4{font-weight:600}
+
+/* ---------- square everything ---------- */
+.card,.transport,.stage,.tgt,.facts,.thumb,.seg,select,.speed,.btn,.step,.ghost,.play,.qmark,.pill,
+.bandsel button,#spec,#sky,.ghelp,.cols code,.steps li::before{border-radius:0!important}
+.tgt[aria-pressed="true"]{box-shadow:none;border-color:var(--accent);border-width:1px;outline:1px solid var(--accent)}
+.tgt{border-top:3px solid var(--line)}
+.tgt[aria-pressed="true"]{border-top-color:var(--accent)}
+.card{border-top:3px solid var(--line)}
+.deftable{border-collapse:separate;border-spacing:0;border:1px solid var(--line)}
+.deftable th{background:var(--surface);padding:10px 14px;border-bottom:1px solid var(--line)}
+.deftable td{padding:12px 14px;border-bottom:1px solid var(--line)}
+.deftable td:first-child{background:var(--surface);border-right:1px solid var(--line);font-family:var(--mono);font-weight:500;font-size:12.5px}
+.deftable tr:last-child td{border-bottom:0}
+input[type=range]{accent-color:var(--accent)}
+
+/* ---------- friendlier type ---------- */
+:root{--display:"Chakra Petch","Inter",system-ui,sans-serif}
+body{font-size:15px;line-height:1.55}
+h1{font-family:var(--display);font-weight:700;font-size:clamp(32px,5vw,48px);letter-spacing:-.01em;line-height:1}
+h1 em{font-family:var(--display);font-weight:500;color:var(--accent)}
+.tag{font-size:16px;line-height:1.55}
+.about h2{font-family:var(--display);font-weight:700;font-size:clamp(24px,3.5vw,32px);letter-spacing:0}
+.eyebrow,.card h3{font-family:var(--display);font-size:16px;font-weight:600;letter-spacing:0;
+  text-transform:none;color:var(--text)}
+.eyebrow{margin-bottom:12px!important}
+.card{padding:18px}
+.card h3{margin-bottom:12px}
+.tgt{padding:12px 16px;min-width:150px}
+.tgt b{font-family:var(--display);font-size:16px;font-weight:600}
+.tgt span{font-family:var(--sans);font-size:12.5px;letter-spacing:0;margin-top:4px}
+.advtoggle{font-family:var(--display);font-size:14.5px;font-weight:600;letter-spacing:0;text-transform:none;
+  color:var(--accent);border-bottom:0}
+.advtoggle::after{content:" →"}
+.ghost{font-family:var(--display);font-size:14px;font-weight:600;letter-spacing:0;text-transform:none;padding:8px 14px}
+.pill{font-family:var(--display);font-size:12.5px;font-weight:600;letter-spacing:.02em;text-transform:none;padding:3px 10px}
+.ov-date{font-family:var(--display);font-size:19px;font-weight:600}
+.play{width:48px;height:48px}
+.step{width:38px;height:38px}
+.speed,select{font-family:var(--sans);font-size:14px}
+.btn{font-family:var(--display);font-size:15px;font-weight:600;letter-spacing:0;text-transform:none;padding:11px}
+.seg button{font-family:var(--display);font-size:14px;font-weight:600;padding:9px 4px}
+.field label{font-size:14px}
+.field label b{font-size:12.5px}
+.chk{font-size:14px}
+.note,.specempty{font-size:13.5px;line-height:1.5}
+.kv{font-size:13.5px}
+.keys{font-family:var(--sans);font-size:13px;color:var(--muted);letter-spacing:0}
+.keys b{display:inline-block;font-family:var(--mono);font-size:11.5px;color:var(--text);background:var(--surface-2);
+  border:1px solid var(--line);border-bottom-width:2px;padding:1px 7px;margin:0 2px}
+.blurb{font-size:15.5px}
+.cols p,.steps li,.lede,.deftable{font-size:15px}
+.cols h4{font-family:var(--display);font-size:18px;font-weight:600;margin-bottom:8px}
+.steps li::before{font-family:var(--display);font-weight:700;background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.deftable th,.facts dt{font-family:var(--display);font-size:13px;font-weight:600;letter-spacing:0;text-transform:none}
+.deftable td:first-child{font-family:var(--display);font-size:15px;font-weight:600}
+.facts dd{font-family:var(--display);font-size:18px}
+
+/* ---------- fill the space under the image ---------- */
+.under{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;margin-top:14px;align-items:start}
+@media (max-width:640px){.under{grid-template-columns:minmax(0,1fr)}}
 </style>
 
 <header>
   <div class="hbar">
     <div>
       <h1>SPHEREx <em>Time Machine</em></h1>
-      <p class="tag">NASA's SPHEREx maps the entire sky in 102 infrared colours. Pick a patch, press play,
-        and watch fifteen months of real survey images blink past — anything that moves or flickers is doing something.</p>
+      <p class="tag">SPHEREx photographs the whole sky in infrared, over and over. I grabbed fifteen months of its
+        real images so you can pick a spot, hit play, and catch the things that move or flicker.</p>
     </div>
     <div class="hmeta">
       <button class="ghost" id="theme" type="button">Theme</button>
@@ -270,7 +356,7 @@ a{color:var(--accent);text-decoration-thickness:1px;text-underline-offset:2px}
           <div class="sbar"><div class="ln" id="sbarLn" style="width:60px"></div><span id="sbarTxt">5′</span></div>
         </div>
         <div class="ov ov-br" id="ovCursor">N ↑ &nbsp; E ←</div>
-        <div class="hint" id="hint">Press play. Click any source to pull its infrared spectrum.</div>
+        <div class="hint" id="hint">Hit play. Click a star to see its spectrum.</div>
         <div class="loading" id="loading">Loading frames…</div>
       </div>
 
@@ -300,6 +386,19 @@ a{color:var(--accent);text-decoration-thickness:1px;text-underline-offset:2px}
           <div class="strip" id="strip" role="group" aria-label="Frame thumbnails"></div>
         </div>
       </div>
+      <div class="under">
+        <div class="card">
+          <h3>This frame</h3>
+          <dl class="kv" id="meta"></dl>
+        </div>
+        <div class="card" id="specCard">
+          <h3>Spectrum at cursor</h3>
+          <canvas id="spec" width="600" height="264" hidden></canvas>
+          <p class="specempty" id="specEmpty">Click a star or galaxy. Each visit sees a slightly different infrared color,
+            so put together they give you a rough spectrum.</p>
+          <p class="note" id="specNote" hidden></p>
+        </div>
+      </div>
     </div>
 
     <div class="panel">
@@ -307,8 +406,8 @@ a{color:var(--accent);text-decoration-thickness:1px;text-underline-offset:2px}
         <h3>Where you are looking</h3>
         <canvas id="sky" width="620" height="310" role="img"
           aria-label="All-sky map with the ecliptic marked, showing where each target sits. Click a marker to jump there; the target buttons above do the same from the keyboard."></canvas>
-        <p class="note" id="skyNote">The whole sky, with the ecliptic drawn in. SPHEREx sweeps along it,
-          which is why its two deep fields sit at the ecliptic poles. Click a marker to jump there.</p>
+        <p class="note" id="skyNote">The whole sky. The line is the ecliptic: SPHEREx scans along it, so its two deep fields
+          end up at the poles. Click a dot to go there.</p>
       </div>
 
       <div class="card" id="movingCard" hidden>
@@ -321,10 +420,6 @@ a{color:var(--accent);text-decoration-thickness:1px;text-underline-offset:2px}
         <button class="btn" id="bodySpec" type="button">Show its infrared spectrum</button>
       </div>
 
-      <div class="card">
-        <h3>This frame</h3>
-        <dl class="kv" id="meta"></dl>
-      </div>
 
       <div class="card" id="compareCard">
         <h3>Compare</h3>
@@ -334,17 +429,10 @@ a{color:var(--accent);text-decoration-thickness:1px;text-underline-offset:2px}
           <button type="button" data-mode="diff" aria-pressed="false">Difference</button>
         </div>
         <button class="btn" id="setref" type="button">Pin this frame as reference</button>
-        <p class="note" id="modeNote">Blink flips between the reference frame and the current one. Difference
-          subtracts them, so only what changed stays visible.</p>
+        <p class="note" id="modeNote">Blink jumps back and forth between your pinned frame and this one. Difference
+          subtracts them, so anything that didn't change disappears.</p>
       </div>
 
-      <div class="card" id="specCard">
-        <h3>Spectrum at cursor</h3>
-        <canvas id="spec" width="600" height="264" hidden></canvas>
-        <p class="specempty" id="specEmpty">Click a star or galaxy in the image. Every visit samples a different
-          infrared wavelength, so the frames together build a rough spectrum of whatever you picked.</p>
-        <p class="note" id="specNote" hidden></p>
-      </div>
 
       <div class="card" id="displayCard">
         <h3>Display</h3>
@@ -385,8 +473,8 @@ a{color:var(--accent);text-decoration-thickness:1px;text-underline-offset:2px}
             <label class="chk"><input type="checkbox" id="flatten"> Flatten background</label>
             <label class="chk"><input type="checkbox" id="smooth"> Smooth pixels</label>
           </div>
-          <p class="note">SPHEREx frames often carry a glow from bright stars just off the edge. Flattening
-            removes that gradient so faint sources stand out.</p>
+          <p class="note">Bright stars just outside the frame often leave a glow. Flattening wipes it out
+            so the faint stuff shows up.</p>
         </div>
       </div>
 
@@ -409,49 +497,44 @@ a{color:var(--accent);text-decoration-thickness:1px;text-underline-offset:2px}
   </div>
 
   <section class="about">
-    <h2>What you are looking at</h2>
+    <h2>What am I looking at?</h2>
     <div class="cols">
       <div>
-        <h4>Real survey data, not artwork</h4>
-        <p>Every pixel here comes from a Level‑2 SPHEREx science image in NASA/IPAC's public archive. The cutouts
-          were pulled from the <code>nasa-irsa-spherex</code> bucket on AWS with HTTP range reads — fetching only the
-          few hundred kilobytes that cover each target rather than each 71 MB file — and they ship with this page so
-          it stays quick. Values are surface brightness in MJy/sr, exactly as the pipeline produced them.</p>
-        <p>SPHEREx launched in March 2025 and surveys the whole sky every six months. It carries no filter wheel:
-          a linear variable filter means the wavelength a pixel records depends on <em>where</em> the source lands
-          on the detector. That is why each visit here reports a different wavelength.</p>
+        <h4>These are real images</h4>
+        <p>Every pixel comes from a Level‑2 SPHEREx image in NASA/IPAC's public archive. Each file is 71 MB,
+          so instead of downloading them whole I only read the small piece around each target from the
+          <code>nasa-irsa-spherex</code> bucket on AWS. Those pieces come bundled with the page, which is why it loads fast.
+          Brightness is in MJy/sr, straight from the pipeline.</p>
+        <p>SPHEREx launched in March 2025 and covers the whole sky every six months. It has no filter wheel.
+          Its filter changes color across the detector, so the wavelength you get depends on <em>where</em> a star lands.
+          That's why every visit shows a different wavelength.</p>
       </div>
       <div>
-        <h4>How the frames were lined up</h4>
-        <p>SPHEREx revisits a target at a different roll angle every time, so raw cutouts arrive rotated against
-          one another. Each frame was reprojected onto one shared tangent plane — north up, east left, at the
-          native 6.15″ pixel scale — using the full <code>TAN‑SIP</code> astrometric solution in the file header.</p>
-        <p>The frames therefore blink cleanly against each other: if something shifts between images, it moved on
-          the sky rather than in the telescope.</p>
-        <p>As a check: pick a star in the deep field and the visits that happen to sample the same wavelength
-          months apart agree to about one percent. Getting that agreement requires the reprojection, the
-          wavelength lookup and the photometry to all be right at once.</p>
+        <h4>Lining the frames up</h4>
+        <p>The telescope is turned a different way every time it comes back, so the raw images don't match.
+          I reprojected all of them onto the same grid (north up, east left, 6.15″ per pixel) using the
+          <code>TAN‑SIP</code> solution stored in each file.</p>
+        <p>So if something jumps between two frames, it really moved in the sky. It's not the camera.</p>
+        <p>To check it, I took stars in the deep field that were seen at the same wavelength months apart. Their
+          brightness matches to about 1%, and that only happens if the alignment, the wavelengths and the photometry are all right.</p>
       </div>
       <div>
-        <h4>What to look for</h4>
+        <h4>Things to try</h4>
         <ol class="steps">
-          <li>Press play and let the frames cycle. Fixed stars stay put.</li>
-          <li>Pin a reference frame, then switch to <b>Difference</b>. A flat grey field means nothing changed;
-            a black‑and‑white pair of dots means something moved between the two epochs.</li>
-          <li>Asteroids drift noticeably between consecutive exposures taken minutes apart. Variable stars brighten
-            and fade over months.</li>
-          <li>Click a source to see how its brightness changes with wavelength — the measurement SPHEREx was built to make.</li>
+          <li>Hit play and watch. Normal stars don't move.</li>
+          <li>Pin a frame, then switch to <b>Difference</b>. If it's flat grey, nothing changed. A black dot next to a white one
+            means something moved.</li>
+          <li>Asteroids move even between shots taken minutes apart. Variable stars take months to brighten and fade.</li>
+          <li>Click a star to see its brightness at each wavelength. Measuring that is the whole point of SPHEREx.</li>
         </ol>
       </div>
     </div>
-    <p class="note" style="margin-top:20px">Spectra shown here are quick‑look aperture sums for
-      exploration, not calibrated photometry.</p>
+    <p class="note" style="margin-top:20px">Heads up: the spectra are quick estimates for exploring. They're not calibrated measurements.</p>
   </section>
 
   <section class="about" id="guide-frame">
-    <h2>Reading a frame</h2>
-    <p class="lede">The panel beside the image is the identity card of the one exposure on screen. Every
-      line of it is a button: tap a label and it tells you what the term means.</p>
+    <h2>What the frame info means</h2>
+    <p class="lede">The box next to the image describes the exposure you're looking at. Here's what each line means.</p>
     <div class="vwrap">
       <table class="deftable">
         <tr><th>Line</th><th>What it means</th></tr>
@@ -462,25 +545,22 @@ a{color:var(--accent);text-decoration-thickness:1px;text-underline-offset:2px}
         <tr><td>Detector</td><td>Which of the six detector arrays caught the target, and the stretch of infrared that array covers.</td></tr>
         <tr><td>Exposure</td><td>SPHEREx's own name for this exposure: the year, the week of the survey, which segment of it, and the number within that segment.</td></tr>
         <tr><td>Release</td><td>The public data release it belongs to. <i>deep</i> marks a pointing at one of the two deep fields, which are revisited far more often than the rest of the sky.</td></tr>
-        <tr><td>Source file</td><td>Opens the original exposure in NASA's archive — all 71 MB of it, from which only a small square was ever downloaded. This is the line worth clicking.</td></tr>
+        <tr><td>Source file</td><td>A link to the original 71 MB file in NASA's archive. I only downloaded a small square of it. Click it, it's the fun one.</td></tr>
         <tr><td>Distance</td><td>How far the body was from Earth at that moment, in astronomical units. Shown only for the moving targets.</td></tr>
-        <tr><td>Flagged pixels</td><td>Pixels the pipeline marked unusable: saturated by something bright, struck by a cosmic ray, or simply dead. They are the dark specks, and nothing is invented to fill them in.</td></tr>
+        <tr><td>Flagged pixels</td><td>Pixels the pipeline marked as bad: too bright, hit by a cosmic ray, or just dead. Those are the dark specks. I left them as they are.</td></tr>
       </table>
     </div>
   </section>
 
 
   <section class="about" id="data">
-    <h2>The data behind this</h2>
-    <p class="lede">Nothing here is simulated, enhanced or redrawn. Every frame is a cutout of one real
-      SPHEREx exposure, and the panel on each frame links straight to the file it came from in NASA's
-      archive, so any of it can be checked against the source.</p>
+    <h2>About the data</h2>
+    <p class="lede">Nothing here is simulated or edited. Every frame is a piece of one real SPHEREx exposure, and each one links
+      to its original file, so you can check it yourself.</p>
 
     <dl class="facts" id="facts"></dl>
 
-    <p class="note" style="margin-top:4px">Every frame keeps the brightness the pipeline measured, in
-      MJy/sr. Nothing is stacked, rescaled or retouched, and the panel on each frame links to the file it
-      was cut from so any of it can be checked against the source.
+    <p class="note" style="margin-top:4px">Brightness values are the ones the pipeline measured, in MJy/sr. No stacking, no rescaling, no touch-ups.
       <span id="prov"></span> Data: NASA/JPL‑Caltech/IPAC.</p>
   </section>
 </div>
@@ -855,9 +935,9 @@ function hammer(ra, dec) {
   return [2 * Math.SQRT2 * Math.cos(phi) * Math.sin(lam / 2) / z, Math.SQRT2 * Math.sin(phi) / z];
 }
 function skyXY(c, ra, dec) {
-  const [u, v] = hammer(ra, dec);
+  let a = ((ra + 180) % 360 + 360) % 360 - 180;   // plain rectangular map, RA 0 in the middle
   const m = 6, w = c.width - 2 * m, h = c.height - 2 * m;
-  return [m + (u / (4 * Math.SQRT2) + 0.5) * w, m + (0.5 - v / (2 * Math.SQRT2)) * h];
+  return [m + (0.5 - a / 360) * w, m + (0.5 - dec / 180) * h];
 }
 function drawSky() {
   const c = $("sky"), g = c.getContext("2d");
@@ -898,7 +978,7 @@ function drawSky() {
   IDX.targets.forEach(t => {                      // markers
     const [x, y] = skyXY(c, t.ra, t.dec);
     const cur = S.target && t.id === S.target.id;
-    g.beginPath(); g.arc(x, y, cur ? 7 : 4.5, 0, 6.2832);
+    const r = cur ? 6.5 : 4; g.beginPath(); g.rect(x - r, y - r, 2 * r, 2 * r);
     g.fillStyle = cur ? cs.getPropertyValue("--accent").trim() : cs.getPropertyValue("--faint").trim();
     g.fill();
     if (cur) { g.strokeStyle = cs.getPropertyValue("--surface").trim(); g.lineWidth = 2.5; g.stroke(); }
