@@ -2,14 +2,15 @@
 
 Leyenda: ✅ ya está · ⚠️ a medias · ❌ falta
 
-> Estado al 14 de noviembre de 2026. Todo lo marcado como hecho funciona en la copia del proyecto que está en el computador. **Falta subirlo a GitHub** para que se vea en la página pública.
+> Estado al 14 de noviembre de 2026. La búsqueda por coordenadas y el robot diario ya están publicados. Lo marcado con 🆕 funciona en la copia del proyecto que está en el computador y **falta subirlo a GitHub**.
 
 ## Lo que pide el reto
 
 - [x] ✅ **Herramienta web pública.** Está publicada en GitHub Pages.
 - [x] ✅ **Muestra imágenes reales de SPHEREx.** Son imágenes Level-2 del archivo de IRSA.
 - [x] ✅ **Reproduce las imágenes como un video.** Tiene play, pausa, cuadro por cuadro, velocidad y línea de tiempo.
-- [x] ✅ **Facilita ver objetos que se mueven.** Tiene los modos Blink y Difference, y un marcador que sigue a las estrellas que se mueven.
+- [x] ✅ **Facilita ver objetos que se mueven.** Tiene los modos Blink y Difference, un marcador que sigue a las estrellas que se mueven y 🆕 zoom hasta 8× para que un corrimiento de 1 o 2 píxeles se note.
+- [x] ✅ **Facilita ver objetos que cambian de brillo.** 🆕 La gráfica de brillo ahora también se puede ver "por fecha", con una línea por cámara.
 - [x] ✅ **El usuario escribe RA y Dec.** En "Go to any coordinates", debajo de los lugares guardados.
   - [x] Un campo para RA y otro para Dec.
   - [x] Acepta `08h55m10.831s`, `08:55:10.8`, `8 55 10.8`, `133.795`, `-7d14m42.53s`, `−7° 14′ 42.5″`, `-7.245` y más. Probado con 24 formas distintas.
@@ -19,7 +20,7 @@ Leyenda: ✅ ya está · ⚠️ a medias · ❌ falta
   - [x] El navegador lee las imágenes directo de la bodega pública de la NASA.
   - [x] Un cuaderno de apuntados dice qué imágenes cubren cada punto.
   - [x] Muestra el avance mientras carga, y un mensaje si no hay imágenes.
-- [x] ✅ **Fácil de usar.** La página abre igual que antes, con los 37 lugares guardados. Las coordenadas están en una pestaña aparte para quien las necesite.
+- [x] ✅ **Fácil de usar.** La página abre con una portada de fotos reales y los 37 lugares guardados. Las coordenadas están en una pestaña aparte para quien las necesite.
 
 ## Cómo funciona la búsqueda por coordenadas
 
@@ -50,6 +51,19 @@ Nada pasa por un servidor nuestro. Los 37 lugares guardados siguen viniendo dent
 | `when=new` | Solo las imágenes más nuevas |
 | `pmra`, `pmdec` | Movimiento propio de la estrella, para que el marcador la siga |
 | `embed=1` | Muestra solo el visor, para ponerlo dentro de otra página |
+| `lang` | `es` o `en`, para fijar el idioma |
+
+## Lo nuevo del visor 🆕
+
+- **Zoom y arrastre.** Botones `+` y `−` sobre la imagen, las teclas `+ − 0`, pellizco con dos dedos, o Ctrl y la rueda del ratón. Arrastrando se mueve la imagen. Llega hasta 8×.
+- **Guardar la imagen.** Baja un PNG de lo que se ve, con la fecha, el color, la barra de escala y el nombre del lugar.
+- **Sumar imágenes.** En "Compare" → "Add images together": una foto por cámara (suma todas las fechas) o por cámara y temporada (para poder comparar una temporada con otra). Con "Keep it centred" la suma sigue al objeto que se mueve.
+- **Marcar estrellas conocidas.** Catálogos Gaia (círculos) y WISE (cuadros). Las de Gaia se corren a donde deben estar en la fecha de cada foto.
+- **Pintar los píxeles con aviso.** Lee de cada archivo de la NASA la capa de avisos y la pinta en cinco colores: píxel dañado, demasiado brillante, raya (satélite), fantasma de una estrella brillante y golpe de rayo cósmico.
+- **Brillo por fecha.** La gráfica de abajo cambia entre "por color" (espectro) y "por fecha" (curva de brillo).
+- **Ver el mismo lugar en Aladin.** Un botón abre el atlas público Aladin en ese punto del cielo.
+- **Dos idiomas.** Inglés y español. La página abre en el idioma del navegador; el botón de arriba a la derecha lo cambia, y `?lang=es` en el enlace lo deja fijo. Son 398 frases traducidas, y el programa que arma la página avisa si alguna queda sin traducir.
+- **Portada y título.** La página abre con una pared de 16 fotos reales que van cambiando de fecha; arriba de la imagen sale el nombre de lo que se está mirando.
 
 ## Pruebas hechas
 
@@ -65,6 +79,14 @@ Nada pasa por un servidor nuestro. Los 37 lugares guardados siguen viniendo dent
 | Imagen alejada (26′) contra la normal promediada de a 2×2 | Iguales hasta el séptimo decimal |
 | 24 formas de escribir coordenadas | Todas bien leídas |
 | Cancelar una carga para abrir un lugar guardado | El lugar guardado no se pisa y los botones vuelven a servir |
+| 🆕 Avisos por píxel: contar los píxeles de cada aviso en un archivo entero y comparar con la cuenta que trae el mismo archivo | Iguales en los 21 avisos de un archivo comprimido (DR1) y en los 16 de uno sin comprimir (QR2) |
+| 🆕 Los avisos caen en el sitio correcto | El centro "quemado" de Andrómeda sale como "demasiado brillante" justo encima; una raya de satélite sale marcada de lado a lado en una foto de la estrella de Barnard |
+| 🆕 La marca de Gaia para la estrella de Barnard contra el marcador propio de la página, en 3 fechas | El mismo píxel, con tres decimales |
+| 🆕 La posición de WISE (año 2010) para la estrella de Barnard | Queda 26 a 28 píxeles atrás de la estrella: son 16 años a 10,4″ por año |
+| 🆕 WISE 0855 en una sola foto contra 43 fotos sumadas siguiendo su movimiento | 5 veces el ruido contra 20 veces el ruido, justo debajo del marcador |
+| 🆕 Curva de brillo de RW Aurigae, 60 fotos en un año | Se apaga cerca de 45 % en las cámaras 5 y 6 y sube en la cámara 1 |
+| 🆕 Página en celular (375 px), tema claro y modo incrustado | Sin desbordes; la portada y el pie se esconden en modo incrustado |
+| 🆕 Página en español | Ninguna de las 398 frases quedó en inglés; el botón cambia de idioma y vuelve |
 
 ## Objetos de prueba
 
@@ -72,39 +94,42 @@ Cada uno tiene su botón en la pestaña de coordenadas.
 
 | Objeto | Qué es | Fotos disponibles | Fechas | Qué muestra la página |
 |---|---|---|---|---|
-| Barnard's Star | La estrella que más rápido se mueve en el cielo (10,4″ por año) | 335 | 15 ago 2025 a 22 sep 2026 | 30 fotos en las 6 cámaras. El marcador se mueve 1,9 píxeles y la estrella lo sigue |
+| Barnard's Star | La estrella que más rápido se mueve en el cielo (10,4″ por año) | 335 | 15 ago 2025 a 22 sep 2026 | 30 fotos en las 6 cámaras. El marcador se mueve 1,9 píxeles y la estrella lo sigue. Con zoom se ve el corrimiento |
 | Epsilon Indi B | Par de enanas marrones (4,7″ por año) | 381 | 24 abr 2025 a 2 oct 2026 | 30 fotos. El marcador se mueve 1,1 píxeles |
-| WISE 0855-0714 | Enana marrón muy fría y rápida (8,2″ por año) | 238 | 5 may 2025 a 14 may 2026 | 30 fotos. El marcador se mueve 1,4 píxeles. El objeto es tan débil que no se alcanza a ver en una sola foto |
-| RW Aurigae | Estrella joven que cambia de brillo | 308 | 1 sep 2025 a 16 sep 2026 | 30 fotos en las 6 cámaras |
-| R Draconis | Estrella que late cada 245 días | 2.189 | 24 abr 2025 a 24 sep 2026 | 30 fotos repartidas en 17 meses |
+| WISE 0855-0714 | Enana marrón muy fría y rápida (8,2″ por año) | 238 (43 en la cámara 6) | 5 may 2025 a 14 may 2026 | 🆕 Ya se ve: sumando las 43 fotos de la cámara 6 con "Keep it centred" aparece justo en el marcador |
+| RW Aurigae | Estrella joven que cambia de brillo | 308 | 1 sep 2025 a 16 sep 2026 | 🆕 La curva "por fecha" muestra el cambio de un año |
+| R Draconis | Estrella que late cada 245 días | 2.189 | 24 abr 2025 a 24 sep 2026 | 60 fotos en 17 meses. Es tan brillante que quema el centro, y la página mide su resplandor de alrededor (medida gruesa) |
 
-Cada carga tardó entre 9 y 10 segundos y pesó entre 36 y 45 MB. "Fotos disponibles" cuenta solo las fotos donde el cuadro completo de 13′ cabe dentro de una cámara.
+Cada carga de 30 fotos tardó entre 9 y 10 segundos y pesó entre 36 y 45 MB. "Fotos disponibles" cuenta solo las fotos donde el cuadro completo de 13′ cabe dentro de una cámara.
 
 ## Problemas resueltos y pendientes
 
 - [x] **Las coordenadas de catálogo son viejas.** Las de WISE 0855 que da el reto son de 2010, y desde entonces se movió unos 2′. Para las estrellas que se mueven rápido la página calcula dónde están hoy y centra ahí la imagen.
 - [x] **Las fotos salían de cabeza.** La página dibujaba el norte abajo aunque la etiqueta decía "N ↑". Ya está corregido, también en los 37 lugares guardados.
 - [x] **El script de Python ya no encontraba datos nuevos.** Buscaba la versión QR2, que IRSA reemplazó por DR1. `build/resolve.py` ahora reconoce cualquier versión.
-- [ ] **El movimiento es de apenas 1-2 píxeles.** El marcador ayuda y el tamaño "cerca" (6,6′) lo hace más visible, pero todavía hay que mirar con cuidado.
-- [ ] **WISE 0855 es muy débil.** Probablemente solo se vea sumando muchas imágenes de la cámara 6. Falta el modo de sumar.
-- [ ] **Curva de luz:** graficar el brillo contra la fecha para la estrella seleccionada. Hoy solo se grafica contra la longitud de onda.
+- [x] 🆕 **El movimiento es de apenas 1-2 píxeles.** Con el zoom y el tamaño "cerca" (6,6′) ya se nota.
+- [x] 🆕 **WISE 0855 es muy débil.** Resuelto sumando las fotos de la cámara 6.
+- [x] 🆕 **Curva de luz.** La gráfica "By date".
+- [ ] **R Draconis quema el detector.** Su curva de brillo sale con saltos que no son de la estrella. Haría falta un modelo de la mancha de luz del telescopio para medirla bien.
+- [ ] **Aladin dentro de la página.** Hoy es un botón que lo abre en otra pestaña; el servidor de Aladin no respondió el día de la prueba, así que no se pudo ensayar incrustado.
 
 ## Consideraciones del reto
 
 | # | Consideración | Estado | Qué falta |
 |---|---|---|---|
-| 1 | **Fácil de actualizar con datos nuevos** | ✅ El robot diario lo hace solo | Subirlo a GitHub y ver que corra la primera vez; no se ha podido probar allá |
+| 1 | **Fácil de actualizar con datos nuevos** | ✅ El robot diario lo hace solo. Corrió dos veces en GitHub (rápida y completa) y sacó el mismo cuaderno | Ver que guarde cambios el día que la NASA suba fotos nuevas |
 | 2a | **Aprovechar las 102 bandas** | ✅ Filtro por cámara, antes y después de cargar, y orden por longitud de onda | — |
-| 2b | **Sumar las imágenes de cada una de las 6 cámaras** | ❌ | Un modo "Stack" que promedie todas las visitas de una misma cámara |
+| 2b | **Sumar las imágenes de cada una de las 6 cámaras** | ✅ 🆕 "Add images together → one picture per band" | — |
 | 2c | **Espectros al momento** | ✅ Clic en una estrella y sale su espectro, también en lugares buscados por coordenadas | — |
-| 3 | **Sumar o restar imágenes de fechas distintas** | ⚠️ Restar sí (Difference); sumar no | Sumar rangos de fechas y restar esas sumas |
-| 4 | **Que el usuario elija el campo de visión** | ✅ Tres tamaños (6,6′, 13′ y 26′), y cualquier valor de 3 a 60 por el enlace. La página avisa cuántos MB va a bajar | — |
-| 5 | **Superponer datos de Gaia o WISE** | ❌ | Marcar encima las estrellas de esos catálogos. Sí se pueden pedir desde el navegador |
+| 3 | **Sumar o restar imágenes de fechas distintas** | ✅ 🆕 Sumar por temporada, y restar una temporada de otra con Difference | — |
+| 4 | **Que el usuario elija el campo de visión** | ✅ Tres tamaños (6,6′, 13′ y 26′), cualquier valor de 3 a 60 por el enlace, y 🆕 zoom hasta 8× dentro de la imagen | — |
+| 5 | **Superponer datos de Gaia o WISE** | ✅ 🆕 Marcas de los dos catálogos encima de la imagen | — |
 | 6 | **Coordenadas en el enlace para incrustar** | ✅ `?ra=…&dec=…` y `&embed=1` | — |
-| 7 | **Mostrar metadatos como los flags de contaminación** | ⚠️ En las imágenes en vivo se muestran los avisos de la exposición (calidad, astrometría, aurora, resplandor) | Pintar encima los píxeles marcados; vienen comprimidos y hay que descomprimirlos |
-| 8 | **Usar herramientas públicas** | ⚠️ Astropy en el build y SIMBAD para los nombres | Aladin Lite para el mapa de contexto |
+| 7 | **Mostrar metadatos como los flags de contaminación** | ✅ 🆕 Avisos de la exposición y, píxel por píxel, los avisos de la NASA pintados encima | — |
+| 8 | **Usar herramientas públicas** | ✅ Astropy en el build, SIMBAD para los nombres, 🆕 VizieR para Gaia y WISE, y un botón hacia Aladin | Aladin incrustado en la página (opcional) |
 
 ## Extras opcionales
 
 - [x] Buscar por nombre además de por coordenadas.
+- [x] 🆕 Descargar la imagen como PNG.
 - [ ] Descargar el video como GIF.

@@ -22,6 +22,25 @@ Built against the live NASA/IPAC IRSA archive. No mock data anywhere.
   the motion says it should be in every frame.
 - **Links that carry a place.** `?ra=133.795&dec=-7.245` opens that spot; add `&embed=1` and only
   the viewer is shown, for dropping into another page.
+- **Two languages.** English and Spanish. The page opens in the browser's own language, the button
+  on the cover switches, and `?lang=es` or `?lang=en` in the address settles it for a shared link.
+- **Images added together.** One exposure is grainy. *Add images together* averages every exposure of
+  a band into one picture (the six detectors give six pictures), or does it season by season so that
+  two added-up pictures can still be blinked or subtracted. For a moving target, *Keep it centred*
+  lines the exposures up on the target instead of on the stars. That is how WISE 0855−0714, too faint
+  for a single frame, shows up: 43 exposures of band 6 put it 20σ above the background, exactly
+  under its predicted position.
+- **Gaia and WISE on top of the image.** Tick a catalogue and the stars it lists here are marked,
+  brightest first. Gaia's are carried along their own proper motion to the date of each frame;
+  WISE's stay where that telescope saw them around 2010, so a fast star visibly leaves its mark behind.
+- **Pixel flags.** Tick *Pixels NASA flagged as doubtful* and each frame's FLAGS layer is read from
+  its source file and painted over the image in five plain kinds: dead or unreliable, too bright,
+  streak, ghost or afterglow, cosmic-ray hit. The count for each frame is listed beside it.
+- **Zoom, pan and save.** Up to 8×, with the buttons, `+` and `−`, a pinch, or Ctrl and the wheel;
+  drag to move. *Save this image* downloads what is on screen as a PNG with its date, wavelength,
+  scale bar and a caption.
+- **Brightness by date.** The plot under the image switches between brightness against wavelength
+  and brightness against date, one line per band: a light curve for anything that varies.
 - **Time-lapse playback** of every SPHEREx visit to a target, in date order, over a 15-month baseline.
 - **Blink and difference modes** against a pinned reference frame — the classic way to find moving
   or variable objects. A flat field means nothing changed; a black-and-white dot pair means something moved.
@@ -37,7 +56,9 @@ Built against the live NASA/IPAC IRSA archive. No mock data anywhere.
   middle and the stars stream past instead. The same motion seen from the other side.
 - **The body's own spectrum**: aperture photometry follows the moving target from frame to
   frame, so a planet's infrared spectrum falls out of the survey's repeat visits.
-- Playback speed, and keyboard control (space, arrow keys).
+- Playback speed, and keyboard control (space, arrow keys, `+` `−` `0` for the zoom).
+- A button that opens the same spot in [Aladin Lite](https://aladin.cds.unistra.fr/), on the 2MASS
+  near-infrared survey, to compare with another telescope.
 
 ## Provenance on the page
 
@@ -121,6 +142,7 @@ coordinates.
 | `when=new` | The newest images instead of a spread over every date |
 | `pmra`, `pmdec` | Proper motion in mas/yr; `ra` and `dec` then mean the year 2000 |
 | `embed=1` | Only the viewer and its controls |
+| `lang` | `es` or `en`. Without it the page follows the choice made with its button, then the browser's language |
 
 ### Checked against
 
@@ -134,9 +156,37 @@ coordinates.
 | The coverage map vs. brute force, 68 points over the sky | hid none of 1,667 real overlaps |
 | Marker for Barnard's Star vs. the star's own centroid, 30 frames | median 2.2″ apart, and the star climbs north as it should |
 | Attitudes from the bucket vs. from IRSA's `obscore` | boresight within 1.4″ |
+| Pixel flags: pixels counted per flag in a whole file vs. the counts in that file's header | equal for all 21 flags of a compressed (DR1) file and all 16 of a plain (QR2) one; no bit without a meaning |
+| Gaia's mark for Barnard's Star vs. the page's own predicted position, three dates | the same pixel to three decimals |
+| WISE's 2010 position for Barnard's Star vs. where the star is in the frames | 26 to 28 pixels behind, which is 16 years at 10.4″ a year |
+| WISE 0855−0714 in one band-6 exposure vs. 43 added together on its motion | about 5σ at the predicted position vs. 20σ |
 
-`app/live/test.html` runs the first four in the browser: serve the repository root and open
-`/app/live/test.html?index=1`.
+`app/live/test.html` runs the first four in the browser, and the pixel-flag check with `flags=1`:
+serve the repository root and open `/app/live/test.html?index=1&flags=1`.
+
+### What the extra layers cost
+
+| | |
+|---|---|
+| Gaia or WISE marks | one request of 30–40 KB to VizieR's mirror at Harvard (CDS in Strasbourg is the fallback), about 2 s |
+| Pixel flags | read only when ticked: about 0.7 MB per frame where they are stored compressed (DR1, QR3), 1.4 MB where they are plain (QR2) |
+| The cover | `docs/cover.png`, 434 KB: sixteen saved targets, four frames each, written by `build/cover.py` |
+
+## Two languages
+
+The page is written in English. `app/lang/es.json` holds the same 398 sentences in Spanish, keyed by
+the English, and `assemble.py` folds it into the page. `T("…")` looks a sentence up, with `{0}`,
+`{1}` standing for the numbers and names dropped into it; text that sits in the markup is swapped in
+one pass when the page starts. Changing the language reloads the page, so nothing is ever left half
+translated.
+
+Nothing ties a sentence to its translation except the text itself, so a sentence reworded in the
+template would quietly stay in English. `build/lang.py` reads the template the way the page does and
+says what the translation lacks; `assemble.py` prints the same warning on every build.
+
+```bash
+python build/lang.py           # what is missing from, or left over in, app/lang/es.json
+```
 
 ## What's in the bundle
 
@@ -372,12 +422,15 @@ build/
   filesmap.py     print the publish manifest for the staged bundle
   scan.py         check coverage for candidate targets before adding them
   png.py          small PNG writer, for contact sheets when spot-checking frames
+  cover.py        the sheet of small frames behind the cover of the page; writes docs/cover.png
+  lang.py         lists every sentence the page can show and checks the Spanish against it
   pointing_index.py   where SPHEREx pointed in every released exposure; writes docs/idx/
   focal_plane.json    the fitted layout of the six detectors that the index relies on
 app/
   template.html   the tool; single file, no runtime dependencies
-  live/sxlive.js  reads images from NASA's bucket in the browser; assemble.py folds it into the page
-  live/test.html  checks sxlive.js against the build and the index against IRSA
+  lang/es.json    the page's sentences in Spanish, keyed by the English
+  live/sxlive.js  reads images and their pixel flags from NASA's bucket in the browser; assemble.py folds it into the page
+  live/test.html  checks sxlive.js against the build, the index against IRSA, and the flags against each file's own counts
 docs/             the built static site, ready to serve
 docs/idx/         the pointing index, refreshed daily by .github/workflows/pointing-index.yml
 data/out/         reprojected cutout stacks (.bin) and the frame index
@@ -391,5 +444,9 @@ data/out/         reprojected cutout stacks (.bin) and the frame index
 Data: NASA/JPL-Caltech/IPAC. SPHEREx data served by
 [IRSA](https://irsa.ipac.caltech.edu/Missions/spherex.html) and read from its public bucket on AWS.
 Names and proper motions come from [SIMBAD](https://simbad.cds.unistra.fr/) at CDS, Strasbourg.
+The catalogue marks come from Gaia DR3 (ESA/Gaia/DPAC) and AllWISE (NASA/JPL-Caltech/UCLA), both read
+through [VizieR](https://vizier.cds.unistra.fr/) at CDS.
 
-Spectra shown in the tool are quick-look aperture sums for exploration, not calibrated photometry.
+Spectra and light curves shown in the tool are quick-look aperture sums for exploration, not calibrated
+photometry. For a star bright enough to saturate the detector the glow around its blank core is
+measured instead, which is rougher still.
