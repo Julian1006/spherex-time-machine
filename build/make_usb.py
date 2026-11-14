@@ -12,6 +12,8 @@ UA = ("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
 CSS_URL = ("https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1"
            "&family=IBM+Plex+Sans:wght@400;500;600"
            "&family=IBM+Plex+Mono:wght@400;500&display=swap")
+TOOL_CSS_URL = ("https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700"
+                "&family=Inter:wght@400;500;600;700&family=DM+Mono:wght@400;500&display=swap")
 KEEP_SUBSETS = ('latin', 'latin-ext')
 
 
@@ -21,9 +23,9 @@ def get(url, headers=None):
         return r.read()
 
 
-def font_css():
+def font_css(url=CSS_URL):
     """Google's stylesheet with every woff2 pulled in as a data URI, latin subsets only."""
-    css = get(CSS_URL).decode('utf-8')
+    css = get(url).decode('utf-8')
     blocks = re.findall(r'/\*\s*([\w-]+)\s*\*/\s*(@font-face\s*\{.*?\})', css, re.S)
     out, total = [], 0
     for subset, block in blocks:
@@ -231,9 +233,8 @@ def main():
         shutil.rmtree('usb')
     os.makedirs(OUT, exist_ok=True)
     sys.stderr.write("building offline bundle\n")
-    fonts = font_css()
-    build_tool(fonts)
-    build_deck(fonts)
+    build_tool(font_css(TOOL_CSS_URL))        # the tool and the deck are set in different typefaces
+    build_deck(font_css())
     io.open(os.path.join(OUT, 'LEEME.txt'), 'w', encoding='utf-8').write(README)
 
     total = sum(os.path.getsize(os.path.join(dp, f))

@@ -41,7 +41,9 @@ def _load_week(qr, week):
 
 
 def qr_of(collection):
-    return 'qr3' if 'qr3' in collection else 'qr2'
+    """Release folder of a collection: spherex_dr1_deep -> dr1, spherex_qr3 -> qr3."""
+    m = re.search(r'spherex_([a-z]+\d+)', collection or '')
+    return m.group(1) if m else 'qr2'
 
 
 def week_of(obs_id):

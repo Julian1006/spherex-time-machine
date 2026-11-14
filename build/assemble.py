@@ -16,6 +16,7 @@ sys.path.insert(0, 'build')
 import pwa
 
 SRC_TPL = 'app/template.html'
+LIVE_JS = 'app/live/sxlive.js'
 SITE_DIR = 'docs'
 ART_DIR = 'app/dist'
 META = ('<meta charset="utf-8">\n'
@@ -30,14 +31,21 @@ def main(index_path):
     for t in idx['targets']:
         t['file'] = 'frames_%s.json' % t['id']
     payload = json.dumps(idx, separators=(',', ':'))
+    if '/*__LIVE__*/' not in tpl or '/*__LIVEBASE__*/"idx/"' not in tpl:
+        raise SystemExit('live-search markers missing')
+    # the engine that reads images straight from NASA's bucket lives in its own file so that
+    # app/live/test.html can check it on its own; here it is folded into the single page
+    tpl = tpl.replace('/*__LIVE__*/', open(LIVE_JS, encoding='utf-8').read())
     html = tpl.replace('/*__INDEX__*/null', payload)
+    # the coordinate search needs docs/idx/ next to the page; the artifact build has no such folder
+    art = html.replace('/*__LIVEBASE__*/"idx/"', 'null')
 
     os.makedirs(SITE_DIR, exist_ok=True)
     os.makedirs(ART_DIR, exist_ok=True)
     # only the site build is installable: a service worker needs https or localhost
     site, version = pwa.install(SITE_DIR, META + html)
     open(os.path.join(SITE_DIR, 'index.html'), 'w', encoding='utf-8').write(site)
-    open(os.path.join(ART_DIR, 'index.html'), 'w', encoding='utf-8').write(html)
+    open(os.path.join(ART_DIR, 'index.html'), 'w', encoding='utf-8').write(art)
 
     data = 0
     for t in idx['targets']:
