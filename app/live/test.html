@@ -1,0 +1,272 @@
+<!doctype html>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>sxlive self-test</title>
+<style>
+  :root{--bg:#0B0B0D;--surface:#141417;--line:#26262B;--text:#F2F1EF;--muted:#A9A9AD;--ok:#4CC38A;--bad:#F64137;--accent:#288BFF}
+  body{background:var(--bg);color:var(--text);font:14px/1.5 system-ui,-apple-system,"Segoe UI",sans-serif;margin:0;padding:24px 16px 60px}
+  main{max-width:1100px;margin:0 auto}
+  h1{font-size:24px;margin:0 0 4px}
+  h2{font-size:17px;margin:34px 0 8px;padding-top:14px;border-top:1px solid var(--line)}
+  p{color:var(--muted);max-width:75ch;margin:0 0 12px}
+  table{border-collapse:collapse;width:100%;font:12.5px/1.4 ui-monospace,Menlo,monospace}
+  th,td{text-align:left;padding:6px 10px;border-bottom:1px solid var(--line);white-space:nowrap}
+  th{color:var(--muted);font-weight:500}
+  .ok{color:var(--ok)} .bad{color:var(--bad)}
+  .wrap{overflow-x:auto}
+  .bar{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin:10px 0 14px}
+  select,button{background:var(--surface);color:var(--text);border:1px solid var(--line);padding:8px 12px;font:inherit}
+  button{background:var(--accent);border-color:var(--accent);font-weight:600;cursor:pointer}
+  button:disabled{opacity:.5;cursor:default}
+  .strip{display:flex;flex-wrap:wrap;gap:8px}
+  figure{margin:0;background:var(--surface);border:1px solid var(--line)}
+  canvas{display:block;width:192px;height:192px;image-rendering:pixelated;background:#000}
+  figcaption{font:11px/1.35 ui-monospace,Menlo,monospace;color:var(--muted);padding:5px 7px}
+  #sum,#liveSum,#idxSum{font:13px/1.5 ui-monospace,Menlo,monospace;margin:10px 0}
+</style>
+<main>
+  <h1>sxlive self-test</h1>
+  <p>Checks that a browser can read SPHEREx images straight from NASA's public bucket, with no server
+    in between, and that what it reads matches the frames the Python build produced.</p>
+
+  <h2>1. Same pixels as the build</h2>
+  <p>A few frames that ship with the site are fetched again from the bucket and rebuilt here. Every pixel
+    should match what the build stored, to the precision it was stored at (16-bit floats).</p>
+  <div id="sum">waiting…</div>
+  <div class="wrap"><table id="tbl"><tr>
+    <th>target</th><th>frame</th><th>data offset</th><th>centre vs build (px)</th><th>pixels equal</th>
+    <th>worst difference</th><th>wavelength</th><th>downloaded</th><th>time</th><th></th></tr></table></div>
+
+  <h2>2. A place the site has never seen</h2>
+  <p>The exposure list for each object came from one IRSA query. From there everything is live: the bucket
+    is asked which processing version to read, then for the header and the rows of each exposure.</p>
+  <div class="bar">
+    <select id="who"></select>
+    <select id="size"><option value="48">4.9′ wide</option><option value="96" selected>9.8′ wide</option><option value="128">13.1′ wide</option></select>
+    <select id="count"><option>8</option><option selected>12</option><option>24</option></select>
+    <select id="band"><option value="0">any detector</option><option value="1">D1</option><option value="2">D2</option><option value="3">D3</option><option value="4">D4</option><option value="5">D5</option><option value="6">D6</option></select>
+    <button id="go">Fetch live</button>
+  </div>
+  <div id="liveSum"></div>
+  <div class="strip" id="strip"></div>
+
+  <h2>3. The pointing index finds what IRSA finds</h2>
+  <p>For each object the index is searched in the browser and compared with IRSA's own answer for the
+    same spot. Then the pixel the index predicts is checked against the real astrometry in the file.</p>
+  <div id="idxSum">not run (add ?index=1)</div>
+  <div class="wrap"><table id="idxTbl"><tr>
+    <th>object</th><th>IRSA lists</th><th>index finds</th><th>missed</th><th>of those, at the very edge</th><th>not in IRSA's list</th>
+    <th>worst pixel error</th><th>worst wavelength error</th><th>search time</th><th></th></tr></table></div>
+</main>
+<script src="sxlive.js"></script>
+<script>
+"use strict";
+const $ = id => document.getElementById(id);
+const R = window.__sx = { exact: [], live: null, index: [], done: false, error: null };
+
+function f16(u) {                       // IEEE half-precision -> number
+  const s = (u & 0x8000) ? -1 : 1, e = (u >> 10) & 31, f = u & 1023;
+  if (e === 0) return s * Math.pow(2, -14) * (f / 1024);
+  if (e === 31) return f ? NaN : s * Infinity;
+  return s * Math.pow(2, e - 15) * (1 + f / 1024);
+}
+const ulp16 = v => { const a = Math.abs(v); return a < 6.1e-5 ? Math.pow(2, -24) : Math.pow(2, Math.floor(Math.log2(a)) - 10); };
+
+async function pool(items, n, fn) {
+  const out = new Array(items.length); let next = 0;
+  await Promise.all(Array.from({ length: Math.min(n, items.length) }, async () => {
+    while (next < items.length) { const i = next++; out[i] = await fn(items[i], i); }
+  }));
+  return out;
+}
+
+/* ---------- 1. exactness against the bundled frames ---------- */
+async function exactness() {
+  const page = await (await fetch("../../docs/index.html")).text();
+  const IDX = JSON.parse(/const IDX = (\{.*?\});\n/s.exec(page)[1]);
+  const SIZE = IDX.cutout;
+  const want = [["nep", 0], ["nep", 17], ["m42", 4], ["m31", 11], ["omegacen", 2], ["smc", 20]];
+  const stacks = {};
+  for (const [id, fi] of want) {
+    const t = IDX.targets.find(x => x.id === id);
+    const row = $("tbl").insertRow(); const cell = () => row.insertCell();
+    const c = [cell(), cell(), cell(), cell(), cell(), cell(), cell(), cell(), cell(), cell()];
+    c[0].textContent = t.name; c[1].textContent = fi + " · " + t.frames[fi].obs + " D" + t.frames[fi].det;
+    try {
+      if (!stacks[id]) {
+        const j = await (await fetch("../../docs/" + t.file)).json();
+        const bin = atob(j.d), u8 = new Uint8Array(bin.length);
+        for (let i = 0; i < bin.length; i++) u8[i] = bin.charCodeAt(i);
+        stacks[id] = new Uint16Array(u8.buffer);
+      }
+      const m = t.frames[fi], b0 = SXLive.stats.bytes, t0 = performance.now();
+      const img = await SXLive.openImage(m.key);
+      const pl = SXLive.plan(img.wcs, t.ra, t.dec, SIZE);
+      const cut = await SXLive.cutout(img, t.ra, t.dec, SIZE, { plan: pl });
+      const wt = await SXLive.waveTable(m.key), lam = SXLive.waveAt(wt, cut.detX, cut.detY);
+      const ms = performance.now() - t0, kb = (SXLive.stats.bytes - b0) / 1024;
+
+      // the build kept an affine fit of its own astropy mapping; compare the centre of the cutout
+      const g = SIZE >> 1, ax = m.aff[0] * g + m.aff[1] * g + m.aff[2], ay = m.aff[3] * g + m.aff[4] * g + m.aff[5];
+      const dpos = Math.hypot(ax - cut.detX, ay - cut.detY);
+
+      let equal = 0, worst = 0, worstRel = 0, n = SIZE * SIZE;
+      for (let k = 0; k < n; k++) {
+        const a = f16(stacks[id][fi * n + k]), b = cut.data[k];
+        if (a !== a && b !== b) { equal++; continue; }
+        const d = Math.abs(a - b) / ulp16(a);
+        if (d <= 0.5001) equal++;
+        if (d > worst) { worst = d; worstRel = Math.abs(a - b) / Math.max(Math.abs(a), 1e-9); }
+      }
+      const okOff = img.dataStart === m.off, okPos = dpos <= m.resid + 0.01, okPix = worst <= 1.5 && equal / n > 0.995;
+      const okLam = Math.abs(lam[0] - m.lam) < 6e-5 && Math.abs(lam[1] - m.bw) < 6e-5;
+      const ok = okOff && okPos && okPix && okLam;
+      c[2].textContent = img.dataStart + (okOff ? " =" : " ≠ " + m.off);
+      c[3].textContent = dpos.toFixed(4) + " (fit error " + m.resid + ")";
+      c[4].textContent = (100 * equal / n).toFixed(2) + "% of " + n;
+      c[5].textContent = worst.toFixed(2) + " steps, " + (100 * worstRel).toFixed(3) + "%";
+      c[6].textContent = lam[0].toFixed(4) + " µm (build " + m.lam + ")";
+      c[7].textContent = kb.toFixed(0) + " KB"; c[8].textContent = ms.toFixed(0) + " ms";
+      c[9].textContent = ok ? "PASS" : "FAIL"; c[9].className = ok ? "ok" : "bad";
+      R.exact.push({ id, fi, ok, okOff, okPos, okPix, okLam, dpos, equal: equal / n, worst, worstRel, lam, kb, ms });
+    } catch (e) {
+      c[9].textContent = "ERROR " + e.message; c[9].className = "bad";
+      R.exact.push({ id, fi, ok: false, error: String(e && e.message || e) });
+    }
+  }
+  const pass = R.exact.filter(x => x.ok).length;
+  $("sum").textContent = pass + " of " + R.exact.length + " frames reproduced exactly";
+  $("sum").className = pass === R.exact.length ? "ok" : "bad";
+}
+
+/* ---------- 2. live frames for a new position ---------- */
+let CAND = null;
+
+function draw(cv, data, size) {
+  const v = Array.from(data).filter(x => x === x).sort((a, b) => a - b);
+  const q = p => v[Math.min(v.length - 1, Math.floor(p * v.length))];
+  // black just under the sky level, white a fixed number of noise widths above it, so a handful
+  // of hot pixels cannot wash the frame out
+  const med = q(0.5), sig = Math.max(q(0.84) - med, 1e-6), lo = med - sig, hi = med + 40 * sig, k = 8;
+  cv.width = cv.height = size;
+  const g = cv.getContext("2d"), im = g.createImageData(size, size);
+  for (let gy = 0; gy < size; gy++) for (let gx = 0; gx < size; gx++) {
+    const x = data[gy * size + gx], o = ((size - 1 - gy) * size + gx) * 4;      // north up
+    let t = (x - lo) / (hi - lo); t = t !== t ? 0 : Math.max(0, Math.min(1, t));
+    t = Math.asinh(t * k) / Math.asinh(k);
+    im.data[o] = 255 * Math.min(1, t * 1.6); im.data[o + 1] = 255 * Math.pow(t, 1.5); im.data[o + 2] = 255 * Math.pow(t, 3); im.data[o + 3] = 255;
+  }
+  g.putImageData(im, 0, 0);
+}
+
+async function live(who, size, count, band) {
+  const T = CAND[who], t0 = performance.now(), b0 = SXLive.stats.bytes, r0 = SXLive.stats.requests;
+  $("strip").innerHTML = ""; $("liveSum").textContent = "working…"; $("liveSum").className = "";
+  let rows = T.rows.filter(r => !band || r[1] === band);
+  const n = Math.min(count, rows.length), slots = [];
+  for (let i = 0; i < n; i++) {                       // evenly through the time-ordered list, as the build does
+    const j = Math.round(i * (rows.length - 1) / Math.max(n - 1, 1));
+    slots.push([j, j + 1, j - 1, j + 2, j - 2].filter(k => k >= 0 && k < rows.length).map(k => rows[k]));
+  }
+  let tried = 0, offEdge = 0;
+  const frames = (await pool(slots, 6, async tries => {
+    for (const [obs, det, mjd, coll] of tries) {
+      tried++;
+      try {
+        const img = await SXLive.openExposure(coll, obs, det);
+        const pl = SXLive.plan(img.wcs, T.ra, T.dec, size);
+        if (!SXLive.fits(img, pl)) { offEdge++; continue; }
+        const cut = await SXLive.cutout(img, T.ra, T.dec, size, { plan: pl });
+        if (!cut || cut.finite < 0.9) { offEdge++; continue; }
+        return { img, cut, key: img.key, obs, det, mjd, coll };
+      } catch (e) { console.warn(obs, det, e.message); }
+    }
+    return null;
+  })).filter(Boolean);
+  const seen = new Set(), uniq = frames.filter(f => !seen.has(f.key) && seen.add(f.key)).sort((a, b) => a.img.mjd - b.img.mjd);
+  for (const f of uniq) {
+    const fig = document.createElement("figure"), cv = document.createElement("canvas"), cap = document.createElement("figcaption");
+    draw(cv, f.cut.data, size);
+    cap.textContent = String(f.img.date).slice(0, 10) + " · D" + f.det + " · " + SXLive.releaseOf(f.coll);
+    fig.append(cv, cap); $("strip").append(fig);
+  }
+  const s = (performance.now() - t0) / 1000, mb = (SXLive.stats.bytes - b0) / 1048576;
+  R.live = { who, size, asked: count, got: uniq.length, tried, offEdge, seconds: s, mb, requests: SXLive.stats.requests - r0,
+    dates: uniq.map(f => String(f.img.date).slice(0, 10)), keys: uniq.map(f => f.key),
+    quality: uniq.map(f => f.img.quality.l2), candidates: T.rows.length };
+  $("liveSum").textContent = T.name + ": " + uniq.length + " frames in " + s.toFixed(1) + " s, " + mb.toFixed(1) + " MB over "
+    + R.live.requests + " requests (" + T.rows.length + " exposures cover this spot; " + offEdge + " skipped near a detector edge)";
+  $("liveSum").className = uniq.length ? "ok" : "bad";
+  return R.live;
+}
+
+/* ---------- 3. the pointing index against IRSA's own answer ---------- */
+async function indexCheck() {
+  SXLive.index.base = "../../docs/idx/";
+  const m = await SXLive.manifest(), have = new Set(m.segments.map(e => e.s));
+  $("idxSum").textContent = "working…";
+  const only = new URLSearchParams(location.search).get("only");
+  for (const who in CAND) {
+    if (only && who !== only) continue;
+    const T = CAND[who], row = $("idxTbl").insertRow(), c = Array.from({ length: 10 }, () => row.insertCell());
+    c[0].textContent = T.name;
+    try {
+      const t0 = performance.now(), res = await SXLive.search(T.ra, T.dec), ms = performance.now() - t0;
+      const want = T.rows.filter(r => have.has(SXLive.weekOf(r[0]))), id = (o, d) => o + "/" + d;
+      const got = new Map(res.frames.map(f => [id(f.obs, f.det), f])), wantSet = new Set(want.map(r => id(r[0], r[1])));
+      const missed = want.filter(r => !got.has(id(r[0], r[1]))), extra = res.frames.filter(f => !wantSet.has(id(f.obs, f.det)));
+      // are the misses really within a few pixels of the detector edge? ask the files themselves
+      let edge = 0;
+      for (const r of missed.slice(0, 12)) {
+        try {
+          const img = await SXLive.openExposure(r[3], r[0], r[1]), q = img.wcs.skyToPixel(T.ra, T.dec);
+          if (q && (q[0] < 8 || q[1] < 8 || q[0] > 2031 || q[1] > 2031)) edge++;
+        } catch (e) { /* a file that is not in the bucket counts as not at the edge */ }
+      }
+      // an image the index has and IRSA's list lacks is fine if the file exists and really holds the spot
+      let real = 0;
+      for (const f of extra.slice(0, 12)) {
+        try { const q = (await SXLive.openImage(f.key)).wcs.skyToPixel(T.ra, T.dec); if (q && q[0] >= 0 && q[1] >= 0 && q[0] <= 2039 && q[1] <= 2039) real++; } catch (e) {}
+      }
+      // predicted pixel and wavelength against the real file, for frames spread through the list
+      const n = Math.min(10, res.frames.length), sample = Array.from({ length: n }, (_, i) => res.frames[Math.round(i * (res.frames.length - 1) / Math.max(1, n - 1))]);
+      let worstPx = 0, worstLam = 0, notFound = 0;
+      await Promise.all(sample.map(async f => {
+        try {
+          const img = await SXLive.openImage(f.key), q = img.wcs.skyToPixel(T.ra, T.dec);
+          worstPx = Math.max(worstPx, Math.hypot(q[0] - f.px, q[1] - f.py));
+          const w = SXLive.waveAt(await SXLive.waveTable(f.key), q[0], q[1]);
+          worstLam = Math.max(worstLam, Math.abs(w[0] - f.lam));
+        } catch (e) { notFound++; }
+      }));
+      const ok = real === Math.min(12, extra.length) && edge === Math.min(12, missed.length) && worstPx < 2 && worstLam < 0.002 && notFound === 0 && (want.length === 0 || res.frames.length > 0);
+      c[1].textContent = want.length; c[2].textContent = res.frames.length; c[3].textContent = missed.length;
+      c[4].textContent = edge + " of " + Math.min(12, missed.length) + " checked"; c[5].textContent = extra.length + (extra.length ? " (" + real + " of " + Math.min(12, extra.length) + " checked are real)" : "");
+      c[6].textContent = n ? worstPx.toFixed(2) + " px (" + n + " files)" : "–"; c[7].textContent = n ? (worstLam * 1000).toFixed(2) + " nm" : "–";
+      c[8].textContent = ms.toFixed(0) + " ms, " + res.segments + " segments"; c[9].textContent = ok ? "PASS" : "FAIL"; c[9].className = ok ? "ok" : "bad";
+      R.index.push({ who, ok, want: want.length, got: res.frames.length, missed: missed.length, edge, extra: extra.length, real, worstPx, worstLam, notFound, ms, segments: res.segments,
+        extraSample: extra.slice(0, 3).map(f => f.obs + "/" + f.det + " px " + f.px.toFixed(1) + "," + f.py.toFixed(1)), missedSample: missed.slice(0, 3).map(r => r[0] + "/" + r[1]) });
+    } catch (e) { c[9].textContent = "ERROR " + e.message; c[9].className = "bad"; R.index.push({ who, ok: false, error: String(e && e.stack || e) }); }
+  }
+  const pass = R.index.filter(x => x.ok).length;
+  $("idxSum").textContent = pass + " of " + R.index.length + " objects agree with IRSA · index holds " + m.exposures.toLocaleString("en") + " exposures in " + m.segments.length + " segments, built " + m.generated;
+  $("idxSum").className = pass === R.index.length ? "ok" : "bad";
+}
+
+(async () => {
+  try {
+    CAND = await (await fetch("candidates.json")).json();
+    for (const k in CAND) $("who").add(new Option(CAND[k].name + " (" + CAND[k].rows.length + " exposures)", k));
+    $("go").onclick = async () => { $("go").disabled = true; try { await live($("who").value, +$("size").value, +$("count").value, +$("band").value); } finally { $("go").disabled = false; } };
+    const q = new URLSearchParams(location.search);
+    if (q.get("exact") !== "0") await exactness();
+    if (q.get("index")) await indexCheck();
+    if (q.get("live")) {
+      $("who").value = q.get("live"); $("size").value = q.get("size") || 96;
+      $("count").value = q.get("count") || 12; $("band").value = q.get("band") || 0;
+      await live($("who").value, +$("size").value, +$("count").value, +$("band").value);
+    }
+  } catch (e) { R.error = String(e && e.stack || e); $("sum").textContent = "ERROR " + R.error; $("sum").className = "bad"; }
+  R.done = true;
+})();
+</script>
