@@ -318,6 +318,47 @@ h1 em{font-family:var(--display);font-weight:500;color:var(--accent)}
 /* ---------- fill the space under the image ---------- */
 .under{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;margin-top:14px;align-items:start}
 @media (max-width:640px){.under{grid-template-columns:minmax(0,1fr)}}
+
+/* ---------- go to any coordinates ---------- */
+.toggles{display:flex;gap:6px 22px;flex-wrap:wrap;margin-bottom:12px}
+.toggles .advtoggle{margin-bottom:0}
+.coord{background:var(--surface);border:1px solid var(--line);border-top:3px solid var(--line);padding:18px;margin-bottom:18px}
+.coordgrid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr)) auto;gap:12px;align-items:end}
+.coordgrid.three{grid-template-columns:repeat(3,minmax(0,1fr))}
+@media (max-width:760px){.coordgrid,.coordgrid.three{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:460px){.coordgrid,.coordgrid.three{grid-template-columns:minmax(0,1fr)}}
+.coord .field{margin-top:0}
+.coord input[type=text]{width:100%;background:var(--surface-2);border:1px solid var(--line);padding:9px 10px;
+  font-family:var(--mono);font-size:14px;color:var(--text);border-radius:0;min-height:40px}
+.coord select{min-height:40px}
+.coord input[type=text]::placeholder{color:var(--faint)}
+.coord input[type=text]:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+.coord input[aria-invalid="true"]{border-color:#E5484D}
+.go{background:var(--accent);border:1px solid var(--accent);color:var(--accent-ink);font-family:var(--display);
+  font-size:15px;font-weight:600;padding:9px 18px;cursor:pointer;white-space:nowrap;min-height:40px}
+.go:disabled{opacity:.55;cursor:default}
+.go:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.go.quiet{background:var(--surface-2);border-color:var(--line);color:var(--text)}
+.go.quiet:hover{border-color:var(--accent)}
+.namerow{display:flex;gap:12px;align-items:end;margin-top:12px;flex-wrap:wrap}
+.namerow .field{flex:1 1 220px}
+.picks{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:14px;font-size:13.5px;color:var(--muted)}
+.pick{background:var(--surface-2);border:1px solid var(--line);color:var(--text);font-family:var(--display);
+  font-size:13.5px;font-weight:600;padding:6px 11px;cursor:pointer}
+.pick:hover{border-color:var(--accent)}
+.pick:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.coordmsg{margin:12px 0 0;font-size:14px;color:var(--muted);min-height:1.5em}
+.coordmsg.bad{color:#E5484D}
+.coordbar{height:3px;background:var(--line);margin-top:8px;overflow:hidden}
+.coordbar i{display:block;height:100%;width:0;background:var(--accent);transition:width .2s}
+.latest{margin:-2px 0 12px;font-size:14px;color:var(--muted);max-width:70ch}
+.linkbtn{background:none;border:0;padding:0;color:var(--accent);font:inherit;font-weight:600;cursor:pointer;
+  text-decoration:underline;text-underline-offset:2px}
+.linkbtn:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+/* embedded in another page (?embed=1): just the viewer and its controls */
+body.embed header,body.embed .eyebrow,body.embed #targets,body.embed .toggles,body.embed #targetsAdv,
+body.embed #coordPanel,body.embed .about,body.embed #latest{display:none!important}
+body.embed .wrap{padding-top:14px}
 </style>
 
 <header>
@@ -336,12 +377,70 @@ h1 em{font-family:var(--display);font-weight:500;color:var(--accent)}
 <div class="wrap">
   <div class="eyebrow" style="margin-bottom:8px">Choose a patch of sky</div>
   <div class="targets" id="targets" role="group" aria-label="Sky targets"></div>
-  <button class="advtoggle" id="advToggle" type="button" aria-expanded="false" hidden></button>
+  <div class="toggles">
+    <button class="advtoggle" id="advToggle" type="button" aria-expanded="false" hidden></button>
+    <button class="advtoggle" id="coordToggle" type="button" aria-expanded="false" aria-controls="coordPanel" hidden>Go to any coordinates</button>
+  </div>
   <div class="targets" id="targetsAdv" role="group" aria-label="More sky targets" hidden></div>
+
+  <section class="coord" id="coordPanel" aria-label="Go to any coordinates" hidden>
+    <form class="coordgrid" id="coordForm" novalidate>
+      <div class="field">
+        <label for="coordRa" id="coordRaLabel">Right ascension</label>
+        <input type="text" id="coordRa" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="08h55m10.83s or 133.795">
+      </div>
+      <div class="field">
+        <label for="coordDec" id="coordDecLabel">Declination</label>
+        <input type="text" id="coordDec" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="-7d14m42.5s or -7.245">
+      </div>
+      <div class="field">
+        <label for="coordFov" id="coordFovLabel">Field of view</label>
+        <select id="coordFov">
+          <option value="6.56">6.6′ across · zoomed in, quickest</option>
+          <option value="13.12" selected>13′ across · normal</option>
+          <option value="26.24">26′ across · wide, slower</option>
+        </select>
+      </div>
+      <button class="go" id="coordGo" type="submit">Show this place</button>
+    </form>
+    <div class="namerow">
+      <div class="field">
+        <label for="coordName" id="coordNameLabel">Or find it by name</label>
+        <input type="text" id="coordName" autocomplete="off" spellcheck="false" placeholder="Barnard's Star">
+      </div>
+      <button class="go quiet" id="coordFind" type="button">Find it</button>
+    </div>
+    <div class="picks" id="coordPicks"><span>Or try one of these:</span></div>
+    <button class="advtoggle" id="coordMore" type="button" aria-expanded="false" aria-controls="coordAdv" style="margin:14px 0 0">More options</button>
+    <div class="coordgrid three" id="coordAdv" style="margin-top:12px" hidden>
+      <div class="field">
+        <label for="coordCount" id="coordCountLabel">How many images</label>
+        <select id="coordCount">
+          <option value="12">12 · a quick look</option>
+          <option value="30" selected>30 · normal</option>
+          <option value="60">60 · more detail, slower</option>
+        </select>
+      </div>
+      <div class="field">
+        <label for="coordBand" id="coordBandLabel">Infrared band</label>
+        <select id="coordBand"><option value="0" selected>All six bands</option></select>
+      </div>
+      <div class="field">
+        <label for="coordWhen" id="coordWhenLabel">Which dates</label>
+        <select id="coordWhen">
+          <option value="all" selected>Spread over every date</option>
+          <option value="new">Only the newest</option>
+        </select>
+      </div>
+    </div>
+    <p class="coordmsg" id="coordMsg" role="status" aria-live="polite"></p>
+    <div class="coordbar" id="coordBar" hidden><i></i></div>
+  </section>
 
   <div class="main">
     <div>
       <p class="blurb" id="blurb"></p>
+      <p class="latest" id="latest" hidden></p>
       <div class="stage" id="stage">
         <canvas id="view" width="1024" height="1024"></canvas>
         <div class="ov ov-tl">
@@ -407,7 +506,7 @@ h1 em{font-family:var(--display);font-weight:500;color:var(--accent)}
         <canvas id="sky" width="620" height="310" role="img"
           aria-label="All-sky map with the ecliptic marked, showing where each target sits. Click a marker to jump there; the target buttons above do the same from the keyboard."></canvas>
         <p class="note" id="skyNote">The whole sky. The line is the ecliptic: SPHEREx scans along it, so its two deep fields
-          end up at the poles. Click a dot to go there.</p>
+          end up at the poles. Click a square to go there, or an empty spot to pick its coordinates.</p>
       </div>
 
       <div class="card" id="movingCard" hidden>
@@ -547,6 +646,7 @@ h1 em{font-family:var(--display);font-weight:500;color:var(--accent)}
         <tr><td>Release</td><td>The public data release it belongs to. <i>deep</i> marks a pointing at one of the two deep fields, which are revisited far more often than the rest of the sky.</td></tr>
         <tr><td>Source file</td><td>A link to the original 71 MB file in NASA's archive. I only downloaded a small square of it. Click it, it's the fun one.</td></tr>
         <tr><td>Distance</td><td>How far the body was from Earth at that moment, in astronomical units. Shown only for the moving targets.</td></tr>
+        <tr><td>Notes</td><td>Warnings the pipeline attached to this exposure: a failed quality check, rough astrometry, light from an aurora or the glow of the upper atmosphere. Shown only for images read live.</td></tr>
         <tr><td>Flagged pixels</td><td>Pixels the pipeline marked as bad: too bright, hit by a cosmic ray, or just dead. Those are the dark specks. I left them as they are.</td></tr>
       </table>
     </div>
@@ -562,11 +662,16 @@ h1 em{font-family:var(--display);font-weight:500;color:var(--accent)}
 
     <p class="note" style="margin-top:4px">Brightness values are the ones the pipeline measured, in MJy/sr. No stacking, no rescaling, no touch-ups.
       <span id="prov"></span> Data: NASA/JPL‑Caltech/IPAC.</p>
+    <p class="note" id="liveNote" hidden></p>
   </section>
 </div>
 
 <script>
+/*__LIVE__*/
+</script>
+<script>
 const IDX = /*__INDEX__*/null;
+const LIVE_BASE = /*__LIVEBASE__*/"idx/";
 
 /* ---------- constants ---------- */
 const SIZE = IDX.cutout, NPIX = SIZE * SIZE, PIXSCALE = IDX.pixelScale;
@@ -579,6 +684,8 @@ const BANDS = [
   {d:6, lo:4.41, hi:5.01, c:"#F4E4BC"},
 ];
 const bandOf = d => BANDS[Math.min(5, Math.max(0, d - 1))];
+/* A place reached by coordinates can be shown zoomed in or out; the saved targets are native. */
+const scaleOf = () => (S.target && S.target.scale) || PIXSCALE;
 
 /* float16 -> float32 lookup, built once */
 const F16 = new Float32Array(65536);
@@ -614,7 +721,7 @@ const S = {
   black: 45, whiteT: 0.82, flatten: false, smooth: false,
   sort: "time", bands: new Set(),
   playing: false, blinkOn: false, pick: null, loading: false, loadId: 0, showTrack: true,
-  follow: false, speed: 420,
+  follow: false, speed: 420, abort: null,
 };
 
 const $ = id => document.getElementById(id);
@@ -651,11 +758,13 @@ function loadFrames(t) {
 
 async function loadTarget(t) {
   const token = ++S.loadId;          // a later click wins; stale responses are dropped
+  if (S.abort) { S.abort.abort(); S.abort = null; liveIdle(); }     // so is a live download still in flight
   S.loading = true;
   $("loading").hidden = false; $("loading").style.opacity = 1;
   $("loading").textContent = "Loading " + t.name + "…";
   S.target = t; S.frames = []; S.pick = null; S.i = 0; S.ref = 0;
   renderChrome();
+  renderLatest(t);
   let u16;
   try {
     const j = await loadFrames(t);
@@ -667,10 +776,25 @@ async function loadTarget(t) {
     return;
   }
   if (token !== S.loadId) return;
+  // The build stores rows south to north. The screen draws top to bottom, so every frame is
+  // turned over here and north really is up, as the label on the image says.
+  if (!t.flipped) { t.frames.forEach(m => { if (m.my !== undefined) m.my = SIZE - 1 - m.my; }); t.flipped = true; }
+  showFrames(t, t.frames.map((meta, n) => {
+    const d = new Float32Array(NPIX), base = n * NPIX;
+    for (let y = 0; y < SIZE; y++) {
+      const src = base + (SIZE - 1 - y) * SIZE, dst = y * SIZE;
+      for (let x = 0; x < SIZE; x++) d[dst + x] = F16[u16[src + x]];
+    }
+    return d;
+  }));
+}
+
+/* Put a target's frames on screen. `datas` holds one Float32Array per frame, north at the top. */
+function showFrames(t, datas) {
+  S.frames = [];
+  if (!(S.i >= 0)) S.i = 0;            // a key pressed while nothing was loaded leaves no position behind
   t.frames.forEach((meta, n) => {
-    const d = new Float32Array(NPIX);
-    const base = n * NPIX;
-    for (let p = 0; p < NPIX; p++) d[p] = F16[u16[base + p]];
+    const d = datas[n];
     let bad = 0;
     for (let p = 0; p < NPIX; p++) if (!Number.isFinite(d[p])) bad++;
     meta.bad = bad;
@@ -682,6 +806,7 @@ async function loadTarget(t) {
   applyOrder();
   buildStrip();
   draw();
+  if (!S.pick) { $("spec").hidden = true; $("specEmpty").hidden = false; $("specNote").hidden = true; }
 }
 
 function sortFinite(d) {
@@ -836,7 +961,7 @@ function markPick() {
   vctx.save();
   vctx.translate(o.ox * k, o.oy * k);
   vctx.strokeStyle = "rgba(240,228,188,.9)"; vctx.lineWidth = 2;
-  vctx.beginPath(); vctx.arc((S.pick.x + .5) * k, (S.pick.y + .5) * k, 5.5 * k, 0, 6.2832); vctx.stroke();
+  vctx.beginPath(); vctx.arc((S.pick.x + .5) * k, (S.pick.y + .5) * k, 5.5 * k * PIXSCALE / scaleOf(), 0, 6.2832); vctx.stroke();
   vctx.restore();
 }
 
@@ -881,18 +1006,23 @@ function renderChrome() {
     const d = t.frames[t.frames.length - 1].mjd - t.frames[0].mjd;
     const span = d < 2 ? (d * 24).toFixed(0) + " hours"
                        : d.toFixed(0) + " days";
-    $("movingNote").textContent = t.moving + " crosses " + px.toFixed(0) + " pixels of this frame — "
-      + (px * PIXSCALE / 60).toFixed(1) + " arcminutes — in " + span
-      + ". The circle is where JPL's ephemeris puts it at each exposure's timestamp, "
-      + "not something fitted to the image.";
+    $("movingNote").textContent = t.motion
+      ? t.moving + " drifts " + px.toFixed(1) + " pixels across this frame — " + (px * scaleOf()).toFixed(1)
+        + " arcseconds — in " + span + ". The circle is where its catalogued motion puts it at each exposure, "
+        + "not something fitted to the image."
+      : t.moving + " crosses " + px.toFixed(0) + " pixels of this frame — "
+        + (px * scaleOf() / 60).toFixed(1) + " arcminutes — in " + span
+        + ". The circle is where JPL's ephemeris puts it at each exposure's timestamp, "
+        + "not something fitted to the image.";
   }
   $("ovTarget").textContent = t.name;
   $("ovMode").textContent = S.mode === "single" ? "Single" : S.mode === "blink" ? "Blink vs reference" : "Difference";
   $("counter").textContent = S.order.length ? (S.i + 1) + " / " + S.order.length : "— / —";
   $("scrub").value = S.i;
-  const bar = 5 * 60 / PIXSCALE / SIZE;     // 5 arcmin as a fraction of the frame
-  $("sbarLn").style.width = Math.round(bar * 100) + "%";
-  $("sbarTxt").textContent = "5′";
+  const across = SIZE * scaleOf() / 60;                       // arcminutes from edge to edge
+  const bar = [10, 5, 2, 1].find(b => b <= 0.42 * across) || 1;
+  $("sbarLn").style.width = Math.round(bar / across * 100) + "%";
+  $("sbarTxt").textContent = bar + "′";
 }
 
 function renderMeta(m, isRef, refMeta) {
@@ -916,6 +1046,7 @@ function renderMeta(m, isRef, refMeta) {
     + (m.key ? row("Source file", '<a href="https://irsa.ipac.caltech.edu/ibe/data/spherex/'
         + m.key + '" target="_blank" rel="noopener">open at IRSA</a>') : "")
     + (m.au ? row("Distance", m.au.toFixed(2) + " AU") : "")
+    + (m.notes !== undefined ? row("Notes", m.notes || "none") : "")
     + (m.bad ? row("Flagged pixels", m.bad + " of " + NPIX) : "");
 }
 const row = (k, v) => "<dt>" + k + "</dt><dd>" + v + "</dd>";
@@ -983,6 +1114,12 @@ function drawSky() {
     g.fill();
     if (cur) { g.strokeStyle = cs.getPropertyValue("--surface").trim(); g.lineWidth = 2.5; g.stroke(); }
   });
+  if (S.target && S.target.live) {                // a place reached by coordinates gets its own marker
+    const [x, y] = skyXY(c, S.target.ra, S.target.dec), r = 6.5;
+    g.beginPath(); g.rect(x - r, y - r, 2 * r, 2 * r);
+    g.fillStyle = cs.getPropertyValue("--accent").trim(); g.fill();
+    g.strokeStyle = cs.getPropertyValue("--surface").trim(); g.lineWidth = 2.5; g.stroke();
+  }
 }
 $("sky").addEventListener("click", e => {
   const c = $("sky"), r = c.getBoundingClientRect();
@@ -993,7 +1130,15 @@ $("sky").addEventListener("click", e => {
     const d = (x - px) ** 2 + (y - py) ** 2;
     if (d < bd) { bd = d; best = k; }
   });
-  if (best >= 0) selectTarget(best);
+  if (best >= 0) { selectTarget(best); return; }
+  // an empty spot: offer its coordinates rather than jumping straight into a download
+  if (!LIVE) return;
+  const m = 6, ra = (((0.5 - (px - m) / (c.width - 2 * m)) * 360) % 360 + 360) % 360;
+  const dec = Math.max(-90, Math.min(90, (0.5 - (py - m) / (c.height - 2 * m)) * 180));
+  $("coordRa").value = ra.toFixed(2); $("coordDec").value = dec.toFixed(2); $("coordName").value = "";
+  openCoords(true);
+  say("That spot is near RA " + ra.toFixed(1) + "°, Dec " + dec.toFixed(1) + "°. Press “Show this place” to load it.");
+  $("coordGo").focus();
 });
 
 /* ---------- timeline axis ---------- */
@@ -1086,15 +1231,16 @@ function updateStrip() {
 
 /* ---------- spectrum ---------- */
 function photometry(f, x, y) {
-  const d = pixels(f);
+  const d = pixels(f), z = PIXSCALE / scaleOf();          // keeps the aperture the same size on the sky
+  const core = 5 * z * z, inner = 36 * z * z, outer = 81 * z * z, a = Math.ceil(2.3 * z), w = Math.ceil(9 * z);
   let sum = 0, n = 0, bg = [];
-  for (let dy = -2; dy <= 2; dy++) for (let dx = -2; dx <= 2; dx++) {
+  for (let dy = -a; dy <= a; dy++) for (let dx = -a; dx <= a; dx++) {
     const X = x + dx, Y = y + dy; if (X < 0 || Y < 0 || X >= SIZE || Y >= SIZE) continue;
     const v = d[Y*SIZE + X]; if (!Number.isFinite(v)) continue;
-    if (dx*dx + dy*dy <= 5) { sum += v; n++; }
+    if (dx*dx + dy*dy <= core) { sum += v; n++; }
   }
-  for (let dy = -9; dy <= 9; dy++) for (let dx = -9; dx <= 9; dx++) {
-    const r2 = dx*dx + dy*dy; if (r2 < 36 || r2 > 81) continue;
+  for (let dy = -w; dy <= w; dy++) for (let dx = -w; dx <= w; dx++) {
+    const r2 = dx*dx + dy*dy; if (r2 < inner || r2 > outer) continue;
     const X = x + dx, Y = y + dy; if (X < 0 || Y < 0 || X >= SIZE || Y >= SIZE) continue;
     const v = d[Y*SIZE + X]; if (Number.isFinite(v)) bg.push(v);
   }
@@ -1158,8 +1304,8 @@ function drawSpectrum() {
 function skyAt(px, py) {
   const t = S.target, rad = Math.PI / 180;
   const cx = SIZE / 2 - 0.5;
-  const xi = -(px - cx) * PIXSCALE / 3600 * rad;   // east to the left
-  const eta = (py - cx) * PIXSCALE / 3600 * rad;
+  const xi = -(px - cx) * scaleOf() / 3600 * rad;   // east to the left
+  const eta = -(py - cx) * scaleOf() / 3600 * rad;  // north up: row 0 is the top of the picture
   const r = Math.hypot(xi, eta);
   const d0 = t.dec * rad, a0 = t.ra * rad;
   if (r < 1e-12) return [t.ra, t.dec];
@@ -1250,7 +1396,8 @@ function selectTarget(k) {
   S.bands = bandsOf(t);
   buildBands(t);
   loadTarget(t);
-  try { history.replaceState(null, "", "#" + t.id); } catch (_) {}
+  // any coordinates in the address go: this is a saved target again
+  try { history.replaceState(null, "", location.pathname + (EMBED ? "?embed=1" : "") + "#" + t.id); } catch (_) {}
 }
 
 function buildBands(t) {
@@ -1350,6 +1497,310 @@ $("theme").addEventListener("click", () => {
 });
 try { const t = localStorage.getItem("sx-theme"); if (t) document.documentElement.setAttribute("data-theme", t); } catch (_) {}
 
+/* ---------- any place in the sky, read live from NASA's archive ---------- */
+const QS = new URLSearchParams(location.search);
+const EMBED = QS.has("embed");
+if (EMBED) document.body.classList.add("embed");
+/* The search needs three things: the engine above, the pointing index sitting next to the
+   page, and a real web address — a page opened from a file cannot ask anyone for anything. */
+const LIVE = typeof SXLive !== "undefined" && !!LIVE_BASE && location.protocol !== "file:";
+if (LIVE) SXLive.index.base = LIVE_BASE;
+
+/* The five test objects of the NASA challenge: three nearby stars that visibly move, two that
+   change brightness. Positions are for the year 2000 and motions are in milliarcseconds a
+   year, both from SIMBAD, so the page can work out where each one is now. */
+const PICKS = [
+  {name: "Barnard's Star", ra: 269.45207696, dec: 4.69336497, pmra: -801.551, pmdec: 10362.394},
+  {name: "Epsilon Indi B", ra: 331.04414659, dec: -56.7828442, pmra: 3981.977, pmdec: -2466.832},
+  {name: "WISE 0855-0714", ra: 133.81890825, dec: -7.247048, pmra: -8123.7, pmdec: 673.2},
+  {name: "RW Aurigae", ra: 76.95652603, dec: 30.40143817, pmra: 7.23, pmdec: -20.33},
+  {name: "R Draconis", ra: 248.16761083, dec: 66.75497942, pmra: -20.643, pmdec: 6.149},
+];
+const plain = s => String(s).toLowerCase().replace(/[^a-z0-9]/g, "");
+const dot3 = (a, b) => a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
+const yearOf = mjd => 2000 + (mjd - 51544.5) / 365.25;
+const pad2 = v => String(v).padStart(2, "0");
+/* the same angles written the way the boxes accept them back */
+function raText(ra) { const h = ra / 15, H = Math.floor(h), m = (h - H) * 60, M = Math.floor(m);
+  return pad2(H) + "h" + pad2(M) + "m" + ((m - M) * 60).toFixed(2).padStart(5, "0") + "s"; }
+function decText(dec) { const a = Math.abs(dec), D = Math.floor(a), m = (a - D) * 60, M = Math.floor(m);
+  return (dec < 0 ? "-" : "+") + pad2(D) + "d" + pad2(M) + "m" + ((m - M) * 60).toFixed(1).padStart(4, "0") + "s"; }
+
+/* "08h55m10.83s", "08:55:10.83", "8 55 10.83", "133.795", "8.92h", "-7d14m42.5s", "−7° 14′ 42.5″"
+   -> degrees, or NaN. Three bare numbers mean hours for right ascension, degrees for declination. */
+function parseAngle(text, isRa) {
+  let t = String(text == null ? "" : text).trim().toLowerCase()
+    .replace(/[−–—]/g, "-").replace(/[°º]/g, "d").replace(/[′’']/g, "m")
+    .replace(/[″”"]/g, "s").replace(/,/g, ".");
+  if (!t) return NaN;
+  const sign = t[0] === "-" ? -1 : 1;
+  t = t.replace(/^[+-]\s*/, "");
+  if (/[^0-9.\shdms:]/.test(t)) return NaN;
+  const parts = t.split(/[\shdms:]+/).filter(Boolean).map(Number);
+  if (!parts.length || parts.length > 3 || parts.some(x => !Number.isFinite(x))) return NaN;
+  if (parts.length > 1 && (parts[1] >= 60 || (parts[2] || 0) >= 60)) return NaN;
+  let v = parts[0] + (parts[1] || 0) / 60 + (parts[2] || 0) / 3600;
+  if (isRa && (/h/.test(t) || (parts.length > 1 && !/d/.test(t)))) v *= 15;
+  return sign * v;
+}
+
+/* a live download was dropped for a saved target: put the coordinate panel back at rest */
+function liveIdle() { $("coordGo").disabled = $("coordFind").disabled = false; bar(-1); say(""); }
+function say(msg, bad) { const el = $("coordMsg"); el.textContent = msg || ""; el.classList.toggle("bad", !!bad); }
+function bar(frac) { const el = $("coordBar"); el.hidden = frac < 0; el.firstElementChild.style.width = Math.round(Math.max(0, Math.min(1, frac)) * 100) + "%"; }
+
+let indexNoted = false;
+function noteIndex(m) {
+  if (indexNoted) return; indexNoted = true;
+  const newest = fmtDate(mjdISO(m.t1)), el = $("liveNote");
+  el.hidden = false;
+  el.textContent = "Coordinate search: " + m.exposures.toLocaleString("en") + " exposures are on record, the newest from "
+    + newest + ". That list was last refreshed on " + fmtDate(m.generated.slice(0, 10)) + " and refreshes itself every day; "
+    + "the images are read from NASA's archive at the moment you ask for them.";
+  if (!$("coordMsg").textContent) say("Ready: " + m.exposures.toLocaleString("en") + " exposures on record, up to " + newest + ".");
+}
+
+function openCoords(open) {
+  $("coordPanel").hidden = !open;
+  $("coordToggle").setAttribute("aria-expanded", open ? "true" : "false");
+  $("coordToggle").textContent = open ? "Hide the coordinates" : "Go to any coordinates";
+  if (open && LIVE) SXLive.manifest().then(noteIndex).catch(() => {});      // warm it up, and say how fresh it is
+}
+
+const coordOptions = () => ({ fov: +$("coordFov").value, count: +$("coordCount").value, band: +$("coordBand").value, when: $("coordWhen").value });
+
+function buildCoords() {
+  $("coordToggle").hidden = !LIVE;
+  if (!LIVE) return;
+  $("coordToggle").onclick = () => openCoords($("coordPanel").hidden);
+  $("coordMore").onclick = () => { const open = $("coordAdv").hidden; $("coordAdv").hidden = !open; $("coordMore").setAttribute("aria-expanded", open); };
+  BANDS.forEach(b => $("coordBand").add(new Option("Band " + b.d + " · " + b.lo + "–" + b.hi + " µm", b.d)));
+  PICKS.forEach(p => {
+    const b = document.createElement("button");
+    b.type = "button"; b.className = "pick"; b.textContent = p.name;
+    b.onclick = () => { $("coordName").value = p.name; goTo(Object.assign({}, p, coordOptions())); };
+    $("coordPicks").appendChild(b);
+  });
+  $("coordForm").addEventListener("submit", e => {
+    e.preventDefault();
+    let a = $("coordRa").value.trim(), d = $("coordDec").value.trim();
+    if (a && !d) {                                   // both pasted into the first box
+      const m = /^(.+?)[\s,;]+([+\-−].+)$/.exec(a) || /^(\d+(?:[.,]\d+)?)[\s,;]+(\d+(?:[.,]\d+)?)$/.exec(a);
+      if (m) { a = m[1]; d = m[2]; $("coordRa").value = a; $("coordDec").value = d; }
+    }
+    const ra = parseAngle(a, true), dec = parseAngle(d, false);
+    const badRa = !Number.isFinite(ra) || ra < 0 || ra > 360, badDec = !Number.isFinite(dec) || Math.abs(dec) > 90;
+    $("coordRa").setAttribute("aria-invalid", badRa); $("coordDec").setAttribute("aria-invalid", badDec);
+    if (badRa) { say(!a ? "Type a right ascension first, like 08h55m10.8s or 133.795."
+      : Number.isFinite(ra) ? "Right ascension goes from 0 to 360 degrees, or 0 to 24 hours."
+      : "I can't read that right ascension. Try 08h55m10.8s or 133.795.", true); $("coordRa").focus(); return; }
+    if (badDec) { say(!d ? "Now the declination, like -7d14m42s or -7.245."
+      : Number.isFinite(dec) ? "Declination goes from −90 to +90 degrees."
+      : "I can't read that declination. Try -7d14m42s or -7.245.", true); $("coordDec").focus(); return; }
+    // the boxes still hold what the last named search put there: keep its name and its motion
+    const last = S.lastSpec;
+    if (last && last.name && last.boxes && last.boxes[0] === a && last.boxes[1] === d)
+      goTo(Object.assign({}, last, coordOptions()));
+    else { $("coordName").value = ""; goTo(Object.assign({ ra: ra % 360, dec: dec }, coordOptions())); }
+  });
+  const find = () => {
+    const name = $("coordName").value.trim();
+    if (!name) { say("Type a name first, like Barnard's Star or M51.", true); $("coordName").focus(); return; }
+    goTo(Object.assign({ lookup: name }, coordOptions()));
+  };
+  $("coordFind").onclick = find;
+  $("coordName").addEventListener("keydown", e => { if (e.key === "Enter") { e.preventDefault(); find(); } });
+  ["coordRa", "coordDec"].forEach(id => $(id).addEventListener("input", () => $(id).removeAttribute("aria-invalid")));
+}
+
+/* ?ra=133.795&dec=-7.245 (any format the boxes accept), optionally &fov= in arcminutes, &n= images,
+   &band=1..6, &when=new, &name= as a label, &pmra= &pmdec= for a star that moves. ?name= alone is looked up. */
+function specFromUrl() {
+  const num = k => QS.has(k) && QS.get(k).trim() !== "" ? Number(QS.get(k)) : NaN;
+  const spec = { fov: num("fov"), count: num("n"), band: num("band"), when: QS.get("when") };
+  const ra = QS.has("ra") ? parseAngle(QS.get("ra"), true) : NaN, dec = QS.has("dec") ? parseAngle(QS.get("dec"), false) : NaN;
+  const name = (QS.get("name") || "").trim();
+  if (Number.isFinite(ra) && Number.isFinite(dec) && ra >= 0 && ra <= 360 && Math.abs(dec) <= 90) {
+    spec.ra = ra % 360; spec.dec = dec;
+    if (name) spec.name = name;
+    if (Number.isFinite(num("pmra")) && Number.isFinite(num("pmdec"))) { spec.pmra = num("pmra"); spec.pmdec = num("pmdec"); }
+    return spec;
+  }
+  if (!name) return null;
+  spec.lookup = name;
+  return spec;
+}
+
+/* SIMBAD, through the Sesame name service, which a web page is allowed to call. Two homes are
+   tried: the service has gone quiet in Strasbourg before while its mirror kept answering. */
+async function lookupName(name) {
+  const homes = ["https://cds.unistra.fr/cgi-bin/nph-sesame/-oxp/SNV?", "https://vizier.cfa.harvard.edu/viz-bin/nph-sesame/-oxp/SNV?"];
+  let reached = false;
+  for (const home of homes) {
+    const ac = new AbortController(), timer = setTimeout(() => ac.abort(), 9000);
+    try {
+      const r = await fetch(home + encodeURIComponent(name), { signal: ac.signal });
+      if (!r.ok) continue;
+      const x = await r.text();
+      reached = true;
+      const tag = k => { const m = new RegExp("<" + k + ">([^<]+)</" + k + ">").exec(x); return m ? m[1].trim() : null; };
+      const ra = Number(tag("jradeg")), dec = Number(tag("jdedeg"));
+      if (tag("jradeg") === null || !Number.isFinite(ra) || !Number.isFinite(dec)) continue;
+      return { name: name, ra: ra, dec: dec, pmra: Number(tag("pmRA")) || 0, pmdec: Number(tag("pmDE")) || 0 };
+    } catch (_) { /* try the next home */ }
+    finally { clearTimeout(timer); }
+  }
+  const e = new Error(reached ? "unknown name" : "name service unreachable");
+  e.unknown = reached;
+  throw e;
+}
+
+function renderLatest(t) {
+  const el = $("latest");
+  el.hidden = !LIVE || t.live || !!t.moving;       // planets and asteroids need an ephemeris, not a fixed spot
+  if (el.hidden) return;
+  el.textContent = "These images were saved on " + fmtDate(IDX.generated) + ". ";
+  const b = document.createElement("button");
+  b.type = "button"; b.className = "linkbtn"; b.textContent = "Load the newest ones from NASA";
+  b.onclick = () => goTo({ name: t.name, ra: t.ra, dec: t.dec });
+  el.appendChild(b);
+}
+
+/* Show any place: find the exposures that cover it, download the pieces, hand them to the same
+   viewer the saved targets use.
+   spec: {ra, dec} in degrees, or {lookup: "a name"}; optional name, fov (arcminutes), count, band,
+   when ("new"), and pmra/pmdec (milliarcseconds a year, with ra/dec then meaning the year 2000). */
+async function goTo(spec) {
+  const token = ++S.loadId, live = () => token === S.loadId;
+  if (S.abort) S.abort.abort();
+  const ac = S.abort = new AbortController();
+  stop();
+  const busy = on => { $("coordGo").disabled = $("coordFind").disabled = on; };
+  const fail = msg => { if (!live()) return; busy(false); bar(-1); say(msg, true);
+    if (S.target && S.target.live && !S.frames.length) { S.loading = false; $("loading").hidden = false; $("loading").style.opacity = 1; $("loading").textContent = msg; } };
+  busy(true); bar(0.02);
+  const t0 = performance.now(), b0 = SXLive.stats.bytes;
+  try {
+    if (spec.lookup) {                               // a name: one of the five built in, or ask SIMBAD
+      const known = PICKS.find(p => plain(p.name) === plain(spec.lookup));
+      if (known) spec = Object.assign({}, spec, known, { lookup: null });
+      else {
+        say("Asking SIMBAD where " + spec.lookup + " is…");
+        try { spec = Object.assign({}, spec, await lookupName(spec.lookup), { lookup: null }); }
+        catch (e) {
+          return fail(e.unknown ? "SIMBAD doesn't know “" + spec.lookup + "”. Check the spelling, or type its coordinates."
+                                : "The name service isn't answering right now. Type the coordinates instead.");
+        }
+        if (!live()) return;
+      }
+    }
+    const fast = Math.hypot(spec.pmra || 0, spec.pmdec || 0) >= 300;      // moves enough to see, in mas a year
+    const at = year => fast ? [((spec.ra + spec.pmra * (year - 2000) / 3.6e6 / Math.cos(spec.dec * Math.PI / 180)) % 360 + 360) % 360,
+                               spec.dec + spec.pmdec * (year - 2000) / 3.6e6] : [spec.ra, spec.dec];
+    let [ra, dec] = at(2026);
+    const native = SIZE * PIXSCALE / 60;                                  // 13.12 arcminutes: one screen pixel per detector pixel
+    let fov = Number.isFinite(spec.fov) && spec.fov > 0 ? Math.max(3, Math.min(60, spec.fov)) : native;
+    const ratio = fov / native, whole = ratio < 0.75 ? 0.5 : Math.round(ratio);
+    if (Math.abs(ratio - whole) < 0.03 * whole) fov = +(whole * native).toFixed(2);     // 6.6, 13, 26: exact steps of the detector's own pixels
+    const scale = Math.abs(fov - whole * native) < 0.01 ? whole * PIXSCALE : fov * 60 / SIZE;      // arcseconds per pixel
+    const ss = Math.max(1, Math.round(scale / PIXSCALE));                 // wider than native: average instead of skipping
+    const count = Number.isFinite(spec.count) && spec.count > 0 ? Math.max(2, Math.min(90, Math.round(spec.count))) : 30;
+    const band = spec.band >= 1 && spec.band <= 6 ? Math.round(spec.band) : 0, newest = spec.when === "new";
+
+    const t = { id: "live", live: true, name: spec.name || hms(ra) + "  " + dms(dec), ra: ra, dec: dec, scale: scale, frames: [], blurb: "" };
+    S.target = t; S.frames = []; S.order = []; S.pick = null; S.i = 0; S.ref = 0; S.follow = false; $("follow").checked = false;
+    S.bands = new Set(); markChip(-1); buildBands(t);
+    S.loading = true; $("loading").hidden = false; $("loading").style.opacity = 1;
+    $("loading").textContent = "Looking for images of " + t.name + "…";
+    $("strip").innerHTML = ""; $("meta").innerHTML = ""; $("bandNote").textContent = "";
+    $("tlaxis").getContext("2d").clearRect(0, 0, $("tlaxis").width, $("tlaxis").height);
+    renderChrome(); renderLatest(t); drawSky();
+
+    say("Checking where SPHEREx has pointed…");
+    let found;
+    try { found = await SXLive.search(ra, dec, { half: fov / 120, signal: ac.signal }); }
+    catch (e) {
+      if (!live() || ac.signal.aborted) return;
+      return fail("The list of SPHEREx pointings didn't load. Check your connection and try again.");
+    }
+    if (!live()) return;
+    noteIndex(found.manifest);
+    const list = band ? found.frames.filter(f => f.det === band) : found.frames;
+    if (!list.length) return fail(found.frames.length
+      ? "SPHEREx has images of this spot, but none in band " + band + ". Try all six bands."
+      : "No released image holds this whole square on one detector. Try a smaller field of view.");
+    const slots = newest ? list.slice(-count).map(f => [f]) : SXLive.pick(list, count);
+    if (fast) {                                      // centre the frame where the star is in the middle of the dates
+      const mjds = slots.map(s => s[0].mjd).sort((a, b) => a - b);
+      [ra, dec] = at(yearOf(mjds[mjds.length >> 1])); t.ra = ra; t.dec = dec;
+    }
+    const first = fmtDate(mjdISO(list[0].mjd)), last = fmtDate(mjdISO(list[list.length - 1].mjd));
+    const each = ((SIZE * scale / PIXSCALE * 1.2 + 6) * 2040 * 4 + 65536) / 1048576;
+    say(list.length.toLocaleString("en") + " images of this spot" + (band ? " in band " + band : "") + ", " + first + " to " + last
+      + ". Downloading " + slots.length + " of them, about " + Math.round(slots.length * each) + " MB…");
+    const got = await SXLive.series(ra, dec, slots, { size: SIZE, scale: scale / 3600, ss: ss, signal: ac.signal,
+      onFrame: (f, n) => { if (!live()) return; bar(0.04 + 0.96 * n / slots.length);
+        $("loading").textContent = "Loading " + t.name + " · " + n + " of " + slots.length; } });
+    if (!live()) return;
+    if (!got.length) return fail("None of those images could be read just now. NASA's archive may be busy: try again in a moment.");
+
+    const half = (SIZE - 1) / 2, step = scale / 3600 * Math.PI / 180, fr = SXLive.frame(ra, dec);
+    t.frames = got.map(f => {
+      const c = f.cand, q = f.img.quality, notes = [];
+      if (q.l2 && q.l2 !== "Pass") notes.push("failed the quality check");
+      if (q.fineAstrometry === false) notes.push("rough astrometry");
+      if (q.aurora === true) notes.push("aurora");
+      if (q.shuttleGlow === true) notes.push("upper-atmosphere glow");
+      const m = { obs: c.obs, det: c.det, mjd: f.img.mjd, date: String(f.img.date || mjdISO(f.img.mjd)).slice(0, 10), lam: f.lam, bw: f.bw,
+                  coll: "spherex_" + c.release + (c.deep ? "_deep" : ""), key: c.key, notes: notes.join(", ") };
+      if (fast) {                                    // where the star's own motion puts it in this frame
+        const p = at(yearOf(m.mjd)), v = SXLive.unit(p[0], p[1]), den = dot3(v, fr.c);
+        m.mx = half - dot3(v, fr.e) / den / step; m.my = half - dot3(v, fr.n) / den / step;
+      }
+      return m;
+    });
+    const datas = got.map(f => {                     // the engine counts rows south to north; the screen wants north on top
+      const d = new Float32Array(NPIX);
+      for (let y = 0; y < SIZE; y++) d.set(f.data.subarray((SIZE - 1 - y) * SIZE, (SIZE - y) * SIZE), y * SIZE);
+      return d;
+    });
+    const pm = Math.hypot(spec.pmra || 0, spec.pmdec || 0) / 1000;
+    if (fast) { t.moving = spec.name; t.motion = { pmra: spec.pmra, pmdec: spec.pmdec }; }
+    t.blurb = (spec.name ? spec.name + (fast ? ", where it is now: " : ": ") : "") + hms(ra) + ", " + dms(dec) + ". SPHEREx has photographed this spot "
+      + list.length.toLocaleString("en") + " times" + (band ? " in band " + band : "") + " between " + first + " and " + last + "; these " + got.length
+      + (newest ? " are the newest" : " are spread across all of them") + ", read live from NASA's archive."
+      + (fast ? " It moves " + pm.toFixed(1) + "″ a year across the sky, about " + (pm / scale).toFixed(1) + " of these pixels." : "");
+    S.bands = bandsOf(t); buildBands(t);
+    showFrames(t, datas);
+
+    const boxes = [raText(ra), decText(dec)];
+    $("coordRa").value = boxes[0]; $("coordDec").value = boxes[1];
+    $("coordRa").removeAttribute("aria-invalid"); $("coordDec").removeAttribute("aria-invalid");
+    if (![...$("coordFov").options].some(o => +o.value === fov)) $("coordFov").add(new Option(fov + "′ across", fov));
+    $("coordFov").value = fov;
+    if (![...$("coordCount").options].some(o => +o.value === count)) $("coordCount").add(new Option(String(count), count));
+    $("coordCount").value = count; $("coordBand").value = band; $("coordWhen").value = newest ? "new" : "all";
+    S.lastSpec = Object.assign({}, spec, { lookup: null, boxes: boxes });
+    busy(false); bar(-1);
+    say("Showing " + got.length + " of " + list.length.toLocaleString("en") + " images. " + ((SXLive.stats.bytes - b0) / 1048576).toFixed(1)
+      + " MB arrived in " + ((performance.now() - t0) / 1000).toFixed(1) + " s.");
+    const p = new URLSearchParams();
+    if (spec.name) p.set("name", spec.name);
+    p.set("ra", (fast ? spec.ra : ra).toFixed(6)); p.set("dec", (fast ? spec.dec : dec).toFixed(6));
+    if (fast) { p.set("pmra", spec.pmra); p.set("pmdec", spec.pmdec); }
+    if (Math.abs(fov - native) > 0.05) p.set("fov", fov);
+    if (count !== 30) p.set("n", count);
+    if (band) p.set("band", band);
+    if (newest) p.set("when", "new");
+    if (EMBED) p.set("embed", "1");
+    try { history.replaceState(null, "", location.pathname + "?" + p.toString()); } catch (_) {}
+  } catch (e) {
+    if (!live() || ac.signal.aborted) return;
+    fail(e instanceof TypeError ? "The connection dropped while loading. Check it and try again."
+                                : "Something went wrong while loading: " + (e.message || e));
+  }
+}
+
 /* ---------- go ---------- */
 function renderFacts() {
   const ts = IDX.targets, fr = [].concat(...ts.map(t => t.frames));
@@ -1375,22 +1826,29 @@ const mjdISO = m => mjdDate(m).toISOString().slice(0, 10);
 renderFacts();
 $("prov").textContent = "Frame index built " + IDX.generated + ".";
 buildTargets();
+buildCoords();
 let start = 0;
 try {
   const want = decodeURIComponent((location.hash || "").replace(/^#/, ""));
   const k = IDX.targets.findIndex(t => t.id === want);
   if (k >= 0) start = k;
 } catch (_) {}
-markChip(start);
-S.bands = bandsOf(IDX.targets[start]);
-buildBands(IDX.targets[start]);
-loadTarget(IDX.targets[start]);
+const linked = LIVE ? specFromUrl() : null;      // ?ra=..&dec=.. or ?name=.. in the address
+if (linked) {
+  openCoords(true);
+  goTo(linked);
+} else {
+  markChip(start);
+  S.bands = bandsOf(IDX.targets[start]);
+  buildBands(IDX.targets[start]);
+  loadTarget(IDX.targets[start]);
+}
 addEventListener("hashchange", () => {
   const want = (location.hash || "").replace(/^#/, "");
   const k = IDX.targets.findIndex(t => t.id === want);
   if (k >= 0 && IDX.targets[k] !== S.target) selectTarget(k);
 });
-addEventListener("resize", () => { if (S.target) { drawTimeline(); drawSky(); } });
+addEventListener("resize", () => { if (S.target) { if (S.frames.length) drawTimeline(); drawSky(); } });
 
 /* One slider standing in for the pair of percentile ones. It drives the white point, which is
    the control that actually decides how bright a frame reads; the precise sliders stay, and the
@@ -1426,7 +1884,7 @@ setBrightFromWhite();
 
 /* One gesture for the whole page: a ? beside a heading or a label opens a sentence under it.
    Built from a table rather than written into the markup, so the controls stay readable. */
-const GUIDE = [["#skyCard h3", "g-sky", "The whole sky squashed onto an oval, the way a world map flattens the globe. Each grey dot is one of the patches this tool holds; the orange one is where you are now. The curved line is the ecliptic — the path the Sun traces across the year. SPHEREx sweeps along it, which is why its two deep fields sit at either end. Click any dot to jump there."], ["#compareCard h3", "g-compare", "Three ways of looking at the same patch. Single shows one frame at a time. Blink flips back and forth between the frame you pinned as reference and the current one, and your eye catches whatever shifts. Difference subtracts the two, so everything unchanged goes flat and only what moved or brightened is left."], ["#specCard h3", "g-spec", "Click any star or galaxy in the image and this plots its brightness against colour. It works because SPHEREx records a different wavelength on every visit, so thirty visits to one star become thirty points of a spectrum."], ["#displayCard h3", "g-display", "These change how the numbers are turned into something you can see. They never change the data: every frame keeps the brightness actually measured, and you are only choosing where to put black, where to put white, and what colours to stretch in between."], ["#framesCard h3", "g-frames", "Which visits appear, and in what order."], ["label[for=cmap]", "g-cmap", "Just the palette used to paint the numbers. Ember is warm, like the infrared it stands for. Greyscale is the most honest for judging brightness by eye. The others make different features easier to pick out."], ["label[for=bright]", "g-bright", "The one control most people want. Drag it right and faint things lift out of the dark; drag it left and only the brightest sources stay. It is purely how the numbers are painted — the measured brightness never changes. Under More options you can set the same thing by percentile, plus a few others."], ["label[for=scale]", "g-scale", "How brightness gets compressed to fit a screen. Space is mostly very faint things next to a few blinding ones, so a straight linear scale wastes almost all of its range. Asinh squashes the bright end and lets the faint end breathe — usually the one to leave alone."], ["label[for=black]", "g-black", "Anything dimmer than this is painted pure black. Raise it to clean background noise out of the picture, lower it to dig faint things out of the murk."], ["label[for=white]", "g-white", "Anything brighter than this is painted pure white. Lower it to make faint things jump out, raise it to keep detail inside bright cores instead of burning them flat."], ["label[for=sort]", "g-sort", "By date you get a time-lapse, which is what the tool is for. By wavelength the same frames are reordered from blue to red, so you watch the patch change colour instead of change over time."], ["#bandLabel", "g-band", "SPHEREx carries six detectors, each covering its own stretch of infrared. Switching some off keeps only visits of a similar colour, which makes brightness comparable from one frame to the next."]];
+const GUIDE = [["#skyCard h3", "g-sky", "The whole sky laid out flat, the way a world map flattens the globe. Each grey square is one of the patches this tool holds; the blue one is where you are now. The curved line is the ecliptic — the path the Sun traces across the year. SPHEREx sweeps along it, which is why its two deep fields sit at the poles. Click a square to jump there, or an empty spot to pick its coordinates."], ["#compareCard h3", "g-compare", "Three ways of looking at the same patch. Single shows one frame at a time. Blink flips back and forth between the frame you pinned as reference and the current one, and your eye catches whatever shifts. Difference subtracts the two, so everything unchanged goes flat and only what moved or brightened is left."], ["#specCard h3", "g-spec", "Click any star or galaxy in the image and this plots its brightness against colour. It works because SPHEREx records a different wavelength on every visit, so thirty visits to one star become thirty points of a spectrum."], ["#displayCard h3", "g-display", "These change how the numbers are turned into something you can see. They never change the data: every frame keeps the brightness actually measured, and you are only choosing where to put black, where to put white, and what colours to stretch in between."], ["#framesCard h3", "g-frames", "Which visits appear, and in what order."], ["label[for=cmap]", "g-cmap", "Just the palette used to paint the numbers. Ember is warm, like the infrared it stands for. Greyscale is the most honest for judging brightness by eye. The others make different features easier to pick out."], ["label[for=bright]", "g-bright", "The one control most people want. Drag it right and faint things lift out of the dark; drag it left and only the brightest sources stay. It is purely how the numbers are painted — the measured brightness never changes. Under More options you can set the same thing by percentile, plus a few others."], ["label[for=scale]", "g-scale", "How brightness gets compressed to fit a screen. Space is mostly very faint things next to a few blinding ones, so a straight linear scale wastes almost all of its range. Asinh squashes the bright end and lets the faint end breathe — usually the one to leave alone."], ["label[for=black]", "g-black", "Anything dimmer than this is painted pure black. Raise it to clean background noise out of the picture, lower it to dig faint things out of the murk."], ["label[for=white]", "g-white", "Anything brighter than this is painted pure white. Lower it to make faint things jump out, raise it to keep detail inside bright cores instead of burning them flat."], ["label[for=sort]", "g-sort", "By date you get a time-lapse, which is what the tool is for. By wavelength the same frames are reordered from blue to red, so you watch the patch change colour instead of change over time."], ["#bandLabel", "g-band", "SPHEREx carries six detectors, each covering its own stretch of infrared. Switching some off keeps only visits of a similar colour, which makes brightness comparable from one frame to the next."], ["#coordRaLabel", "g-ra", "Right ascension is the sky's version of longitude: how far around you go, from 0 to 360 degrees. Astronomers often write it in hours, minutes and seconds, where 24 hours is the full circle. Both ways work here: 08h55m10.8s or 133.795."], ["#coordDecLabel", "g-dec", "Declination is the sky's version of latitude. +90 is straight above the North Pole, 0 is above the equator, −90 is above the South Pole. Type it as degrees, minutes and seconds (-7d14m42s) or as a plain number (-7.245)."], ["#coordFovLabel", "g-fov", "How big a square of sky to show. A wider square lets you follow things that move a long way, but every image is a bigger download. Zoomed in, each picture element covers half as much sky, which makes small shifts easier to see."], ["#coordNameLabel", "g-name", "Type the name of a star, nebula or galaxy and the page asks SIMBAD, a public astronomy catalogue, where it is. For stars that move quickly across the sky it also brings back how fast, and works out where the star is now rather than where it was years ago."], ["#coordCountLabel", "g-count", "More images show more of the story but take longer to arrive: each one is about a megabyte."], ["#coordBandLabel", "g-cband", "Every exposure lands on one of six detectors, each seeing its own stretch of infrared. Staying in one band keeps brightness comparable from image to image, which is what you want for a star that changes. All six gives the widest spectrum."], ["#coordWhenLabel", "g-when", "Spread over every date gives the longest time-lapse, from the first visit to the latest. Only the newest shows what SPHEREx saw most recently."]];
 
 function buildGuide() {
   GUIDE.forEach(g => {
