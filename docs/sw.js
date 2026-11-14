@@ -2,8 +2,8 @@
    Frame data is cached the first time a target is opened rather than all at once: the
    full set is 16 MB and most people look at two or three. The one exception is the list of
    pointings behind the coordinate search, which is always asked of the network first. */
-const VERSION = "sx-ec598ea54e";
-const SHELL = ["./", "./index.html", "./manifest.webmanifest", "./icon-192.png", "./icon-512.png"];
+const VERSION = "sx-a0aaa113e3";
+const SHELL = ["./", "./index.html", "./manifest.webmanifest", "./icon-192.png", "./icon-512.png", "./cover.png"];
 const FONT_HOSTS = ["fonts.googleapis.com", "fonts.gstatic.com"];
 
 self.addEventListener("install", e => {
