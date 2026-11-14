@@ -355,27 +355,137 @@ h1 em{font-family:var(--display);font-weight:500;color:var(--accent)}
 .linkbtn{background:none;border:0;padding:0;color:var(--accent);font:inherit;font-weight:600;cursor:pointer;
   text-decoration:underline;text-underline-offset:2px}
 .linkbtn:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+/* ---------- the cover: a wall of real frames, each tile flicking through its own dates ---------- */
+.cover{position:relative;background:#000;border-bottom:0;margin-bottom:26px;overflow:hidden}
+.covergrid{display:grid;grid-template-columns:repeat(6,1fr)}
+.covertile{position:relative;display:block;aspect-ratio:1;overflow:hidden;background:#040308}
+.covertile i{position:absolute;inset:0;display:block;background-repeat:no-repeat}
+.covertile i + i{transition:opacity 1.2s ease}
+.covertile::after{content:"";position:absolute;inset:0;border:1px solid rgba(0,0,0,.6);pointer-events:none}
+.covertile:hover::after,.covertile:focus-visible::after{border:2px solid var(--accent)}
+.covertile:focus-visible{outline:0}
+.covertile:nth-child(n+13){display:none}
+@media (min-width:1500px){.covergrid{grid-template-columns:repeat(8,1fr)} .covertile:nth-child(n+13){display:block}}
+@media (max-width:900px){.covergrid{grid-template-columns:repeat(4,1fr)}}
+@media (max-width:560px){.covergrid{grid-template-columns:repeat(3,1fr)}}
+.coverscrim{position:absolute;inset:0;pointer-events:none;
+  background:linear-gradient(180deg,rgba(0,0,0,.42) 0,rgba(0,0,0,0) 24%,rgba(0,0,0,0) 46%,rgba(4,3,8,.94) 100%)}
+.cover::after{content:"";position:absolute;left:0;right:0;bottom:0;height:5px;
+  background:linear-gradient(90deg,var(--b1),var(--b2),var(--b3),var(--b4),var(--b5),var(--b6))}
+.covertop{position:absolute;top:14px;right:16px;display:flex;gap:8px}
+.coverfoot{position:absolute;left:0;right:0;bottom:0;max-width:1180px;margin:0 auto;padding:0 16px 26px;
+  display:flex;align-items:flex-end;justify-content:space-between;gap:16px;pointer-events:none}
+.coverfoot h1{color:#fff;font-size:clamp(34px,6.6vw,78px);text-shadow:0 2px 26px rgba(0,0,0,.85)}
+.coverfoot h1 em{color:#4DA3FF}
+.coverdown{pointer-events:auto;flex:0 0 auto;width:48px;height:48px;display:grid;place-items:center;color:#fff;
+  border:1px solid rgba(255,255,255,.55);background:rgba(0,0,0,.5);transition:border-color .15s,background .15s}
+.coverdown:hover{border-color:var(--accent);background:rgba(0,0,0,.8)}
+.coverdown:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+/* with no sheet of frames to show (the artifact build), the cover is just the name */
+.cover.bare{background:var(--bg)}
+.cover.bare .covergrid,.cover.bare .coverscrim{display:none}
+.cover.bare .coverfoot{position:static;padding-top:64px}
+.cover.bare .coverfoot h1{color:var(--text);text-shadow:none}
+.cover.bare .coverdown{color:var(--text);border-color:var(--line);background:var(--surface)}
+
+/* ---------- the name of what is on screen ---------- */
+.nowtitle{font-family:var(--display);font-weight:700;font-size:clamp(26px,3.6vw,38px);line-height:1.08;
+  letter-spacing:-.005em;margin:0 0 8px;overflow-wrap:anywhere}
+.nowtitle::before{content:"";display:block;width:44px;height:4px;margin-bottom:12px;
+  background:linear-gradient(90deg,var(--b1),var(--b3),var(--b5))}
+
+/* ---------- zoom and save, on the image ---------- */
+.tools{position:absolute;right:12px;top:50%;transform:translateY(-50%);display:flex;flex-direction:column;gap:6px;z-index:2}
+.tools button{width:38px;height:38px;display:grid;place-items:center;padding:0;cursor:pointer;
+  background:rgba(10,10,14,.74);border:1px solid rgba(240,230,215,.24);color:#EDE6DA;
+  font-family:var(--display);font-size:20px;font-weight:600;line-height:1;transition:border-color .15s,background .15s}
+.tools button:hover:not(:disabled){border-color:var(--accent);background:rgba(10,10,14,.92)}
+.tools button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.tools button:disabled{opacity:.35;cursor:default}
+.tools #zreset{font-size:12.5px;letter-spacing:.01em}
+.stage.zoomed canvas{cursor:grab}
+.stage.panning canvas{cursor:grabbing}
+
+/* ---------- marks drawn over the image ---------- */
+.legend{list-style:none;margin:10px 0 0;padding:0;display:grid;gap:6px;font-size:13.5px;color:var(--muted)}
+.legend li{display:flex;gap:9px;align-items:center}
+.legend i{flex:0 0 auto;width:13px;height:13px;display:block}
+.legend i.ring{border:2px solid currentColor;border-radius:50%;background:none}
+.legend i.box{border:2px solid currentColor;background:none}
+.checks.col{flex-direction:column;gap:9px}
+a.btn{display:block;text-align:center;text-decoration:none;color:var(--text)}
+
+/* ---------- the plot under the image: by colour or by date ---------- */
+.cardhead{display:flex;gap:10px;align-items:center;justify-content:space-between;flex-wrap:wrap;margin-bottom:12px}
+.cardhead h3{margin-bottom:0}
+.seg.small{flex:0 0 auto}
+.seg.small button{padding:6px 12px;font-size:13px;flex:0 0 auto}
+
+/* ---------- colour for the reading part at the end ---------- */
+.about{border-top:0;position:relative;margin-top:46px;padding-top:36px}
+.about::before{content:"";position:absolute;left:0;right:0;top:0;height:4px;
+  background:linear-gradient(90deg,var(--b1),var(--b2),var(--b3),var(--b4),var(--b5),var(--b6))}
+.about h2{display:flex;align-items:center;gap:13px;margin-bottom:18px}
+.about h2::before{content:"";flex:0 0 auto;width:16px;height:16px;background:var(--hue,var(--accent))}
+#guide-frame{--hue:var(--b3)} #data{--hue:var(--b1)}
+.cols{gap:16px}
+.cols > div{--hue:var(--accent);background:var(--surface);border:1px solid var(--line);border-top:4px solid var(--hue);padding:20px 20px 12px;
+  background-image:linear-gradient(180deg,color-mix(in srgb,var(--hue) 13%,transparent),transparent 120px)}
+.cols > div:nth-child(1){--hue:var(--b1)} .cols > div:nth-child(2){--hue:var(--b3)} .cols > div:nth-child(3){--hue:var(--accent)}
+.cols h4{border-left:4px solid var(--hue);padding-left:10px}
+.steps li:nth-child(6n+1)::before{background:var(--b1);border-color:var(--b1);color:#fff}
+.steps li:nth-child(6n+2)::before{background:var(--b2);border-color:var(--b2);color:#fff}
+.steps li:nth-child(6n+3)::before{background:var(--b3);border-color:var(--b3);color:#1A1206}
+.steps li:nth-child(6n+4)::before{background:var(--b4);border-color:var(--b4);color:#1A1206}
+.steps li:nth-child(6n+5)::before{background:var(--b5);border-color:var(--b5);color:#1A1206}
+.steps li:nth-child(6n+6)::before{background:var(--accent);border-color:var(--accent);color:#fff}
+.deftable th{background:color-mix(in srgb,var(--b3) 20%,var(--surface));color:var(--text)}
+.deftable td:first-child{border-left:5px solid var(--hue,var(--line))}
+.deftable tr:nth-child(6n+2) td:first-child{--hue:var(--b1)} .deftable tr:nth-child(6n+3) td:first-child{--hue:var(--b2)}
+.deftable tr:nth-child(6n+4) td:first-child{--hue:var(--b3)} .deftable tr:nth-child(6n+5) td:first-child{--hue:var(--b4)}
+.deftable tr:nth-child(6n+6) td:first-child{--hue:var(--b5)} .deftable tr:nth-child(6n+7) td:first-child{--hue:var(--accent)}
+.facts div{--hue:var(--accent);border-top:4px solid var(--hue);
+  background-image:linear-gradient(180deg,color-mix(in srgb,var(--hue) 16%,transparent),transparent 78%)}
+.facts div:nth-child(1){--hue:var(--b1)} .facts div:nth-child(2){--hue:var(--b2)} .facts div:nth-child(3){--hue:var(--b3)}
+.facts div:nth-child(4){--hue:var(--b4)} .facts div:nth-child(5){--hue:var(--b5)} .facts div:nth-child(6){--hue:var(--accent)}
+.facts dd{font-size:22px}
+/* the six bands, in the colours every dot and tick on the page uses */
+.bandkey{display:grid;grid-template-columns:repeat(6,1fr);margin:0 0 20px;border:1px solid var(--line)}
+@media (max-width:640px){.bandkey{grid-template-columns:repeat(3,1fr)}}
+.bandkey div{padding:12px 12px 11px;color:#1A1206;min-width:0}
+.bandkey div.dark{color:#fff}
+.bandkey b{display:block;font-family:var(--display);font-size:16px;font-weight:700}
+.bandkey span{display:block;font-family:var(--mono);font-size:12px;margin-top:2px;white-space:nowrap}
+.foot{margin-top:8px;color:#fff;background:linear-gradient(115deg,#1B0A12 0%,#5A1C1E 34%,#B3402B 62%,#DD8438 86%,#F1CC80 100%)}
+.footin{max-width:1180px;margin:0 auto;padding:30px 16px 34px;display:flex;gap:10px 28px;align-items:baseline;flex-wrap:wrap}
+.foot b{font-family:var(--display);font-size:22px;font-weight:700;letter-spacing:.005em}
+.foot span{font-size:14.5px;max-width:74ch;text-shadow:0 1px 2px rgba(0,0,0,.45)}
+.wrap{padding-block:0 40px}
+body.embed .foot{display:none!important}
+
 /* embedded in another page (?embed=1): just the viewer and its controls */
 body.embed header,body.embed .eyebrow,body.embed #targets,body.embed .toggles,body.embed #targetsAdv,
 body.embed #coordPanel,body.embed .about,body.embed #latest{display:none!important}
 body.embed .wrap{padding-top:14px}
 </style>
 
-<header>
-  <div class="hbar">
-    <div>
-      <h1>SPHEREx <em>Time Machine</em></h1>
-      <p class="tag">SPHEREx photographs the whole sky in infrared, over and over. I grabbed fifteen months of its
-        real images so you can pick a spot, hit play, and catch the things that move or flicker.</p>
-    </div>
-    <div class="hmeta">
-      <button class="ghost" id="theme" type="button">Theme</button>
-    </div>
+<header class="cover" id="cover">
+  <div class="covergrid" id="coverGrid"></div>
+  <div class="coverscrim"></div>
+  <div class="covertop">
+    <button class="ghost" id="lang" type="button" aria-label="Change the language / Cambiar el idioma">Español</button>
+    <button class="ghost" id="theme" type="button">Theme</button>
+  </div>
+  <div class="coverfoot">
+    <h1>SPHEREx <em>Time Machine</em></h1>
+    <a class="coverdown" href="#start" id="coverDown" aria-label="Go down to the viewer" title="Go down to the viewer">
+      <svg width="20" height="20" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 5.5 8 10.5l5-5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="square"/></svg>
+    </a>
   </div>
 </header>
 
 <div class="wrap">
-  <div class="eyebrow" style="margin-bottom:8px">Choose a patch of sky</div>
+  <div class="eyebrow" id="start" style="margin-bottom:8px">Choose a patch of sky</div>
   <div class="targets" id="targets" role="group" aria-label="Sky targets"></div>
   <div class="toggles">
     <button class="advtoggle" id="advToggle" type="button" aria-expanded="false" hidden></button>
@@ -439,10 +549,19 @@ body.embed .wrap{padding-top:14px}
 
   <div class="main">
     <div>
+      <h2 class="nowtitle" id="nowTitle"></h2>
       <p class="blurb" id="blurb"></p>
       <p class="latest" id="latest" hidden></p>
       <div class="stage" id="stage">
         <canvas id="view" width="1024" height="1024"></canvas>
+        <div class="tools" role="group" aria-label="Zoom and save">
+          <button type="button" id="zin" aria-label="Zoom in" title="Zoom in">+</button>
+          <button type="button" id="zout" aria-label="Zoom out" title="Zoom out" disabled>−</button>
+          <button type="button" id="zreset" aria-label="Show the whole picture" title="Show the whole picture" disabled>1×</button>
+          <button type="button" id="savepng" aria-label="Save this image" title="Save this image">
+            <svg width="17" height="17" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 1.5v8.2M4.4 6.6 8 10.2l3.6-3.6M2.5 12.2v2.3h11v-2.3" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="square"/></svg>
+          </button>
+        </div>
         <div class="ov ov-tl">
           <div class="ov-date" id="ovDate">—</div>
           <div class="lam" id="ovLam"><i></i><span>—</span></div>
@@ -478,7 +597,7 @@ body.embed .wrap{padding-top:14px}
             <option value="180">Fast</option>
           </select>
         </div>
-        <p class="keys"><b>Space</b> play · <b>← →</b> step a frame · <b>click</b> the image for a spectrum</p>
+        <p class="keys"><b>Space</b> play · <b>← →</b> step a frame · <b>+ −</b> or pinch to zoom, drag to move · <b>click</b> a star for its spectrum</p>
         <div class="tl">
           <canvas class="tlaxis" id="tlaxis" width="1600" height="72" role="img"
             aria-label="When each visit happened, on a date axis. Click to jump to the nearest visit; the thumbnails below do the same from the keyboard."></canvas>
@@ -491,10 +610,16 @@ body.embed .wrap{padding-top:14px}
           <dl class="kv" id="meta"></dl>
         </div>
         <div class="card" id="specCard">
-          <h3>Spectrum at cursor</h3>
+          <div class="cardhead">
+            <h3>Brightness of what you clicked</h3>
+            <div class="seg small" id="plot" role="group" aria-label="What to plot the brightness against">
+              <button type="button" data-plot="spec" aria-pressed="true">By colour</button>
+              <button type="button" data-plot="curve" aria-pressed="false">By date</button>
+            </div>
+          </div>
           <canvas id="spec" width="600" height="264" hidden></canvas>
           <p class="specempty" id="specEmpty">Click a star or galaxy. Each visit sees a slightly different infrared color,
-            so put together they give you a rough spectrum.</p>
+            so put together they give you a rough spectrum. Switch to <b>By date</b> to watch it brighten and fade.</p>
           <p class="note" id="specNote" hidden></p>
         </div>
       </div>
@@ -507,6 +632,7 @@ body.embed .wrap{padding-top:14px}
           aria-label="All-sky map with the ecliptic marked, showing where each target sits. Click a marker to jump there; the target buttons above do the same from the keyboard."></canvas>
         <p class="note" id="skyNote">The whole sky. The line is the ecliptic: SPHEREx scans along it, so its two deep fields
           end up at the poles. Click a square to go there, or an empty spot to pick its coordinates.</p>
+        <a class="btn" id="aladin" href="#" target="_blank" rel="noopener">See this spot in Aladin ↗</a>
       </div>
 
       <div class="card" id="movingCard" hidden>
@@ -530,6 +656,26 @@ body.embed .wrap{padding-top:14px}
         <button class="btn" id="setref" type="button">Pin this frame as reference</button>
         <p class="note" id="modeNote">Blink jumps back and forth between your pinned frame and this one. Difference
           subtracts them, so anything that didn't change disappears.</p>
+        <div class="field">
+          <label for="stack" id="stackLabel">Add images together</label>
+          <select id="stack">
+            <option value="off" selected>No · every visit on its own</option>
+            <option value="band">Yes · one picture per band</option>
+            <option value="season">Yes · per band, season by season</option>
+          </select>
+        </div>
+        <p class="note" id="stackNote" hidden></p>
+      </div>
+
+      <div class="card" id="marksCard">
+        <h3>Mark on the image</h3>
+        <div class="checks col">
+          <label class="chk"><input type="checkbox" id="markGaia"> Stars from the Gaia catalogue</label>
+          <label class="chk"><input type="checkbox" id="markWise"> Sources from the WISE catalogue</label>
+          <label class="chk"><input type="checkbox" id="markFlags"> Pixels NASA flagged as doubtful</label>
+        </div>
+        <ul class="legend" id="marksLegend" hidden></ul>
+        <p class="note" id="marksNote" hidden></p>
       </div>
 
 
@@ -623,8 +769,13 @@ body.embed .wrap{padding-top:14px}
           <li>Hit play and watch. Normal stars don't move.</li>
           <li>Pin a frame, then switch to <b>Difference</b>. If it's flat grey, nothing changed. A black dot next to a white one
             means something moved.</li>
-          <li>Asteroids move even between shots taken minutes apart. Variable stars take months to brighten and fade.</li>
-          <li>Click a star to see its brightness at each wavelength. Measuring that is the whole point of SPHEREx.</li>
+          <li>Zoom in with <b>+</b> or a pinch. A nearby star shifts only a pixel or two in a year, and from far away you'd miss it.</li>
+          <li><b>Add images together</b> to pull faint things out of the grain. Do it season by season and you can blink one
+            season against another.</li>
+          <li>Tick <b>Gaia</b> or <b>WISE</b> to see which dots are stars already in the catalogues, and the flagged pixels
+            to see which specks NASA's own software distrusts.</li>
+          <li>Click a star to see its brightness at each wavelength, or date by date. Asteroids move within minutes;
+            variable stars take months to brighten and fade.</li>
         </ol>
       </div>
     </div>
@@ -647,7 +798,9 @@ body.embed .wrap{padding-top:14px}
         <tr><td>Source file</td><td>A link to the original 71 MB file in NASA's archive. I only downloaded a small square of it. Click it, it's the fun one.</td></tr>
         <tr><td>Distance</td><td>How far the body was from Earth at that moment, in astronomical units. Shown only for the moving targets.</td></tr>
         <tr><td>Notes</td><td>Warnings the pipeline attached to this exposure: a failed quality check, rough astrometry, light from an aurora or the glow of the upper atmosphere. Shown only for images read live.</td></tr>
-        <tr><td>Flagged pixels</td><td>Pixels the pipeline marked as bad: too bright, hit by a cosmic ray, or just dead. Those are the dark specks. I left them as they are.</td></tr>
+        <tr><td>Blank pixels</td><td>Pixels with no brightness at all in this frame, usually where a bright star overwhelmed the detector or the pixel is dead. Those are the dark specks. I left them as they are.</td></tr>
+        <tr><td>Flagged pixels</td><td>Shown once you tick <b>Pixels NASA flagged as doubtful</b>: how many pixels of this frame the pipeline warned about, and why. A cosmic-ray hit, a dead pixel, a star too bright for the detector, the ghost of one, or the streak of a satellite.</td></tr>
+        <tr><td>Added up</td><td>Shown when images are added together: how many exposures went into the picture, the dates and wavelengths they span, and how much the grain dropped.</td></tr>
       </table>
     </div>
   </section>
@@ -658,13 +811,22 @@ body.embed .wrap{padding-top:14px}
     <p class="lede">Nothing here is simulated or edited. Every frame is a piece of one real SPHEREx exposure, and each one links
       to its original file, so you can check it yourself.</p>
 
+    <div class="bandkey" id="bandKey" role="img" aria-label="The six infrared bands and the colour that stands for each on this page"></div>
     <dl class="facts" id="facts"></dl>
 
-    <p class="note" style="margin-top:4px">Brightness values are the ones the pipeline measured, in MJy/sr. No stacking, no rescaling, no touch-ups.
-      <span id="prov"></span> Data: NASA/JPL‑Caltech/IPAC.</p>
+    <p class="note" style="margin-top:4px">Brightness values are the ones the pipeline measured, in MJy/sr. Nothing is rescaled or touched up,
+      and images are only added together when you ask for it. <span id="prov"></span> Data: NASA/JPL‑Caltech/IPAC.</p>
     <p class="note" id="liveNote" hidden></p>
   </section>
 </div>
+
+<footer class="foot">
+  <div class="footin">
+    <b>SPHEREx Time Machine</b>
+    <span>Real images from NASA's SPHEREx telescope, read from the public archive at NASA/IPAC IRSA. Star positions from
+      Gaia and WISE through CDS VizieR, names from SIMBAD.</span>
+  </div>
+</footer>
 
 <script>
 /*__LIVE__*/
@@ -672,6 +834,46 @@ body.embed .wrap{padding-top:14px}
 <script>
 const IDX = /*__INDEX__*/null;
 const LIVE_BASE = /*__LIVEBASE__*/"idx/";
+const COVER = /*__COVER__*/null;                  // the sheet of frames behind the cover, written by build/cover.py
+
+/* ---------- two languages ----------
+   The page is written in English. app/lang/es.json holds the same sentences in Spanish, keyed by
+   the English: T("…") looks one up, and {0} {1} stand for the numbers and names dropped into it.
+   Text that sits in the markup is swapped in one pass, right here, before anything else touches
+   the page. Which language: ?lang=es or ?lang=en in the address, else the choice made with the
+   button, else the browser's own language. Changing it reloads the page, so nothing is ever
+   left half translated. */
+const ES = /*__ES__*/{};
+const LANG_ASKED = (new URLSearchParams(location.search).get("lang") || "").toLowerCase();
+const LANG = (() => {
+  let want = LANG_ASKED;
+  try { want = want || localStorage.getItem("sx-lang") || ""; } catch (_) {}
+  return /^es/i.test(want || navigator.language || "en") ? "es" : "en";
+})();
+const LOCALE = LANG === "es" ? "es-CO" : "en";
+const known = k => Object.prototype.hasOwnProperty.call(ES, k);
+function T(s) {
+  let out = LANG === "es" && known(s) ? ES[s] : s;
+  for (let i = 1; i < arguments.length; i++) out = out.split("{" + (i - 1) + "}").join(arguments[i]);
+  return out;
+}
+const num = v => v.toLocaleString(LOCALE);
+(function localise() {
+  document.documentElement.lang = LANG;
+  if (LANG !== "es") return;
+  const walk = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT), nodes = [];
+  while (walk.nextNode()) nodes.push(walk.currentNode);
+  nodes.forEach(node => {
+    const tag = node.parentNode && node.parentNode.nodeName;
+    if (tag === "SCRIPT" || tag === "STYLE") return;
+    const raw = node.nodeValue, key = raw.replace(/\s+/g, " ").trim();        // the markup wraps its lines; the keys do not
+    if (key && known(key)) node.nodeValue = raw.replace(/^(\s*)[\s\S]*?(\s*)$/, (m, a, b) => a + ES[key] + b);
+  });
+  document.querySelectorAll("[aria-label],[title],[placeholder]").forEach(el => ["aria-label", "title", "placeholder"].forEach(a => {
+    const v = el.getAttribute(a);
+    if (v && known(v)) el.setAttribute(a, ES[v]);
+  }));
+})();
 
 /* ---------- constants ---------- */
 const SIZE = IDX.cutout, NPIX = SIZE * SIZE, PIXSCALE = IDX.pixelScale;
@@ -722,6 +924,11 @@ const S = {
   sort: "time", bands: new Set(),
   playing: false, blinkOn: false, pick: null, loading: false, loadId: 0, showTrack: true,
   follow: false, speed: 420, abort: null,
+  raw: [],                              // one entry per exposure; `frames` is these, or pictures added up from them
+  stack: "off",                         // "off", "band" or "season"
+  view: {z: 1, x: 0, y: 0},             // zoom, and the image pixel sitting in the top-left corner
+  marks: {gaia: false, wise: false, flags: false}, hits: [], flagAbort: null,
+  plot: "spec",                         // the brightness plot: against colour ("spec") or date ("curve")
 };
 
 const $ = id => document.getElementById(id);
@@ -756,13 +963,24 @@ function loadFrames(t) {
     .catch(() => viaScript(t));
 }
 
+/* Leaving a place: hand its list of exposures back (adding images up swaps it for a shorter
+   one), stop anything still downloading for it, and show the whole picture again. */
+function leaveTarget() {
+  const t = S.target;
+  if (t && t.rawFrames) t.frames = t.rawFrames;
+  stopFlags();
+  S.view = {z: 1, x: 0, y: 0}; syncZoom();
+}
+
 async function loadTarget(t) {
   const token = ++S.loadId;          // a later click wins; stale responses are dropped
   if (S.abort) { S.abort.abort(); S.abort = null; liveIdle(); }     // so is a live download still in flight
+  leaveTarget();
+  if (t.rawFrames) t.frames = t.rawFrames;
   S.loading = true;
   $("loading").hidden = false; $("loading").style.opacity = 1;
-  $("loading").textContent = "Loading " + t.name + "…";
-  S.target = t; S.frames = []; S.pick = null; S.i = 0; S.ref = 0;
+  $("loading").textContent = T("Loading {0}…", T(t.name));
+  S.target = t; S.frames = []; S.raw = []; S.pick = null; S.i = 0; S.ref = 0;
   renderChrome();
   renderLatest(t);
   let u16;
@@ -772,7 +990,7 @@ async function loadTarget(t) {
     for (let i = 0; i < s.length; i++) bytes[i] = s.charCodeAt(i);
     u16 = new Uint16Array(bytes.buffer);
   } catch (err) {
-    if (token === S.loadId) $("loading").textContent = "Could not load frame data";
+    if (token === S.loadId) $("loading").textContent = T("Could not load frame data");
     return;
   }
   if (token !== S.loadId) return;
@@ -789,24 +1007,128 @@ async function loadTarget(t) {
   }));
 }
 
+const countBad = d => { let bad = 0; for (let p = 0; p < NPIX; p++) if (!Number.isFinite(d[p])) bad++; return bad; };
+const frameOf = (meta, d) => { meta.bad = countBad(d); return {meta, data: d, flat: null, sorted: sortFinite(d), thumb: null}; };
+
 /* Put a target's frames on screen. `datas` holds one Float32Array per frame, north at the top. */
 function showFrames(t, datas) {
-  S.frames = [];
   if (!(S.i >= 0)) S.i = 0;            // a key pressed while nothing was loaded leaves no position behind
-  t.frames.forEach((meta, n) => {
-    const d = datas[n];
-    let bad = 0;
-    for (let p = 0; p < NPIX; p++) if (!Number.isFinite(d[p])) bad++;
-    meta.bad = bad;
-    S.frames.push({meta, data: d, flat: null, sorted: sortFinite(d), thumb: null});
-  });
+  t.rawFrames = t.frames;
+  S.raw = t.frames.map((meta, n) => frameOf(meta, datas[n]));
   S.loading = false;
   $("loading").style.opacity = 0;
   setTimeout(() => { if (!S.loading) $("loading").hidden = true; }, 320);
+  useFrames();
+  if (!S.pick) { $("spec").hidden = true; $("specEmpty").hidden = false; $("specNote").hidden = true; }
+  refreshMarks();
+}
+
+/* ---------- adding images together ----------
+   One exposure is noisy. Adding several of the same band together beats the noise down, which
+   is how something too faint for a single frame shows up. "Per band" adds every date; "season
+   by season" keeps the dates apart, so two added-up pictures can still be blinked or subtracted. */
+const mean = a => a.reduce((s, v) => s + v, 0) / a.length;
+
+/* The stretches of dates SPHEREx spent on this spot. It comes back about every six months, so
+   visits fall into clumps. Near the ecliptic poles it never really leaves, and a clump that
+   runs on for months is cut into pieces of about three. Returns [first, last] day of each. */
+function seasons(mjds) {
+  const s = [...mjds].sort((a, b) => a - b), clumps = [[s[0]]], out = [];
+  for (let i = 1; i < s.length; i++) { if (s[i] - s[i - 1] >= 40) clumps.push([]); clumps[clumps.length - 1].push(s[i]); }
+  clumps.forEach(g => {
+    const a = g[0], b = g[g.length - 1], parts = Math.max(1, Math.ceil((b - a) / 100));
+    for (let p = 0; p < parts; p++) out.push([a + (b - a) * p / parts, p === parts - 1 ? b : a + (b - a) * (p + 1) / parts]);
+  });
+  return out;
+}
+
+/* A mean that shrugs off the odd wild value (a cosmic-ray hit lands in one exposure, not in all).
+   Sorts v[0..c) in place. */
+function trimmed(v, c) {
+  for (let i = 1; i < c; i++) { const x = v[i]; let j = i - 1; while (j >= 0 && v[j] > x) { v[j + 1] = v[j]; j--; } v[j + 1] = x; }
+  if (c <= 2) return c === 2 ? (v[0] + v[1]) / 2 : v[0];
+  if (c <= 4) return c === 3 ? v[1] : (v[1] + v[2]) / 2;
+  const cut = Math.max(1, Math.floor(c * 0.2));
+  let s = 0;
+  for (let i = cut; i < c - cut; i++) s += v[i];
+  return s / (c - 2 * cut);
+}
+
+/* The same picture slid over by (dx, dy) pixels. */
+function shifted(d, dx, dy) {
+  const out = new Float32Array(NPIX);
+  for (let y = 0; y < SIZE; y++) for (let x = 0; x < SIZE; x++) {
+    const sx = x - dx, sy = y - dy, x0 = Math.floor(sx), y0 = Math.floor(sy), fx = sx - x0, fy = sy - y0;
+    if (x0 < 0 || y0 < 0 || x0 >= SIZE - 1 || y0 >= SIZE - 1) { out[y * SIZE + x] = NaN; continue; }
+    const p = y0 * SIZE + x0;
+    out[y * SIZE + x] = d[p] * (1 - fx) * (1 - fy) + d[p + 1] * fx * (1 - fy) + d[p + SIZE] * (1 - fx) * fy + d[p + SIZE + 1] * fx * fy;
+  }
+  return out;
+}
+
+function buildStacks() {
+  const t = S.target, follow = S.follow && !!t.moving;
+  const sea = S.stack === "season" ? seasons(S.raw.map(f => f.meta.mjd)) : [[-Infinity, Infinity]];
+  const which = mjd => { let k = 0; for (let i = 0; i < sea.length; i++) if (mjd >= sea[i][0] - 1e-6) k = i; return k; };
+  const groups = new Map();
+  S.raw.forEach(f => {
+    const k = which(f.meta.mjd) * 10 + f.meta.det;
+    if (!groups.has(k)) groups.set(k, []);
+    groups.get(k).push(f);
+  });
+  return [...groups.keys()].sort((a, b) => a - b).map(key => {
+    const g = groups.get(key), ms = g.map(f => f.meta), n = g.length;
+    // every exposure has its own sky level (the zodiacal glow changes with date and colour), so
+    // each one is brought to zero first and the average level is put back at the end
+    const sky = g.map(f => pct(f.sorted, 50)), level = mean(sky);
+    const tracked = ms.every(m => m.mx !== undefined);
+    const mx = tracked ? mean(ms.map(m => m.mx)) : undefined, my = tracked ? mean(ms.map(m => m.my)) : undefined;
+    // with "keep it centred" on, the frames are slid so the moving body stays put and it is
+    // the stars that smear; otherwise the stars stay sharp and the body smears
+    const src = g.map(f => follow && tracked ? shifted(f.data, mx - f.meta.mx, my - f.meta.my) : f.data);
+    const data = new Float32Array(NPIX), v = new Float32Array(n);
+    for (let p = 0; p < NPIX; p++) {
+      let c = 0;
+      for (let i = 0; i < n; i++) { const x = src[i][p]; if (Number.isFinite(x)) v[c++] = x - sky[i]; }
+      data[p] = c ? trimmed(v, c) + level : NaN;
+    }
+    const mjds = ms.map(m => m.mjd), lams = ms.map(m => m.lam), mid = mean(mjds);
+    const meta = { stack: n, det: ms[0].det, mjd: mid, date: mjdISO(mid), d0: mjdISO(Math.min(...mjds)), d1: mjdISO(Math.max(...mjds)),
+                   lam: mean(lams), lam0: Math.min(...lams), lam1: Math.max(...lams), bw: mean(ms.map(m => m.bw)),
+                   obs: n === 1 ? T("1 exposure") : T("{0} exposures", n), coll: [...new Set(ms.map(m => m.coll))].join(" + "), followed: follow && tracked };
+    if (tracked) { meta.mx = mx; meta.my = my; }
+    return frameOf(meta, data);
+  });
+}
+
+/* Show either every exposure or the added-up pictures, whichever the Compare box asks for. */
+function useFrames() {
+  const t = S.target;
+  if (!t || !S.raw.length) return;
+  if (S.stack === "off") { t.frames = t.rawFrames; S.frames = S.raw; }
+  else { S.frames = buildStacks(); t.frames = S.frames.map(f => f.meta); }
+  S.ref = -1;
   applyOrder();
   buildStrip();
+  updateBandNote(t);
+  noteStack();
+  noteMarks();
   draw();
-  if (!S.pick) { $("spec").hidden = true; $("specEmpty").hidden = false; $("specNote").hidden = true; }
+}
+
+function noteStack() {
+  const el = $("stackNote"), t = S.target;
+  el.hidden = S.stack === "off" || !S.raw.length;
+  if (el.hidden) return;
+  const n = S.frames.length, most = Math.max(...S.frames.map(f => f.meta.stack));
+  const drop = Math.sqrt(most).toFixed(1);
+  el.textContent = (n === 1
+      ? T("{0} exposures added up into one picture. Noise drops by about the square root of that: {1} times.", S.raw.length, drop)
+      : T("{0} exposures added up into {1} pictures, up to {2} in each. Noise drops by about the square root of that, here up to {3} times.", S.raw.length, n, most, drop))
+    + (!t.moving ? "" : " " + (S.follow
+      ? T("They were lined up on {0}, so it stays sharp and the stars smear.", T(t.moving))
+      : T("They were lined up on the stars. Tick “Keep it centred” to line them up on {0} instead.", T(t.moving))))
+    + (S.stack === "season" ? " " + T("Pin one season, then use Blink or Difference against another.") : "");
 }
 
 function sortFinite(d) {
@@ -905,11 +1227,22 @@ function paint(f, other) {
     }
   }
   octx.putImageData(oimg, 0, 0);
-  const k = view.width / SIZE, o = viewOffset(f.meta);
   vctx.imageSmoothingEnabled = S.smooth;
   vctx.fillStyle = "#08090C"; vctx.fillRect(0, 0, view.width, view.height);
-  vctx.drawImage(off, o.ox * k, o.oy * k, view.width, view.height);
-  if (S.pick && !S.pick.follow) markPick();
+  layer(off, f.meta);
+}
+
+/* Zoom and pan live in S.view: z is the magnification and (x, y) the image pixel in the top-left
+   corner. Everything drawn on the canvas, and every mouse position read back from it, goes
+   through these two so the picture and its marks can never drift apart. */
+const KZ = () => view.width / SIZE * S.view.z;
+function layer(canvas, meta) {                   // a SIZE x SIZE canvas, drawn where the picture is
+  const kz = KZ(), o = viewOffset(meta);
+  vctx.drawImage(canvas, (o.ox - S.view.x) * kz, (o.oy - S.view.y) * kz, SIZE * kz, SIZE * kz);
+}
+function onCanvas(meta) {                        // the middle of image pixel (x, y), in canvas pixels
+  const kz = KZ(), o = viewOffset(meta);
+  return (x, y) => [(x + .5 + o.ox - S.view.x) * kz, (y + .5 + o.oy - S.view.y) * kz];
 }
 
 /* The body's position in each frame comes from JPL Horizons, evaluated at that exposure's
@@ -918,51 +1251,34 @@ function paint(f, other) {
 function drawTrack(meta) {
   const t = S.target;
   if (!t.moving || !S.showTrack || meta.mx === undefined) return;
-  const k = view.width / SIZE;
-  if (S.follow) {                       // the body is pinned to the middle; a track would be a dot
-    const cx = (SIZE / 2) * k;
+  const k = view.width / SIZE, kz = KZ(), P = onCanvas(meta);
+  const label = (x, y) => {
     vctx.strokeStyle = "rgba(150,220,255,.95)"; vctx.lineWidth = 2.5;
-    vctx.beginPath(); vctx.arc(cx, cx, 9 * k / 4, 0, 6.2832); vctx.stroke();
+    vctx.beginPath(); vctx.arc(x, y, 9 * kz / 4, 0, 6.2832); vctx.stroke();
     vctx.font = "500 " + Math.round(13 * k / 8) + "px " +
       getComputedStyle(document.body).getPropertyValue("--mono");
     vctx.fillStyle = "rgba(180,230,255,.95)"; vctx.textAlign = "left";
-    vctx.fillText(t.moving, cx + 9 * k / 3, cx + 4);
-    return;
-  }
-  const pts = S.order.map(n => t.frames[n]).filter(f => f.mx !== undefined);
+    vctx.fillText(t.moving, x + 9 * kz / 4 + 9, y + 4);
+  };
+  const here = P(meta.mx, meta.my);
+  if (S.follow) { label(here[0], here[1]); return; }     // the body is pinned to the middle; a track would be a dot
+  const pts = S.order.map(n => t.frames[n]).filter(f => f.mx !== undefined).map(f => P(f.mx, f.my));
 
   vctx.strokeStyle = "rgba(120,200,235,.45)";
   vctx.lineWidth = 2;
   vctx.beginPath();
-  pts.forEach((f, i) => i ? vctx.lineTo((f.mx + .5) * k, (f.my + .5) * k)
-                          : vctx.moveTo((f.mx + .5) * k, (f.my + .5) * k));
+  pts.forEach((p, i) => i ? vctx.lineTo(p[0], p[1]) : vctx.moveTo(p[0], p[1]));
   vctx.stroke();
 
   vctx.fillStyle = "rgba(120,200,235,.7)";
-  pts.forEach(f => {
-    vctx.beginPath();
-    vctx.arc((f.mx + .5) * k, (f.my + .5) * k, 2.2, 0, 6.2832);
-    vctx.fill();
-  });
-
-  const x = (meta.mx + .5) * k, y = (meta.my + .5) * k;
-  vctx.strokeStyle = "rgba(150,220,255,.95)";
-  vctx.lineWidth = 2.5;
-  vctx.beginPath(); vctx.arc(x, y, 9 * k / 4, 0, 6.2832); vctx.stroke();
-  vctx.font = "500 " + Math.round(13 * k / 8) + "px " +
-    getComputedStyle(document.body).getPropertyValue("--mono");
-  vctx.fillStyle = "rgba(180,230,255,.95)";
-  vctx.textAlign = "left";
-  vctx.fillText(t.moving, x + 9 * k / 3, y + 4);
+  pts.forEach(p => { vctx.beginPath(); vctx.arc(p[0], p[1], 2.2, 0, 6.2832); vctx.fill(); });
+  label(here[0], here[1]);
 }
 
 function markPick() {
-  const k = view.width / SIZE, o = viewOffset(shownMeta());
-  vctx.save();
-  vctx.translate(o.ox * k, o.oy * k);
+  const p = onCanvas(shownMeta())(S.pick.x, S.pick.y);
   vctx.strokeStyle = "rgba(240,228,188,.9)"; vctx.lineWidth = 2;
-  vctx.beginPath(); vctx.arc((S.pick.x + .5) * k, (S.pick.y + .5) * k, 5.5 * k * PIXSCALE / scaleOf(), 0, 6.2832); vctx.stroke();
-  vctx.restore();
+  vctx.beginPath(); vctx.arc(p[0], p[1], 5.5 * KZ() * PIXSCALE / scaleOf(), 0, 6.2832); vctx.stroke();
 }
 
 /* ---------- ordering / filtering ---------- */
@@ -988,8 +1304,11 @@ function draw() {
   const showRef = (S.mode === "blink" && S.blinkOn);
   paint(S.mode === "diff" ? f : (showRef ? S.frames[S.ref] : f), S.frames[S.ref]);
   const shown = (S.mode === "diff") ? f : (showRef ? S.frames[S.ref] : f);
+  drawFlags(shown);
+  drawMarks(shown.meta);
   drawTrack(shown.meta);
-  renderMeta(shown.meta, showRef, S.mode === "diff" && S.frames[S.ref] ? S.frames[S.ref].meta : null);
+  if (S.pick && !S.pick.follow) markPick();
+  renderMeta(shown.meta, showRef, S.mode === "diff" && S.frames[S.ref] ? S.frames[S.ref].meta : null, shown);
   drawTimeline();
   updateStrip();
   if (S.pick) drawSpectrum();
@@ -997,63 +1316,95 @@ function draw() {
 
 function renderChrome() {
   const t = S.target; if (!t) return;
-  $("blurb").textContent = t.blurb || "";
+  $("nowTitle").textContent = T(t.name);
+  $("blurb").textContent = T(t.blurb || "");
+  // The same spot in Aladin Lite, CDS's public sky atlas, on the 2MASS near-infrared survey. Its
+  // page has read the place two ways over the years (ra/dec/hips now, target/survey before), so
+  // the link carries both; each version ignores the pair it does not know.
+  $("aladin").href = "https://aladin.cds.unistra.fr/AladinLite/?ra=" + t.ra.toFixed(5) + "&dec=" + t.dec.toFixed(5)
+    + "&fov=" + (SIZE * scaleOf() / 3600 * 1.5).toFixed(3) + "&hips=" + encodeURIComponent("https://skies.esac.esa.int/2MASSColor")
+    + "&target=" + encodeURIComponent(t.ra.toFixed(5) + " " + (t.dec < 0 ? "" : "+") + t.dec.toFixed(5))
+    + "&survey=" + encodeURIComponent("CDS/P/2MASS/color");
   $("movingCard").hidden = !t.moving;
   if (t.moving) {
-    const pts = t.frames.filter(f => f.mx !== undefined);
+    const every = t.rawFrames || t.frames;
+    const pts = every.filter(f => f.mx !== undefined);
     const first = pts[0], last = pts[pts.length - 1];
     const px = first && last ? Math.hypot(last.mx - first.mx, last.my - first.my) : 0;
-    const d = t.frames[t.frames.length - 1].mjd - t.frames[0].mjd;
-    const span = d < 2 ? (d * 24).toFixed(0) + " hours"
-                       : d.toFixed(0) + " days";
+    const d = every.length ? every[every.length - 1].mjd - every[0].mjd : 0;
+    const span = d < 2 ? T("{0} hours", (d * 24).toFixed(0)) : T("{0} days", d.toFixed(0));
     $("movingNote").textContent = t.motion
-      ? t.moving + " drifts " + px.toFixed(1) + " pixels across this frame — " + (px * scaleOf()).toFixed(1)
-        + " arcseconds — in " + span + ". The circle is where its catalogued motion puts it at each exposure, "
-        + "not something fitted to the image."
-      : t.moving + " crosses " + px.toFixed(0) + " pixels of this frame — "
-        + (px * scaleOf() / 60).toFixed(1) + " arcminutes — in " + span
-        + ". The circle is where JPL's ephemeris puts it at each exposure's timestamp, "
-        + "not something fitted to the image.";
+      ? T("{0} drifts {1} pixels across this frame — {2} arcseconds — in {3}. The circle is where its catalogued motion puts it at each exposure, not something fitted to the image.",
+          T(t.moving), px.toFixed(1), (px * scaleOf()).toFixed(1), span)
+      : T("{0} crosses {1} pixels of this frame — {2} arcminutes — in {3}. The circle is where JPL's ephemeris puts it at each exposure's timestamp, not something fitted to the image.",
+          T(t.moving), px.toFixed(0), (px * scaleOf() / 60).toFixed(1), span);
   }
-  $("ovTarget").textContent = t.name;
-  $("ovMode").textContent = S.mode === "single" ? "Single" : S.mode === "blink" ? "Blink vs reference" : "Difference";
+  $("ovTarget").textContent = T(t.name);
+  $("ovMode").textContent = S.mode === "single" ? T("Single") : S.mode === "blink" ? T("Blink vs reference") : T("Difference");
   $("counter").textContent = S.order.length ? (S.i + 1) + " / " + S.order.length : "— / —";
   $("scrub").value = S.i;
-  const across = SIZE * scaleOf() / 60;                       // arcminutes from edge to edge
-  const bar = [10, 5, 2, 1].find(b => b <= 0.42 * across) || 1;
+  const across = SIZE * scaleOf() / 60 / S.view.z;            // arcminutes from edge to edge of what is in view
+  const bar = [10, 5, 2, 1, 0.5, 0.2, 0.1].find(b => b <= 0.42 * across) || 0.1;
   $("sbarLn").style.width = Math.round(bar / across * 100) + "%";
-  $("sbarTxt").textContent = bar + "′";
+  $("sbarTxt").textContent = bar >= 1 ? bar + "′" : Math.round(bar * 60) + "″";
 }
 
-function renderMeta(m, isRef, refMeta) {
+const MONTHS = LANG === "es" ? ["ene","feb","mar","abr","may","jun","jul","ago","sep","oct","nov","dic"]
+                             : ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+/* When a frame was taken. An added-up picture covers a stretch of dates: "May 3 – 9, 2025",
+   or "3 – 9 may 2025" the way Spanish writes it. */
+function when(m) {
+  if (!m.stack || m.d0 === m.d1) return fmtDate(m.stack ? m.d0 : m.date);
+  const [y0, mo0, d0] = m.d0.split("-"), [y1, mo1, d1] = m.d1.split("-");
+  if (y0 !== y1) return fmtDate(m.d0) + " – " + fmtDate(m.d1);
+  if (LANG === "es") return (+d0) + (mo0 === mo1 ? "" : " " + MONTHS[+mo0 - 1]) + " – " + (+d1) + " " + MONTHS[+mo1 - 1] + " " + y1;
+  return MONTHS[+mo0 - 1] + " " + (+d0) + " – " + (mo0 === mo1 ? "" : MONTHS[+mo1 - 1] + " ") + (+d1) + ", " + y1;
+}
+const colour = m => m.stack && m.lam1 - m.lam0 >= 0.005 ? m.lam0.toFixed(2) + "–" + m.lam1.toFixed(2) + " µm" : m.lam.toFixed(2) + " µm";
+
+function renderMeta(m, isRef, refMeta, f) {
   const b = bandOf(m.det);
   $("ovDate").textContent = refMeta
-    ? fmtDate(m.date) + "  −  " + fmtDate(refMeta.date)
-    : fmtDate(m.date) + (isRef ? "  · reference" : "");
+    ? when(m) + "  −  " + when(refMeta)
+    : when(m) + (isRef ? "  · " + T("reference") : "");
   const lamEl = $("ovLam");
   lamEl.querySelector("i").style.background = b.c;
   lamEl.querySelector("span").textContent = refMeta
-    ? m.lam.toFixed(2) + " µm  −  " + refMeta.lam.toFixed(2) + " µm"
-    : m.lam.toFixed(2) + " µm  ·  band " + m.det;
+    ? colour(m) + "  −  " + colour(refMeta)
+    : colour(m) + "  ·  " + T("band {0}", m.det) + (m.stack ? "  ·  " + T("{0} added up", m.stack) : "");
   const R = Math.round(m.lam / m.bw);
-  $("meta").innerHTML = row("Observed", fmtDate(m.date))
+  const blank = m.bad ? row(T("Blank pixels"), T("{0} of {1}", m.bad, NPIX)) : "";
+  const detector = row(T("Detector"), T("band {0}", m.det) + " · " + b.lo + "–" + b.hi + " µm");
+  if (m.stack) {
+    $("meta").innerHTML = row(T("Added up"), m.obs)
+      + row(T("Observed"), when(m))
+      + row(T("Wavelengths"), m.lam0.toFixed(3) + "–" + m.lam1.toFixed(3) + " µm")
+      + detector
+      + row(T("Lined up on"), m.followed ? T(S.target.moving) : T("the stars"))
+      + row(T("Noise"), T("about {0}× lower than one exposure", Math.sqrt(m.stack).toFixed(1)))
+      + row(T("Release"), m.coll.replace(/spherex_/g, "").replace(/_/g, " "))
+      + blank;
+    return;
+  }
+  $("meta").innerHTML = row(T("Observed"), fmtDate(m.date))
     + row("MJD", m.mjd.toFixed(3))
-    + row("Wavelength", m.lam.toFixed(3) + " µm")
-    + row("Bandwidth", m.bw.toFixed(3) + " µm  (R≈" + R + ")")
-    + row("Detector", "band " + m.det + " · " + bandOf(m.det).lo + "–" + bandOf(m.det).hi + " µm")
-    + row("Exposure", m.obs)
-    + row("Release", m.coll.replace("spherex_", "").replace("_", " "))
-    + (m.key ? row("Source file", '<a href="https://irsa.ipac.caltech.edu/ibe/data/spherex/'
-        + m.key + '" target="_blank" rel="noopener">open at IRSA</a>') : "")
-    + (m.au ? row("Distance", m.au.toFixed(2) + " AU") : "")
-    + (m.notes !== undefined ? row("Notes", m.notes || "none") : "")
-    + (m.bad ? row("Flagged pixels", m.bad + " of " + NPIX) : "");
+    + row(T("Wavelength"), m.lam.toFixed(3) + " µm")
+    + row(T("Bandwidth"), m.bw.toFixed(3) + " µm  (R≈" + R + ")")
+    + detector
+    + row(T("Exposure"), m.obs)
+    + row(T("Release"), m.coll.replace("spherex_", "").replace("_", " "))
+    + (m.key ? row(T("Source file"), '<a href="https://irsa.ipac.caltech.edu/ibe/data/spherex/'
+        + m.key + '" target="_blank" rel="noopener">' + T("open at IRSA") + "</a>") : "")
+    + (m.au ? row(T("Distance"), m.au.toFixed(2) + " AU") : "")
+    + (m.notes !== undefined ? row(T("Notes"), m.notes || T("none")) : "")
+    + blank
+    + (f && f.flagText ? row(T("Flagged pixels"), f.flagText) : "");
 }
 const row = (k, v) => "<dt>" + k + "</dt><dd>" + v + "</dd>";
 
 function fmtDate(iso) {
   const [y, mo, d] = iso.split("-");
-  return ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"][+mo - 1] + " " + (+d) + ", " + y;
+  return LANG === "es" ? (+d) + " " + MONTHS[+mo - 1] + " " + y : MONTHS[+mo - 1] + " " + (+d) + ", " + y;
 }
 
 /* ---------- all-sky locator (Hammer projection, RA increasing to the left) ---------- */
@@ -1137,7 +1488,7 @@ $("sky").addEventListener("click", e => {
   const dec = Math.max(-90, Math.min(90, (0.5 - (py - m) / (c.height - 2 * m)) * 180));
   $("coordRa").value = ra.toFixed(2); $("coordDec").value = dec.toFixed(2); $("coordName").value = "";
   openCoords(true);
-  say("That spot is near RA " + ra.toFixed(1) + "°, Dec " + dec.toFixed(1) + "°. Press “Show this place” to load it.");
+  say(T("That spot is near RA {0}°, Dec {1}°. Press “Show this place” to load it.", ra.toFixed(1), dec.toFixed(1)));
   $("coordGo").focus();
 });
 
@@ -1146,7 +1497,7 @@ function drawTimeline() {
   const c = $("tlaxis"), g = c.getContext("2d");
   const W = c.width, H = c.height, pad = 10;
   g.clearRect(0, 0, W, H);
-  const all = S.target.frames;
+  const all = S.target.rawFrames || S.target.frames, shown = S.target.frames;
   const t0 = Math.min(...all.map(f => f.mjd)), t1 = Math.max(...all.map(f => f.mjd));
   const span = Math.max(1, t1 - t0);
   const cs = getComputedStyle(document.body);
@@ -1168,14 +1519,22 @@ function drawTimeline() {
     if (mjd >= t0) {
       const x = pad + (mjd - t0) / span * (W - 2 * pad);
       g.strokeStyle = line; g.beginPath(); g.moveTo(x, H - 28); g.lineTo(x, H - 16); g.stroke();
-      if (mo % step === 0) g.fillText(["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"][mo]
-        + " " + String(y).slice(2), x, H - 2);
+      if (mo % step === 0) g.fillText(MONTHS[mo] + " " + String(y).slice(2), x, H - 2);
     }
     mo++; if (mo > 11) { mo = 0; y++; }
   }
+  if (S.stack !== "off") {                       // the exposures that went into the added-up pictures, faintly
+    g.globalAlpha = .3; g.lineWidth = 1.5;
+    all.forEach(f => {
+      if (!S.bands.has(f.det)) return;
+      const x = pad + (f.mjd - t0) / span * (W - 2 * pad);
+      g.strokeStyle = bandOf(f.det).c; g.beginPath(); g.moveTo(x, H - 36); g.lineTo(x, H - 24); g.stroke();
+    });
+    g.globalAlpha = 1;
+  }
   // one tick per frame, coloured by infrared band
   S.order.forEach((n, k) => {
-    const f = all[n], x = pad + (f.mjd - t0) / span * (W - 2 * pad);
+    const f = shown[n], x = pad + (f.mjd - t0) / span * (W - 2 * pad);
     const cur = k === S.i, ref = n === S.ref;
     g.strokeStyle = bandOf(f.det).c;
     g.lineWidth = cur ? 5 : 2.5;
@@ -1195,7 +1554,7 @@ function buildStrip() {
     const f = S.frames[n]; if (!f) return;
     const b = document.createElement("button");
     b.type = "button"; b.className = "thumb"; b.dataset.k = k;
-    b.setAttribute("aria-label", "Frame " + (k + 1) + ", " + f.meta.date);
+    b.setAttribute("aria-label", T("Frame {0}, {1}", k + 1, when(f.meta)));
     const cv = document.createElement("canvas"); cv.width = cv.height = SIZE;
     const u = document.createElement("u"); u.style.background = bandOf(f.meta.det).c;
     b.appendChild(cv); b.appendChild(u); el.appendChild(b);
@@ -1250,54 +1609,117 @@ function photometry(f, x, y) {
   return sum / n - med;
 }
 
+/* A star too bright for the detector leaves a blank hole where its core should be, and the usual
+   measurement would be made of whatever pixels happen to survive. Its glow further out is still
+   there and still follows the star's brightness, so that is measured instead: a ring 30 to 50
+   arcseconds from the centre, minus the sky beyond it. */
+function coreBlank(f, x, y) {
+  const a = Math.max(1, Math.round(PIXSCALE / scaleOf()));
+  for (let dy = -a; dy <= a; dy++) for (let dx = -a; dx <= a; dx++) {
+    const X = x + dx, Y = y + dy;
+    if (X >= 0 && Y >= 0 && X < SIZE && Y < SIZE && !Number.isFinite(f.data[Y * SIZE + X])) return true;
+  }
+  return false;
+}
+function ringLight(f, x, y) {
+  const d = pixels(f), z = PIXSCALE / scaleOf(), r0 = 5 * z, r1 = 8 * z, b0 = 11 * z, b1 = 14 * z, w = Math.ceil(b1);
+  let sum = 0, n = 0;
+  const bg = [];
+  for (let dy = -w; dy <= w; dy++) for (let dx = -w; dx <= w; dx++) {
+    const X = x + dx, Y = y + dy; if (X < 0 || Y < 0 || X >= SIZE || Y >= SIZE) continue;
+    const v = d[Y * SIZE + X]; if (!Number.isFinite(v)) continue;
+    const r = Math.hypot(dx, dy);
+    if (r >= r0 && r <= r1) { sum += v; n++; } else if (r >= b0 && r <= b1) bg.push(v);
+  }
+  if (n < 12 || bg.length < 12) return null;
+  bg.sort((a, b) => a - b);
+  return sum / n - bg[bg.length >> 1];
+}
+
 function drawSpectrum() {
   const c = $("spec"), g = c.getContext("2d");
   const pts = [];
-  S.order.forEach(n => {
-    const f = S.frames[n]; if (!f) return;
-    const x = S.pick.follow ? Math.round(f.meta.mx) : S.pick.x;
-    const y = S.pick.follow ? Math.round(f.meta.my) : S.pick.y;
-    if (x === undefined || y === undefined) return;
-    const v = photometry(f, x, y);
-    if (v !== null) pts.push({lam: f.meta.lam, v, det: f.meta.det, date: f.meta.date});
+  const spot = f => S.pick.follow ? [Math.round(f.meta.mx), Math.round(f.meta.my)] : [S.pick.x, S.pick.y];
+  const shown = S.order.map(n => S.frames[n]).filter(f => f && Number.isFinite(spot(f)[0]) && Number.isFinite(spot(f)[1]));
+  const burnt = shown.some(f => coreBlank(f, spot(f)[0], spot(f)[1]));
+  shown.forEach(f => {
+    const [x, y] = spot(f);
+    const v = burnt ? ringLight(f, x, y) : photometry(f, x, y);
+    if (v !== null) pts.push({lam: f.meta.lam, v, det: f.meta.det, date: f.meta.date, mjd: f.meta.mjd});
   });
   c.hidden = pts.length < 2; $("specEmpty").hidden = pts.length >= 2;
   $("specNote").hidden = pts.length < 2;
   if (pts.length < 2) return;
-  const W = c.width, H = c.height, L = 52, Rp = 12, T = 12, B = 34;
+  const W = c.width, H = c.height, L = 52, Rp = 12, Top = 12, B = 34;
   const cs = getComputedStyle(document.body);
   g.clearRect(0, 0, W, H);
+  const byDate = S.plot === "curve";
+  const every = (S.target.rawFrames || S.target.frames).map(f => f.mjd);
+  const day0 = Math.min(...every), day1 = Math.max(day0 + 1, Math.max(...every));
   const lam0 = 0.7, lam1 = 5.1;
   const vs = pts.map(p => p.v);
   let vmin = Math.min(...vs), vmax = Math.max(...vs);
   const padv = Math.max(1e-6, (vmax - vmin) * 0.16); vmin -= padv; vmax += padv;
-  const X = l => L + (l - lam0) / (lam1 - lam0) * (W - L - Rp);
-  const Y = v => T + (1 - (v - vmin) / Math.max(1e-9, vmax - vmin)) * (H - T - B);
+  const X = byDate ? p => L + 8 + (p.mjd - day0) / (day1 - day0) * (W - L - Rp - 16)
+                   : p => L + (p.lam - lam0) / (lam1 - lam0) * (W - L - Rp);
+  const Y = v => Top + (1 - (v - vmin) / Math.max(1e-9, vmax - vmin)) * (H - Top - B);
   // zero line + axes
   g.strokeStyle = cs.getPropertyValue("--line-soft").trim() || "#eee"; g.lineWidth = 2;
   if (vmin < 0 && vmax > 0) { g.beginPath(); g.moveTo(L, Y(0)); g.lineTo(W - Rp, Y(0)); g.stroke(); }
   g.strokeStyle = cs.getPropertyValue("--line").trim(); g.lineWidth = 2;
-  g.beginPath(); g.moveTo(L, T); g.lineTo(L, H - B); g.lineTo(W - Rp, H - B); g.stroke();
+  g.beginPath(); g.moveTo(L, Top); g.lineTo(L, H - B); g.lineTo(W - Rp, H - B); g.stroke();
   g.fillStyle = cs.getPropertyValue("--faint").trim();
   g.font = "500 17px " + cs.getPropertyValue("--mono"); g.textAlign = "center";
-  [1, 2, 3, 4, 5].forEach(l => { g.fillText(l + (l === 5 ? " µm" : ""), X(l), H - 12); });
+  if (byDate) {                                    // a label every few months, like the timeline above
+    const months = (day1 - day0) / 30.44, step = months > 14 ? 6 : months > 7 ? 3 : months > 3 ? 2 : 1;
+    const a = mjdDate(day0), b = mjdDate(day1);
+    let y = a.getUTCFullYear(), mo = a.getUTCMonth();
+    for (let k = 0; k < 60; k++) {
+      const dt = Date.UTC(y, mo, 1);
+      if (dt > b.getTime()) break;
+      const mjd = dt / 86400000 + 40587;
+      if (mjd >= day0 && mo % step === 0) {
+        const x = X({mjd: mjd});
+        g.beginPath(); g.moveTo(x, H - B); g.lineTo(x, H - B + 6); g.stroke();
+        g.fillText(MONTHS[mo] + " " + String(y).slice(2), Math.max(L + 30, Math.min(W - Rp - 30, x)), H - 8);
+      }
+      mo++; if (mo > 11) { mo = 0; y++; }
+    }
+  } else [1, 2, 3, 4, 5].forEach(l => { g.fillText(l + (l === 5 ? " µm" : ""), X({lam: l}), H - 12); });
   g.textAlign = "right";
   g.fillText(vmax.toPrecision(2), L - 6, Y(vmax) + 6);
   g.fillText(vmin.toPrecision(2), L - 6, Y(vmin) + 6);
-  // connect in wavelength order, then plot points coloured by band
-  const inOrder = [...pts].sort((a, b) => a.lam - b.lam);
-  g.strokeStyle = cs.getPropertyValue("--line").trim(); g.lineWidth = 2.5;
-  g.beginPath(); inOrder.forEach((p, i) => i ? g.lineTo(X(p.lam), Y(p.v)) : g.moveTo(X(p.lam), Y(p.v))); g.stroke();
-  inOrder.forEach(p => {
+  const inOrder = [...pts].sort((a, b) => a.lam - b.lam), dot = p => {
     g.fillStyle = bandOf(p.det).c;
-    g.beginPath(); g.arc(X(p.lam), Y(p.v), 5, 0, 6.2832); g.fill();
+    g.beginPath(); g.arc(X(p), Y(p.v), 5, 0, 6.2832); g.fill();
     g.strokeStyle = "rgba(0,0,0,.35)"; g.lineWidth = 1.5; g.stroke();
-  });
-  $("specNote").textContent = (S.pick.follow
-      ? "Aperture sum minus local sky at " + S.target.moving + "'s own position in each frame, MJy/sr, "
-      : "Aperture sum minus local sky at the marked pixel, MJy/sr, ")
-    + pts.length + " visits spanning " + inOrder[0].lam.toFixed(2) + "–"
-    + inOrder[inOrder.length-1].lam.toFixed(2) + " µm.";
+  };
+  if (byDate) {
+    // one line per band: only visits of a similar colour can be compared from date to date
+    BANDS.forEach(bd => {
+      const line = pts.filter(p => p.det === bd.d).sort((a, b) => a.mjd - b.mjd);
+      if (!line.length) return;
+      g.strokeStyle = bd.c; g.lineWidth = 2.5; g.globalAlpha = .7;
+      g.beginPath(); line.forEach((p, i) => i ? g.lineTo(X(p), Y(p.v)) : g.moveTo(X(p), Y(p.v))); g.stroke();
+      g.globalAlpha = 1;
+      line.forEach(dot);
+    });
+  } else {
+    // connect in wavelength order, then plot points coloured by band
+    g.strokeStyle = cs.getPropertyValue("--line").trim(); g.lineWidth = 2.5;
+    g.beginPath(); inOrder.forEach((p, i) => i ? g.lineTo(X(p), Y(p.v)) : g.moveTo(X(p), Y(p.v))); g.stroke();
+    inOrder.forEach(dot);
+  }
+  const what = S.stack === "off" ? T("{0} visits", pts.length) : T("{0} added-up pictures", pts.length);
+  $("specNote").textContent = (burnt
+      ? T("This star is too bright for the detector: its core comes out blank, so the glow in a ring just outside it is measured instead, minus the sky beyond. That is a rough measure and can jump from frame to frame for reasons that have nothing to do with the star. MJy/sr,")
+      : S.pick.follow
+      ? T("Aperture sum minus local sky at {0}'s own position in each frame, MJy/sr,", T(S.target.moving))
+      : T("Aperture sum minus local sky at the marked pixel, MJy/sr,"))
+    + " " + (byDate
+      ? T("{0} from {1} to {2}. Each line is one band; within a band the colour still shifts a little from visit to visit, so small wiggles are not real changes.",
+          what, fmtDate(mjdISO(Math.min(...pts.map(p => p.mjd)))), fmtDate(mjdISO(Math.max(...pts.map(p => p.mjd)))))
+      : T("{0} spanning {1}–{2} µm.", what, inOrder[0].lam.toFixed(2), inOrder[inOrder.length-1].lam.toFixed(2)));
 }
 
 /* ---------- sky coordinates (inverse gnomonic) ---------- */
@@ -1324,14 +1746,14 @@ let timer = null, blinkTimer = null;
 function play() {
   if (S.playing || !S.order.length) return;
   S.playing = true; $("playIcon").setAttribute("d", "M4 2.5h3.2v11H4zm4.8 0H12v11H8.8z");
-  $("play").setAttribute("aria-label", "Pause");
+  $("play").setAttribute("aria-label", T("Pause"));
   $("hint").style.opacity = 0;
   timer = setInterval(() => { S.i = (S.i + 1) % S.order.length; draw(); }, S.speed);
 }
 function stop() {
   S.playing = false; if (timer) clearInterval(timer); timer = null;
   $("playIcon").setAttribute("d", "M4 2.5v11l10-5.5z");
-  $("play").setAttribute("aria-label", "Play");
+  $("play").setAttribute("aria-label", T("Play"));
 }
 function setMode(m) {
   S.mode = m;
@@ -1353,7 +1775,7 @@ function buildTargets() {
     const lams = t.frames.map(f => f.lam);
     const b = document.createElement("button");
     b.type = "button"; b.className = "tgt"; b.setAttribute("aria-pressed", k === 0 ? "true" : "false");
-    b.innerHTML = "<b>" + t.name + "</b><span>" + t.frames.length + " visits · "
+    b.innerHTML = "<b>" + T(t.name) + "</b><span>" + T("{0} visits", t.frames.length) + " · "
       + Math.min(...lams).toFixed(1) + "–" + Math.max(...lams).toFixed(1) + " µm</span>"
       + '<span class="bandbar">' + BANDS.map(bd =>
           '<i class="' + (dets.has(bd.d) ? "on" : "") + '" style="background:' + bd.c + '"></i>').join("") + "</span>";
@@ -1375,7 +1797,7 @@ function setAdvOpen(open, extra) {
   $("targetsAdv").hidden = !open;
   const t = $("advToggle");
   t.setAttribute("aria-expanded", open ? "true" : "false");
-  t.textContent = open ? "Hide the rest" : "Show " + extra + " more of the sky";
+  t.textContent = open ? T("Hide the rest") : T("Show {0} more of the sky", extra);
 }
 const bandsOf = t => new Set(t.frames.map(f => f.det));
 
@@ -1397,7 +1819,7 @@ function selectTarget(k) {
   buildBands(t);
   loadTarget(t);
   // any coordinates in the address go: this is a saved target again
-  try { history.replaceState(null, "", location.pathname + (EMBED ? "?embed=1" : "") + "#" + t.id); } catch (_) {}
+  try { history.replaceState(null, "", location.pathname + keptQuery() + "#" + t.id); } catch (_) {}
 }
 
 function buildBands(t) {
@@ -1408,7 +1830,7 @@ function buildBands(t) {
     b.type = "button"; b.disabled = !have.has(bd.d);
     b.setAttribute("aria-pressed", S.bands.has(bd.d) && have.has(bd.d) ? "true" : "false");
     b.innerHTML = '<u style="background:' + bd.c + '"></u>' + bd.lo.toFixed(1);
-    b.title = "Band " + bd.d + ": " + bd.lo + "–" + bd.hi + " µm";
+    b.title = T("Band {0}: {1}–{2} µm", bd.d, bd.lo, bd.hi);
     b.addEventListener("click", () => {
       const live = [...S.bands].filter(d => have.has(d));
       if (S.bands.has(bd.d)) { if (live.length > 1) S.bands.delete(bd.d); } else S.bands.add(bd.d);
@@ -1421,8 +1843,9 @@ function buildBands(t) {
 }
 function updateBandNote(t) {
   const n = t.frames.filter(f => S.bands.has(f.det)).length;
-  $("bandNote").textContent = n + " of " + t.frames.length
-    + " visits shown. Filtering to one band keeps brightness comparable between frames.";
+  $("bandNote").textContent = S.stack === "off"
+    ? T("{0} of {1} visits shown. Filtering to one band keeps brightness comparable between frames.", n, t.frames.length)
+    : T("{0} of {1} added-up pictures shown. Filtering to one band keeps brightness comparable between frames.", n, t.frames.length);
 }
 
 /* ---------- wiring ---------- */
@@ -1437,7 +1860,16 @@ $("scale").addEventListener("change", e => { S.scale = e.target.value; draw(); }
 $("black").addEventListener("input", e => { S.black = +e.target.value; $("blackV").textContent = S.black.toFixed(1) + "%"; draw(); });
 $("white").addEventListener("input", e => { S.whiteT = +e.target.value / 1000; $("whiteV").textContent = whitePct(S.whiteT).toFixed(2) + "%"; setBrightFromWhite(); draw(); });
 $("showTrack").addEventListener("change", e => { S.showTrack = e.target.checked; draw(); });
-$("follow").addEventListener("change", e => { S.follow = e.target.checked; draw(); });
+$("follow").addEventListener("change", e => {
+  S.follow = e.target.checked;
+  if (S.stack !== "off") useFrames(); else draw();       // added-up pictures are lined up differently when following
+});
+$("stack").addEventListener("change", e => { S.stack = e.target.value; stop(); useFrames(); });
+[...$("plot").children].forEach(b => b.addEventListener("click", () => {
+  S.plot = b.dataset.plot;
+  [...$("plot").children].forEach(o => o.setAttribute("aria-pressed", o === b ? "true" : "false"));
+  if (S.pick) drawSpectrum();
+}));
 $("bodySpec").addEventListener("click", () => {
   S.pick = {follow: true};
   $("hint").style.opacity = 0;
@@ -1453,11 +1885,74 @@ $("smooth").addEventListener("change", e => { S.smooth = e.target.checked; draw(
 $("sort").addEventListener("change", e => { S.sort = e.target.value; applyOrder(); buildStrip(); draw(); });
 
 function atPointer(e) {
-  const r = view.getBoundingClientRect(), o = viewOffset(shownMeta());
-  return [Math.floor((e.clientX - r.left) / r.width * SIZE - o.ox),
-          Math.floor((e.clientY - r.top) / r.height * SIZE - o.oy)];
+  const r = view.getBoundingClientRect(), o = viewOffset(shownMeta()), z = S.view.z;
+  return [Math.floor((e.clientX - r.left) / r.width * SIZE / z + S.view.x - o.ox),
+          Math.floor((e.clientY - r.top) / r.height * SIZE / z + S.view.y - o.oy)];
 }
+
+/* ---------- zoom, pan, save ---------- */
+const ZMAX = 8;
+function syncZoom() {
+  const z = S.view.z;
+  $("zreset").textContent = (Math.abs(z - Math.round(z)) < 0.05 ? Math.round(z) : z.toFixed(1)) + "×";
+  $("zout").disabled = $("zreset").disabled = z <= 1.001;
+  $("zin").disabled = z >= ZMAX - 0.001;
+  $("stage").classList.toggle("zoomed", z > 1.001);
+}
+function setView(z, x, y) {
+  z = Math.max(1, Math.min(ZMAX, z));
+  const room = SIZE - SIZE / z;                           // how far the corner can travel before the picture ends
+  S.view = {z: z, x: Math.max(0, Math.min(room, x)), y: Math.max(0, Math.min(room, y))};
+  syncZoom();
+  draw();
+}
+/* Zoom in or out by `factor`, holding still the point at fraction (fx, fy) of the picture. */
+function zoomBy(factor, fx, fy) {
+  if (fx === undefined) fx = fy = 0.5;
+  const v = S.view, z = Math.max(1, Math.min(ZMAX, v.z * factor));
+  setView(z, v.x + fx * SIZE / v.z - fx * SIZE / z, v.y + fy * SIZE / v.z - fy * SIZE / z);
+}
+const fracOf = (cx, cy) => { const r = view.getBoundingClientRect(); return [(cx - r.left) / r.width, (cy - r.top) / r.height]; };
+$("zin").addEventListener("click", () => zoomBy(2));
+$("zout").addEventListener("click", () => zoomBy(0.5));
+$("zreset").addEventListener("click", () => setView(1, 0, 0));
+view.addEventListener("wheel", e => {                     // a pinch on a trackpad arrives as a wheel with ctrl held
+  if (!e.ctrlKey && !e.metaKey) return;                   // a plain wheel still scrolls the page
+  e.preventDefault();
+  const f = fracOf(e.clientX, e.clientY);
+  zoomBy(Math.exp(-e.deltaY * (e.deltaMode ? 0.05 : 0.01)), f[0], f[1]);
+}, {passive: false});
+let pinch0 = 1;                                           // Safari reports a trackpad pinch its own way
+view.addEventListener("gesturestart", e => { e.preventDefault(); pinch0 = S.view.z; });
+view.addEventListener("gesturechange", e => {
+  e.preventDefault();
+  if (touches.size) return;                               // on a touch screen the fingers are already being followed below
+  const f = fracOf(e.clientX, e.clientY);
+  zoomBy(pinch0 * e.scale / S.view.z, f[0], f[1]);
+});
+
+/* One finger or the mouse drags a zoomed picture around; two fingers pinch. A press that never
+   moves is still a click, and a click still asks for a spectrum. */
+const touches = new Map();
+let grab = null, dragged = false;
+view.addEventListener("pointerdown", e => {
+  touches.set(e.pointerId, [e.clientX, e.clientY]);
+  try { view.setPointerCapture(e.pointerId); } catch (_) {}
+  const pts = [...touches.values()];
+  if (pts.length === 1) { grab = {x: e.clientX, y: e.clientY, vx: S.view.x, vy: S.view.y}; dragged = false; }
+  else if (pts.length === 2) { grab = {d: Math.hypot(pts[0][0] - pts[1][0], pts[0][1] - pts[1][1]), z: S.view.z}; dragged = true; }
+});
+const release = e => {
+  touches.delete(e.pointerId);
+  grab = null;
+  $("stage").classList.remove("panning");
+  const left = [...touches.values()];
+  if (left.length === 1) grab = {x: left[0][0], y: left[0][1], vx: S.view.x, vy: S.view.y};
+};
+view.addEventListener("pointerup", release);
+view.addEventListener("pointercancel", release);
 view.addEventListener("click", e => {
+  if (dragged) { dragged = false; return; }
   const [x, y] = atPointer(e);
   if (x < 0 || y < 0 || x >= SIZE || y >= SIZE) return;
   S.pick = {x, y};
@@ -1465,28 +1960,103 @@ view.addEventListener("click", e => {
   draw();
 });
 view.addEventListener("pointermove", e => {
+  if (touches.has(e.pointerId) && grab) {
+    touches.set(e.pointerId, [e.clientX, e.clientY]);
+    const pts = [...touches.values()], r = view.getBoundingClientRect();
+    if (pts.length >= 2 && grab.d) {
+      const d = Math.hypot(pts[0][0] - pts[1][0], pts[0][1] - pts[1][1]);
+      const f = fracOf((pts[0][0] + pts[1][0]) / 2, (pts[0][1] + pts[1][1]) / 2);
+      if (grab.d > 0) zoomBy(grab.z * d / grab.d / S.view.z, f[0], f[1]);
+      return;
+    }
+    if (grab.x !== undefined) {
+      const dx = e.clientX - grab.x, dy = e.clientY - grab.y;
+      if (Math.hypot(dx, dy) > 4) dragged = true;
+      if (dragged && S.view.z > 1.001) {
+        $("stage").classList.add("panning");
+        setView(S.view.z, grab.vx - dx / r.width * SIZE / S.view.z, grab.vy - dy / r.height * SIZE / S.view.z);
+        return;
+      }
+    }
+  }
   const [x, y] = atPointer(e);
   if (x < 0 || y < 0 || x >= SIZE || y >= SIZE || !S.frames.length) return;
   const f = S.frames[S.order[S.i]]; if (!f) return;
   const v = f.data[y*SIZE + x];
   const [ra, dec] = skyAt(x, y);
+  let near = null, nd = 2.6 * 2.6;                          // a marked catalogue star under the pointer says what it is
+  S.hits.forEach(h => { const d = (h.x - x) ** 2 + (h.y - y) ** 2; if (d < nd) { nd = d; near = h; } });
   $("ovCursor").innerHTML = "N ↑ &nbsp; E ←<br>" + hms(ra) + "<br>" + dms(dec)
-    + "<br>" + (Number.isFinite(v) ? v.toFixed(2) + " MJy/sr" : "no data");
+    + "<br>" + (Number.isFinite(v) ? v.toFixed(2) + " MJy/sr" : T("no data"))
+    + (near ? "<br>" + near.text : "");
 });
 view.addEventListener("pointerleave", () => { $("ovCursor").innerHTML = "N ↑ &nbsp; E ←"; });
+
+/* The picture as it is on screen, marks included, with its labels and a caption underneath. */
+function saveImage() {
+  const m = shownMeta(), t = S.target;
+  if (!m || !t) return;
+  const W = view.width, cap = 112, c = document.createElement("canvas");
+  c.width = W; c.height = W + cap;
+  const g = c.getContext("2d"), display = (w, px) => w + " " + px + "px 'Chakra Petch','Inter',system-ui,sans-serif";
+  const mono = px => "500 " + px + "px 'DM Mono',ui-monospace,Menlo,monospace";
+  g.fillStyle = "#000"; g.fillRect(0, 0, c.width, c.height);
+  g.drawImage(view, 0, 0);
+  g.shadowColor = "rgba(0,0,0,.95)"; g.shadowBlur = 8; g.fillStyle = "#EDE6DA"; g.textAlign = "left";
+  g.font = display(600, 36); g.fillText($("ovDate").textContent, 26, 56);
+  g.font = mono(22); g.fillText($("ovLam").textContent.trim(), 26, 92);
+  g.textAlign = "right"; g.fillText("N ↑   E ←", W - 26, W - 24);
+  if (S.mode !== "single") g.fillText($("ovMode").textContent, W - 26, 52);
+  const bar = parseFloat($("sbarLn").style.width) / 100 * W;         // the same scale bar the screen shows
+  g.textAlign = "left"; g.fillText($("sbarTxt").textContent, 26, W - 24);
+  g.shadowBlur = 0; g.strokeStyle = "#EDE6DA"; g.lineWidth = 2;
+  g.beginPath(); g.moveTo(27, W - 62); g.lineTo(27, W - 54); g.lineTo(27 + bar, W - 54); g.lineTo(27 + bar, W - 62); g.stroke();
+  g.fillStyle = "#0B0B0D"; g.fillRect(0, W, W, cap);
+  const grad = g.createLinearGradient(0, 0, W, 0);
+  BANDS.forEach((b, i) => grad.addColorStop(i / 5, b.c));
+  g.fillStyle = grad; g.fillRect(0, W, W, 5);
+  g.fillStyle = "#F2F1EF"; g.font = display(700, 38); g.fillText(T(t.name), 26, W + 56, W - 52);
+  g.fillStyle = "#A9A9AD"; g.font = "400 21px 'Inter',system-ui,sans-serif";
+  g.fillText(T("SPHEREx Time Machine  ·  real NASA SPHEREx data (NASA/JPL-Caltech/IPAC)"), 26, W + 90, W - 52);
+  const slug = s => String(s).toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "") || "sky";
+  const name = "spherex-" + slug(t.name) + "-" + (m.stack ? m.d0 + "-added" : m.date) + "-" + m.lam.toFixed(2) + "um.png";
+  c.toBlob(blob => {
+    if (!blob) return;
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob); a.download = name;
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(a.href), 5000);
+  }, "image/png");
+}
+$("savepng").addEventListener("click", saveImage);
 $("tlaxis").addEventListener("click", e => {
   const r = e.target.getBoundingClientRect(), frac = (e.clientX - r.left) / r.width;
-  const all = S.target.frames, t0 = Math.min(...all.map(f => f.mjd)), t1 = Math.max(...all.map(f => f.mjd));
+  const all = S.target.rawFrames || S.target.frames, t0 = Math.min(...all.map(f => f.mjd)), t1 = Math.max(...all.map(f => f.mjd));
   const want = t0 + frac * (t1 - t0);
   let best = 0, bd = Infinity;
-  S.order.forEach((n, k) => { const d = Math.abs(all[n].mjd - want); if (d < bd) { bd = d; best = k; } });
+  S.order.forEach((n, k) => { const d = Math.abs(S.target.frames[n].mjd - want); if (d < bd) { bd = d; best = k; } });
   stop(); S.i = best; draw();
 });
 document.addEventListener("keydown", e => {
   if (/^(INPUT|SELECT|TEXTAREA|BUTTON)$/.test(e.target.tagName)) return;
+  if (e.ctrlKey || e.metaKey || e.altKey) return;        // leave the browser's own shortcuts alone
   if (e.key === " ") { e.preventDefault(); S.playing ? stop() : play(); }
   else if (e.key === "ArrowLeft") { stop(); S.i = (S.i - 1 + S.order.length) % S.order.length; draw(); }
   else if (e.key === "ArrowRight") { stop(); S.i = (S.i + 1) % S.order.length; draw(); }
+  else if (e.key === "+" || e.key === "=") zoomBy(2);
+  else if (e.key === "-" || e.key === "_") zoomBy(0.5);
+  else if (e.key === "0") setView(1, 0, 0);
+});
+/* The button names the other language, in that language. The choice is remembered and the page
+   loads again in it; where nothing can be remembered, it rides in the address instead. */
+$("lang").textContent = LANG === "es" ? "English" : "Español";
+$("lang").setAttribute("lang", LANG === "es" ? "en" : "es");
+$("lang").addEventListener("click", () => {
+  const other = LANG === "es" ? "en" : "es", u = new URL(location.href);
+  let saved = false;
+  try { localStorage.setItem("sx-lang", other); saved = localStorage.getItem("sx-lang") === other; } catch (_) {}
+  if (saved) u.searchParams.delete("lang"); else u.searchParams.set("lang", other);
+  if (u.toString() === location.href) location.reload(); else location.replace(u.toString());
 });
 $("theme").addEventListener("click", () => {
   const cur = document.documentElement.getAttribute("data-theme");
@@ -1501,6 +2071,13 @@ try { const t = localStorage.getItem("sx-theme"); if (t) document.documentElemen
 const QS = new URLSearchParams(location.search);
 const EMBED = QS.has("embed");
 if (EMBED) document.body.classList.add("embed");
+/* what must survive when the page rewrites its own address: the embed switch, and a language that was asked for there */
+function keptQuery() {
+  const p = new URLSearchParams();
+  if (EMBED) p.set("embed", "1");
+  if (LANG_ASKED) p.set("lang", LANG);
+  return p.toString() ? "?" + p.toString() : "";
+}
 /* The search needs three things: the engine above, the pointing index sitting next to the
    page, and a real web address — a page opened from a file cannot ask anyone for anything. */
 const LIVE = typeof SXLive !== "undefined" && !!LIVE_BASE && location.protocol !== "file:";
@@ -1554,16 +2131,15 @@ function noteIndex(m) {
   if (indexNoted) return; indexNoted = true;
   const newest = fmtDate(mjdISO(m.t1)), el = $("liveNote");
   el.hidden = false;
-  el.textContent = "Coordinate search: " + m.exposures.toLocaleString("en") + " exposures are on record, the newest from "
-    + newest + ". That list was last refreshed on " + fmtDate(m.generated.slice(0, 10)) + " and refreshes itself every day; "
-    + "the images are read from NASA's archive at the moment you ask for them.";
-  if (!$("coordMsg").textContent) say("Ready: " + m.exposures.toLocaleString("en") + " exposures on record, up to " + newest + ".");
+  el.textContent = T("Coordinate search: {0} exposures are on record, the newest from {1}. That list was last refreshed on {2} and refreshes itself every day; the images are read from NASA's archive at the moment you ask for them.",
+    num(m.exposures), newest, fmtDate(m.generated.slice(0, 10)));
+  if (!$("coordMsg").textContent) say(T("Ready: {0} exposures on record, up to {1}.", num(m.exposures), newest));
 }
 
 function openCoords(open) {
   $("coordPanel").hidden = !open;
   $("coordToggle").setAttribute("aria-expanded", open ? "true" : "false");
-  $("coordToggle").textContent = open ? "Hide the coordinates" : "Go to any coordinates";
+  $("coordToggle").textContent = open ? T("Hide the coordinates") : T("Go to any coordinates");
   if (open && LIVE) SXLive.manifest().then(noteIndex).catch(() => {});      // warm it up, and say how fresh it is
 }
 
@@ -1574,10 +2150,10 @@ function buildCoords() {
   if (!LIVE) return;
   $("coordToggle").onclick = () => openCoords($("coordPanel").hidden);
   $("coordMore").onclick = () => { const open = $("coordAdv").hidden; $("coordAdv").hidden = !open; $("coordMore").setAttribute("aria-expanded", open); };
-  BANDS.forEach(b => $("coordBand").add(new Option("Band " + b.d + " · " + b.lo + "–" + b.hi + " µm", b.d)));
+  BANDS.forEach(b => $("coordBand").add(new Option(T("Band {0} · {1}–{2} µm", b.d, b.lo, b.hi), b.d)));
   PICKS.forEach(p => {
     const b = document.createElement("button");
-    b.type = "button"; b.className = "pick"; b.textContent = p.name;
+    b.type = "button"; b.className = "pick"; b.textContent = T(p.name);
     b.onclick = () => { $("coordName").value = p.name; goTo(Object.assign({}, p, coordOptions())); };
     $("coordPicks").appendChild(b);
   });
@@ -1591,12 +2167,12 @@ function buildCoords() {
     const ra = parseAngle(a, true), dec = parseAngle(d, false);
     const badRa = !Number.isFinite(ra) || ra < 0 || ra > 360, badDec = !Number.isFinite(dec) || Math.abs(dec) > 90;
     $("coordRa").setAttribute("aria-invalid", badRa); $("coordDec").setAttribute("aria-invalid", badDec);
-    if (badRa) { say(!a ? "Type a right ascension first, like 08h55m10.8s or 133.795."
-      : Number.isFinite(ra) ? "Right ascension goes from 0 to 360 degrees, or 0 to 24 hours."
-      : "I can't read that right ascension. Try 08h55m10.8s or 133.795.", true); $("coordRa").focus(); return; }
-    if (badDec) { say(!d ? "Now the declination, like -7d14m42s or -7.245."
-      : Number.isFinite(dec) ? "Declination goes from −90 to +90 degrees."
-      : "I can't read that declination. Try -7d14m42s or -7.245.", true); $("coordDec").focus(); return; }
+    if (badRa) { say(!a ? T("Type a right ascension first, like 08h55m10.8s or 133.795.")
+      : Number.isFinite(ra) ? T("Right ascension goes from 0 to 360 degrees, or 0 to 24 hours.")
+      : T("I can't read that right ascension. Try 08h55m10.8s or 133.795."), true); $("coordRa").focus(); return; }
+    if (badDec) { say(!d ? T("Now the declination, like -7d14m42s or -7.245.")
+      : Number.isFinite(dec) ? T("Declination goes from −90 to +90 degrees.")
+      : T("I can't read that declination. Try -7d14m42s or -7.245."), true); $("coordDec").focus(); return; }
     // the boxes still hold what the last named search put there: keep its name and its motion
     const last = S.lastSpec;
     if (last && last.name && last.boxes && last.boxes[0] === a && last.boxes[1] === d)
@@ -1605,7 +2181,7 @@ function buildCoords() {
   });
   const find = () => {
     const name = $("coordName").value.trim();
-    if (!name) { say("Type a name first, like Barnard's Star or M51.", true); $("coordName").focus(); return; }
+    if (!name) { say(T("Type a name first, like Barnard's Star or M51."), true); $("coordName").focus(); return; }
     goTo(Object.assign({ lookup: name }, coordOptions()));
   };
   $("coordFind").onclick = find;
@@ -1659,9 +2235,9 @@ function renderLatest(t) {
   const el = $("latest");
   el.hidden = !LIVE || t.live || !!t.moving;       // planets and asteroids need an ephemeris, not a fixed spot
   if (el.hidden) return;
-  el.textContent = "These images were saved on " + fmtDate(IDX.generated) + ". ";
+  el.textContent = T("These images were saved on {0}.", fmtDate(IDX.generated)) + " ";
   const b = document.createElement("button");
-  b.type = "button"; b.className = "linkbtn"; b.textContent = "Load the newest ones from NASA";
+  b.type = "button"; b.className = "linkbtn"; b.textContent = T("Load the newest ones from NASA");
   b.onclick = () => goTo({ name: t.name, ra: t.ra, dec: t.dec });
   el.appendChild(b);
 }
@@ -1682,14 +2258,15 @@ async function goTo(spec) {
   const t0 = performance.now(), b0 = SXLive.stats.bytes;
   try {
     if (spec.lookup) {                               // a name: one of the five built in, or ask SIMBAD
-      const known = PICKS.find(p => plain(p.name) === plain(spec.lookup));
-      if (known) spec = Object.assign({}, spec, known, { lookup: null });
+      // one of the five built in, under either language's name for it
+      const pick = PICKS.find(p => plain(p.name) === plain(spec.lookup) || plain(T(p.name)) === plain(spec.lookup));
+      if (pick) spec = Object.assign({}, spec, pick, { lookup: null });
       else {
-        say("Asking SIMBAD where " + spec.lookup + " is…");
+        say(T("Asking SIMBAD where {0} is…", spec.lookup));
         try { spec = Object.assign({}, spec, await lookupName(spec.lookup), { lookup: null }); }
         catch (e) {
-          return fail(e.unknown ? "SIMBAD doesn't know “" + spec.lookup + "”. Check the spelling, or type its coordinates."
-                                : "The name service isn't answering right now. Type the coordinates instead.");
+          return fail(e.unknown ? T("SIMBAD doesn't know “{0}”. Check the spelling, or type its coordinates.", spec.lookup)
+                                : T("The name service isn't answering right now. Type the coordinates instead."));
         }
         if (!live()) return;
       }
@@ -1707,28 +2284,29 @@ async function goTo(spec) {
     const count = Number.isFinite(spec.count) && spec.count > 0 ? Math.max(2, Math.min(90, Math.round(spec.count))) : 30;
     const band = spec.band >= 1 && spec.band <= 6 ? Math.round(spec.band) : 0, newest = spec.when === "new";
 
-    const t = { id: "live", live: true, name: spec.name || hms(ra) + "  " + dms(dec), ra: ra, dec: dec, scale: scale, frames: [], blurb: "" };
-    S.target = t; S.frames = []; S.order = []; S.pick = null; S.i = 0; S.ref = 0; S.follow = false; $("follow").checked = false;
+    const t = { id: "live", live: true, name: spec.name || hms(ra) + "  " + dms(dec), ra: ra, dec: dec, scale: scale, ss: ss, frames: [], blurb: "" };
+    leaveTarget();
+    S.target = t; S.frames = []; S.raw = []; S.order = []; S.pick = null; S.i = 0; S.ref = 0; S.follow = false; $("follow").checked = false;
     S.bands = new Set(); markChip(-1); buildBands(t);
     S.loading = true; $("loading").hidden = false; $("loading").style.opacity = 1;
-    $("loading").textContent = "Looking for images of " + t.name + "…";
+    $("loading").textContent = T("Looking for images of {0}…", T(t.name));
     $("strip").innerHTML = ""; $("meta").innerHTML = ""; $("bandNote").textContent = "";
     $("tlaxis").getContext("2d").clearRect(0, 0, $("tlaxis").width, $("tlaxis").height);
     renderChrome(); renderLatest(t); drawSky();
 
-    say("Checking where SPHEREx has pointed…");
+    say(T("Checking where SPHEREx has pointed…"));
     let found;
     try { found = await SXLive.search(ra, dec, { half: fov / 120, signal: ac.signal }); }
     catch (e) {
       if (!live() || ac.signal.aborted) return;
-      return fail("The list of SPHEREx pointings didn't load. Check your connection and try again.");
+      return fail(T("The list of SPHEREx pointings didn't load. Check your connection and try again."));
     }
     if (!live()) return;
     noteIndex(found.manifest);
     const list = band ? found.frames.filter(f => f.det === band) : found.frames;
     if (!list.length) return fail(found.frames.length
-      ? "SPHEREx has images of this spot, but none in band " + band + ". Try all six bands."
-      : "No released image holds this whole square on one detector. Try a smaller field of view.");
+      ? T("SPHEREx has images of this spot, but none in band {0}. Try all six bands.", band)
+      : T("No released image holds this whole square on one detector. Try a smaller field of view."));
     const slots = newest ? list.slice(-count).map(f => [f]) : SXLive.pick(list, count);
     if (fast) {                                      // centre the frame where the star is in the middle of the dates
       const mjds = slots.map(s => s[0].mjd).sort((a, b) => a - b);
@@ -1736,23 +2314,25 @@ async function goTo(spec) {
     }
     const first = fmtDate(mjdISO(list[0].mjd)), last = fmtDate(mjdISO(list[list.length - 1].mjd));
     const each = ((SIZE * scale / PIXSCALE * 1.2 + 6) * 2040 * 4 + 65536) / 1048576;
-    say(list.length.toLocaleString("en") + " images of this spot" + (band ? " in band " + band : "") + ", " + first + " to " + last
-      + ". Downloading " + slots.length + " of them, about " + Math.round(slots.length * each) + " MB…");
+    say(band
+      ? T("{0} images of this spot in band {1}, {2} to {3}. Downloading {4} of them, about {5} MB…", num(list.length), band, first, last, slots.length, Math.round(slots.length * each))
+      : T("{0} images of this spot, {1} to {2}. Downloading {3} of them, about {4} MB…", num(list.length), first, last, slots.length, Math.round(slots.length * each)));
     const got = await SXLive.series(ra, dec, slots, { size: SIZE, scale: scale / 3600, ss: ss, signal: ac.signal,
       onFrame: (f, n) => { if (!live()) return; bar(0.04 + 0.96 * n / slots.length);
-        $("loading").textContent = "Loading " + t.name + " · " + n + " of " + slots.length; } });
+        $("loading").textContent = T("Loading {0} · {1} of {2}", T(t.name), n, slots.length); } });
     if (!live()) return;
-    if (!got.length) return fail("None of those images could be read just now. NASA's archive may be busy: try again in a moment.");
+    if (!got.length) return fail(T("None of those images could be read just now. NASA's archive may be busy: try again in a moment."));
 
     const half = (SIZE - 1) / 2, step = scale / 3600 * Math.PI / 180, fr = SXLive.frame(ra, dec);
     t.frames = got.map(f => {
       const c = f.cand, q = f.img.quality, notes = [];
-      if (q.l2 && q.l2 !== "Pass") notes.push("failed the quality check");
-      if (q.fineAstrometry === false) notes.push("rough astrometry");
-      if (q.aurora === true) notes.push("aurora");
-      if (q.shuttleGlow === true) notes.push("upper-atmosphere glow");
+      if (q.l2 && q.l2 !== "Pass") notes.push(T("failed the quality check"));
+      if (q.fineAstrometry === false) notes.push(T("rough astrometry"));
+      if (q.aurora === true) notes.push(T("aurora"));
+      if (q.shuttleGlow === true) notes.push(T("upper-atmosphere glow"));
       const m = { obs: c.obs, det: c.det, mjd: f.img.mjd, date: String(f.img.date || mjdISO(f.img.mjd)).slice(0, 10), lam: f.lam, bw: f.bw,
-                  coll: "spherex_" + c.release + (c.deep ? "_deep" : ""), key: c.key, notes: notes.join(", ") };
+                  coll: "spherex_" + c.release + (c.deep ? "_deep" : ""), key: c.key, notes: notes.join(", "),
+                  src: { key: c.key, at: f.img.flagsHeaderAt, wcs: f.img.wcs } };      // where to find this frame's pixel flags
       if (fast) {                                    // where the star's own motion puts it in this frame
         const p = at(yearOf(m.mjd)), v = SXLive.unit(p[0], p[1]), den = dot3(v, fr.c);
         m.mx = half - dot3(v, fr.e) / den / step; m.my = half - dot3(v, fr.n) / den / step;
@@ -1766,24 +2346,27 @@ async function goTo(spec) {
     });
     const pm = Math.hypot(spec.pmra || 0, spec.pmdec || 0) / 1000;
     if (fast) { t.moving = spec.name; t.motion = { pmra: spec.pmra, pmdec: spec.pmdec }; }
-    t.blurb = (spec.name ? spec.name + (fast ? ", where it is now: " : ": ") : "") + hms(ra) + ", " + dms(dec) + ". SPHEREx has photographed this spot "
-      + list.length.toLocaleString("en") + " times" + (band ? " in band " + band : "") + " between " + first + " and " + last + "; these " + got.length
-      + (newest ? " are the newest" : " are spread across all of them") + ", read live from NASA's archive."
-      + (fast ? " It moves " + pm.toFixed(1) + "″ a year across the sky, about " + (pm / scale).toFixed(1) + " of these pixels." : "");
+    const where = hms(ra) + ", " + dms(dec);
+    t.blurb = (!spec.name ? where + "." : fast ? T("{0}, where it is now: {1}.", T(spec.name), where) : T("{0}: {1}.", T(spec.name), where))
+      + " " + (band ? T("SPHEREx has photographed this spot {0} times in band {1} between {2} and {3};", num(list.length), band, first, last)
+                    : T("SPHEREx has photographed this spot {0} times between {1} and {2};", num(list.length), first, last))
+      + " " + (newest ? T("these {0} are the newest, read live from NASA's archive.", got.length)
+                      : T("these {0} are spread across all of them, read live from NASA's archive.", got.length))
+      + (fast ? " " + T("It moves {0}″ a year across the sky, about {1} of these pixels.", pm.toFixed(1), (pm / scale).toFixed(1)) : "");
     S.bands = bandsOf(t); buildBands(t);
     showFrames(t, datas);
 
     const boxes = [raText(ra), decText(dec)];
     $("coordRa").value = boxes[0]; $("coordDec").value = boxes[1];
     $("coordRa").removeAttribute("aria-invalid"); $("coordDec").removeAttribute("aria-invalid");
-    if (![...$("coordFov").options].some(o => +o.value === fov)) $("coordFov").add(new Option(fov + "′ across", fov));
+    if (![...$("coordFov").options].some(o => +o.value === fov)) $("coordFov").add(new Option(T("{0}′ across", fov), fov));
     $("coordFov").value = fov;
     if (![...$("coordCount").options].some(o => +o.value === count)) $("coordCount").add(new Option(String(count), count));
     $("coordCount").value = count; $("coordBand").value = band; $("coordWhen").value = newest ? "new" : "all";
     S.lastSpec = Object.assign({}, spec, { lookup: null, boxes: boxes });
     busy(false); bar(-1);
-    say("Showing " + got.length + " of " + list.length.toLocaleString("en") + " images. " + ((SXLive.stats.bytes - b0) / 1048576).toFixed(1)
-      + " MB arrived in " + ((performance.now() - t0) / 1000).toFixed(1) + " s.");
+    say(T("Showing {0} of {1} images. {2} MB arrived in {3} s.", got.length, num(list.length), ((SXLive.stats.bytes - b0) / 1048576).toFixed(1),
+      ((performance.now() - t0) / 1000).toFixed(1)));
     const p = new URLSearchParams();
     if (spec.name) p.set("name", spec.name);
     p.set("ra", (fast ? spec.ra : ra).toFixed(6)); p.set("dec", (fast ? spec.dec : dec).toFixed(6));
@@ -1793,13 +2376,240 @@ async function goTo(spec) {
     if (band) p.set("band", band);
     if (newest) p.set("when", "new");
     if (EMBED) p.set("embed", "1");
+    if (LANG_ASKED) p.set("lang", LANG);
     try { history.replaceState(null, "", location.pathname + "?" + p.toString()); } catch (_) {}
   } catch (e) {
     if (!live() || ac.signal.aborted) return;
-    fail(e instanceof TypeError ? "The connection dropped while loading. Check it and try again."
-                                : "Something went wrong while loading: " + (e.message || e));
+    fail(e instanceof TypeError ? T("The connection dropped while loading. Check it and try again.")
+                                : T("Something went wrong while loading: {0}", e.message || e));
   }
 }
+
+/* ---------- marks over the image: catalogue stars, and the pipeline's own pixel flags ---------- */
+
+/* VizieR is CDS's catalogue service and one a web page is allowed to call. Its mirror at
+   Harvard is asked first: the home in Strasbourg has gone quiet more than once. */
+const VIZIER = ["https://vizier.cfa.harvard.edu/viz-bin/asu-tsv", "https://vizier.cds.unistra.fr/viz-bin/asu-tsv"];
+const CATS = {
+  // Gaia DR3 gives every star's position in 2016 and how fast it moves, so each one can be
+  // drawn where it was on the night of the frame
+  gaia: { table: "I/355/gaiadr3", cols: ["RA_ICRS", "DE_ICRS", "Gmag", "pmRA", "pmDE"], epoch: 2016.0, name: "Gaia", band: "G", rgb: "94,234,212" },
+  // AllWISE positions are where the WISE telescope saw things around 2010
+  wise: { table: "II/328/allwise", cols: ["RAJ2000", "DEJ2000", "W1mag"], epoch: 0, name: "WISE", band: "W1", rgb: "244,114,182" },
+};
+const MARK_MAX = 150;                                     // the brightest this many inside the frame get a mark
+
+/* Everything a catalogue lists within `radius` arcminutes of a point, brightest first. */
+async function catalogue(kind, ra, dec, radius) {
+  const c = CATS[kind];
+  const q = "?-source=" + encodeURIComponent(c.table) + "&-c=" + encodeURIComponent(ra.toFixed(6) + (dec < 0 ? "" : "+") + dec.toFixed(6))
+    + "&-c.rm=" + radius.toFixed(2) + "&-out=" + c.cols.join(",") + "&-sort=" + c.cols[2] + "&-out.max=600";
+  const homes = VIZIER.concat(VIZIER[0]);                 // a hiccup is common: the first home gets a second go at the end
+  for (let i = 0; i < homes.length; i++) {
+    if (i === VIZIER.length) await new Promise(res => setTimeout(res, 900));
+    const ac = new AbortController(), timer = setTimeout(() => ac.abort(), 15000);
+    try {
+      const r = await fetch(homes[i] + q, { signal: ac.signal });
+      if (!r.ok) continue;
+      const text = await r.text();
+      if (text.indexOf("****") >= 0) continue;            // how the service says its database is down
+      const rows = text.split("\n").filter(l => l && l[0] !== "#");
+      const head = rows.findIndex(l => l.split("\t")[0].trim() === c.cols[0]), out = [];
+      if (head >= 0) for (const line of rows.slice(head + 3)) {          // names, units, a rule, then the rows
+        const v = line.split("\t").map(s => s.trim() === "" ? NaN : Number(s));
+        if (Number.isFinite(v[0]) && Number.isFinite(v[1])) out.push({ ra: v[0], dec: v[1], mag: v[2], pmra: v[3] || 0, pmdec: v[4] || 0 });
+      }
+      return out;
+    } catch (_) { /* try the next home */ }
+    finally { clearTimeout(timer); }
+  }
+  throw new Error("catalogue unreachable");
+}
+
+function drawMarks(meta) {
+  S.hits = [];
+  const t = S.target;
+  if (!t.cat || typeof SXLive === "undefined") return;
+  const P = onCanvas(meta), kz = KZ(), rad = Math.PI / 180, year = yearOf(meta.mjd);
+  const half = (SIZE - 1) / 2, step = scaleOf() / 3600 * rad, fr = SXLive.frame(t.ra, t.dec);
+  ["wise", "gaia"].forEach(kind => {
+    const rows = t.cat[kind], c = CATS[kind];
+    if (!S.marks[kind] || !Array.isArray(rows)) return;
+    let n = 0;
+    vctx.strokeStyle = "rgba(" + c.rgb + ",.95)"; vctx.lineWidth = 2;
+    for (const s of rows) {
+      if (n >= MARK_MAX) break;
+      let ra = s.ra, dec = s.dec;
+      if (c.epoch && (s.pmra || s.pmdec)) {               // carry the star along its own motion to the frame's date
+        const dt = year - c.epoch;
+        dec += s.pmdec * dt / 3.6e6; ra += s.pmra * dt / 3.6e6 / Math.cos(dec * rad);
+      }
+      const v = SXLive.unit(ra, dec), den = dot3(v, fr.c);
+      const x = half - dot3(v, fr.e) / den / step, y = half - dot3(v, fr.n) / den / step;
+      if (!(x >= 0 && y >= 0 && x <= SIZE - 1 && y <= SIZE - 1)) continue;
+      n++;
+      const p = P(x, y);
+      vctx.beginPath();
+      if (kind === "gaia") vctx.arc(p[0], p[1], Math.max(8, 1.25 * kz), 0, 6.2832);
+      else { const h = Math.max(11, 1.7 * kz); vctx.rect(p[0] - h, p[1] - h, 2 * h, 2 * h); }
+      vctx.stroke();
+      S.hits.push({ x: x, y: y, text: c.name + " · " + c.band + " " + (Number.isFinite(s.mag) ? s.mag.toFixed(1) : "?") + " mag" });
+    }
+  });
+}
+
+/* The pipeline flags pixels it does not trust, one bit per reason. They are grouped here into
+   five plain kinds; the first that applies gives the pixel its colour. Two bits are left out
+   on purpose: one says a catalogued star sits there, the other is bookkeeping. */
+const FLAG_KINDS = [
+  { word: "dead",       label: "Dead, hot or unreliable pixel",        rgb: [244, 114, 182], planes: ["NONFUNC", "HOT", "COLD", "MISSING_DATA", "MISSING", "SUR_ERROR"] },
+  { word: "too bright", label: "Too bright for the detector",          rgb: [250, 204, 21],  planes: ["OVERFLOW", "BLOOM", "NONLINEAR"] },
+  { word: "streak",     label: "Streak, such as a satellite",          rgb: [74, 222, 128],  planes: ["STREAK"] },
+  { word: "ghost",      label: "Ghost or afterglow of a bright star",  rgb: [167, 139, 250], planes: ["PERSIST", "GHOST", "GHOST_FPA", "GHOST_EXT", "CROSSTALK", "XTALK"] },
+  { word: "hit",        label: "Cosmic-ray hit or sudden flash",       rgb: [45, 212, 191],  planes: ["TRANSIENT", "SNOWBALL", "HALO", "OUTLIER"] },
+];
+
+/* Where a frame's flags are: the file it was cut from, and how its pixels sit on that detector.
+   A frame read live kept its file's astrometry; a saved one carries a six-number fit of it. */
+function flagSource(f) {
+  const m = f.meta, t = S.target;
+  if (m.src) return { key: m.src.key, at: m.src.at, plan: () => SXLive.plan(m.src.wcs, t.ra, t.dec, SIZE, scaleOf() / 3600, t.ss || 1) };
+  if (!m.key || !m.aff || !m.off) return null;
+  return { key: m.key, at: m.off + Math.ceil(m.nx * m.ny * 4 / 2880) * 2880, plan: () => {
+    const sx = new Float64Array(NPIX), sy = new Float64Array(NPIX), a = m.aff;
+    let miny = Infinity, maxy = -Infinity;
+    for (let gy = 0, k = 0; gy < SIZE; gy++) for (let gx = 0; gx < SIZE; gx++, k++) {
+      sx[k] = a[0] * gx + a[1] * gy + a[2]; sy[k] = a[3] * gx + a[4] * gy + a[5];
+      if (sy[k] < miny) miny = sy[k]; if (sy[k] > maxy) maxy = sy[k];
+    }
+    return { sx: sx, sy: sy, miny: miny, maxy: maxy, size: SIZE, ss: 1 };
+  } };
+}
+
+function sortFlags(f, bits, planes) {
+  const masks = FLAG_KINDS.map(k => k.planes.reduce((m, name) => planes[name] === undefined ? m : m | (1 << planes[name]), 0));
+  const out = new Uint8Array(NPIX), counts = FLAG_KINDS.map(() => 0);
+  for (let gy = 0, k = 0; gy < SIZE; gy++) for (let gx = 0; gx < SIZE; gx++, k++) {
+    const v = bits[k];
+    if (!v) continue;
+    let m = 0;
+    for (let i = 0; i < masks.length; i++) if (v & masks[i]) { m |= 1 << i; counts[i]++; }
+    out[(SIZE - 1 - gy) * SIZE + gx] = m;                // the engine counts rows south to north; the screen wants north on top
+  }
+  f.flags = out;
+  f.flagText = FLAG_KINDS.map((k, i) => counts[i] ? num(counts[i]) + " " + T(k.word) : "").filter(Boolean).join(", ") || T("none");
+}
+
+let flagRun = 0;
+function stopFlags() {
+  flagRun++;
+  if (S.flagAbort) { S.flagAbort.abort(); S.flagAbort = null; }
+  if (S.target) S.target.flagsBusy = false;
+}
+async function loadFlags() {
+  const t = S.target;
+  if (!t || t.flagsBusy || typeof SXLive === "undefined") return;
+  const todo = S.raw.filter(f => f.flags === undefined && flagSource(f));
+  if (!todo.length) return;
+  const run = ++flagRun, ac = S.flagAbort = new AbortController(), b0 = SXLive.stats.bytes;
+  t.flagsBusy = true; t.flagsMB = 0;
+  let next = 0;
+  const worker = async () => {
+    while (next < todo.length && !ac.signal.aborted) {
+      const f = todo[next++], s = flagSource(f);
+      try {
+        const fl = await SXLive.openFlags(s.key, s.at, ac.signal);
+        sortFlags(f, await SXLive.flagCutout(fl, s.plan(), ac.signal), fl.planes);
+      } catch (e) {
+        if (ac.signal.aborted) return;
+        f.flags = null;                                   // could not be read; say so rather than show nothing
+      }
+      t.flagsMB = (SXLive.stats.bytes - b0) / 1048576;
+      if (S.target === t && run === flagRun) { noteMarks(); if (S.frames[S.order[S.i]] === f || S.frames[S.ref] === f) draw(); }
+    }
+  };
+  await Promise.all([worker(), worker(), worker(), worker(), worker(), worker()]);
+  if (run !== flagRun) return;
+  t.flagsBusy = false; S.flagAbort = null;
+  if (S.target === t) { noteMarks(); draw(); }
+}
+
+const fcv = document.createElement("canvas"); fcv.width = fcv.height = SIZE;
+const fctx = fcv.getContext("2d"), fimg = fctx.createImageData(SIZE, SIZE);
+function drawFlags(f) {
+  if (!S.marks.flags || !f || !f.flags) return;
+  const px = fimg.data, m = f.flags;
+  for (let p = 0; p < NPIX; p++) {
+    const v = m[p];
+    if (!v) { px[p * 4 + 3] = 0; continue; }
+    const c = FLAG_KINDS[31 - Math.clz32(v & -v)].rgb;    // the first kind that applies
+    px[p * 4] = c[0]; px[p * 4 + 1] = c[1]; px[p * 4 + 2] = c[2]; px[p * 4 + 3] = 190;
+  }
+  fctx.putImageData(fimg, 0, 0);
+  const smooth = vctx.imageSmoothingEnabled;
+  vctx.imageSmoothingEnabled = false;
+  layer(fcv, f.meta);
+  vctx.imageSmoothingEnabled = smooth;
+}
+
+/* The legend and the status line of the "Mark on the image" box. */
+function noteMarks() {
+  const t = S.target, on = S.marks, legend = [], notes = [];
+  const li = (cls, rgb, text) => '<li><i class="' + cls + '" style="' + (cls ? "color" : "background") + ":rgb(" + rgb + ')"></i><span>' + text + "</span></li>";
+  ["gaia", "wise"].forEach(kind => {
+    if (!on[kind]) return;
+    const c = CATS[kind], got = t && t.cat && t.cat[kind];
+    legend.push(li(kind === "gaia" ? "ring" : "box", c.rgb, kind === "gaia" ? T("Gaia star") : T("WISE source")));
+    if (got === "fail") notes.push(T("The {0} catalogue isn't answering right now. Untick it and tick it again in a moment.", c.name));
+    else if (!Array.isArray(got)) notes.push(T("Asking for the {0} catalogue…", c.name));
+    else if (!got.length) notes.push(T("{0} lists nothing here.", c.name));
+    else if (kind === "gaia") notes.push(T("Gaia: the brightest stars it lists here, each moved to where its own motion puts it on the date of the frame."));
+    else notes.push(T("WISE: drawn where that telescope saw them around 2010, so a fast star has walked away from its square since."));
+  });
+  if (on.flags) {
+    FLAG_KINDS.forEach(k => legend.push(li("", k.rgb.join(","), T(k.label))));
+    const all = S.raw.length, have = S.raw.filter(f => f.flags).length, lost = S.raw.filter(f => f.flags === null).length;
+    if (S.stack !== "off") notes.push(T("Flags are painted on single visits: set “Add images together” back to No to see them."));
+    else if (t && t.flagsBusy) notes.push(T("Reading NASA's pixel flags: {0} of {1} frames, {2} MB so far…", have + lost, all, Math.round(t.flagsMB || 0)));
+    else if (all && lost === all) notes.push(T("The flags could not be read just now. Untick the box and tick it again to retry."));
+    else if (all && have + lost >= all) notes.push(lost
+      ? T("Flags read for {0} of {1} frames. Each frame's count is under “This frame”.", have, all)
+      : T("Flags read for all {0} frames. Each frame's count is under “This frame”.", all));
+  }
+  $("marksLegend").hidden = !legend.length; $("marksLegend").innerHTML = legend.join("");
+  $("marksNote").hidden = !notes.length; $("marksNote").textContent = notes.join(" ");
+}
+
+/* The place or the ticks changed: fetch whatever is ticked and not here yet. */
+let catQueue = Promise.resolve();
+function refreshMarks() {
+  const t = S.target;
+  if (!t) return;
+  ["gaia", "wise"].forEach(kind => {
+    if (!S.marks[kind]) return;
+    t.cat = t.cat || {};
+    if (t.cat[kind] && t.cat[kind] !== "fail") return;
+    t.cat[kind] = "wait";
+    const radius = SIZE * scaleOf() / 60 * 0.71 + 0.3;                      // half the diagonal of the square, and a little
+    // one question at a time: asked two at once, the service tends to drop one
+    catQueue = catQueue.then(() => catalogue(kind, t.ra, t.dec, radius))
+      .then(rows => { t.cat[kind] = rows; }, () => { t.cat[kind] = "fail"; })
+      .then(() => { if (S.target === t) { noteMarks(); draw(); } });
+  });
+  if (S.marks.flags) loadFlags();
+  noteMarks();
+}
+[["markGaia", "gaia"], ["markWise", "wise"], ["markFlags", "flags"]].forEach(([id, kind]) => {
+  $(id).addEventListener("change", e => {
+    S.marks[kind] = e.target.checked;
+    if (kind === "flags") {
+      if (e.target.checked) S.raw.forEach(f => { if (f.flags === null) f.flags = undefined; });      // a fresh try for the ones that failed
+      else stopFlags();
+    }
+    refreshMarks();
+    draw();
+  });
+});
 
 /* ---------- go ---------- */
 function renderFacts() {
@@ -1812,19 +2622,65 @@ function renderFacts() {
   const fact = (k, v, sub) => '<div><dt>' + k + '</dt><dd>' + v +
     (sub ? '<small>' + sub + '</small>' : '') + '</dd></div>';
   $("facts").innerHTML =
-      fact("Frames", fr.length.toLocaleString("en"), "each a separate exposure")
-    + fact("Targets", ts.length, movers.length + " of them moving")
-    + fact("Baseline", Math.round(days / 30.44) + " months",
+      fact(T("Frames"), num(fr.length), T("each a separate exposure"))
+    + fact(T("Targets"), ts.length, T("{0} of them moving", movers.length))
+    + fact(T("Baseline"), T("{0} months", Math.round(days / 30.44)),
            fmtDate(mjdISO(Math.min(...mjds))) + " – " + fmtDate(mjdISO(Math.max(...mjds))))
-    + fact("Wavelengths", Math.min(...lams).toFixed(2) + "–" + Math.max(...lams).toFixed(2) + " µm",
-           "across " + bands.size + " of the 6 detector bands")
-    + fact("Pixel scale", PIXSCALE + "″", SIZE + " × " + SIZE + " px, " + fov.toFixed(1) + "′ across")
-    + fact("Units", "MJy/sr", "surface brightness, unaltered");
+    + fact(T("Wavelengths"), Math.min(...lams).toFixed(2) + "–" + Math.max(...lams).toFixed(2) + " µm",
+           T("across {0} of the 6 detector bands", bands.size))
+    + fact(T("Pixel scale"), PIXSCALE + "″", T("{0} × {0} px, {1}′ across", SIZE, fov.toFixed(1)))
+    + fact(T("Units"), "MJy/sr", T("surface brightness, unaltered"));
 }
 const mjdISO = m => mjdDate(m).toISOString().slice(0, 10);
 
+/* ---------- the cover ----------
+   No words on it: a wall of real frames, one tile per place, each tile stepping through its own
+   dates. One picture file holds them all (a row per place, a column per date), and every tile is
+   two copies of it stacked, so one can fade in over the other. A click opens that place. */
+function buildCover() {
+  const cover = $("cover"), grid = $("coverGrid");
+  const toViewer = () => $("start").scrollIntoView({ behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth", block: "start" });
+  $("coverDown").addEventListener("click", e => { e.preventDefault(); toViewer(); });
+  if (!COVER || !COVER.tiles || !COVER.tiles.length) { cover.classList.add("bare"); return; }
+  const K = COVER.frames, N = COVER.tiles.length, tiles = [];
+  const place = (el, frame, row) => { el.style.backgroundPosition = (K > 1 ? frame / (K - 1) * 100 : 0) + "% " + (N > 1 ? row / (N - 1) * 100 : 0) + "%"; };
+  COVER.tiles.forEach((id, row) => {
+    const k = IDX.targets.findIndex(t => t.id === id);
+    if (k < 0) return;
+    const a = document.createElement("a");
+    a.className = "covertile"; a.href = "#" + id;
+    a.title = T(IDX.targets[k].name); a.setAttribute("aria-label", T("Open {0}", T(IDX.targets[k].name)));
+    const layers = [0, 1].map(() => {
+      const i = document.createElement("i");
+      i.style.backgroundImage = "url(" + COVER.file + ")";
+      i.style.backgroundSize = (K * 100) + "% " + (N * 100) + "%";
+      a.appendChild(i);
+      return i;
+    });
+    const start = row % K;                                 // neighbours start on different dates
+    place(layers[0], start, row); place(layers[1], start, row); layers[1].style.opacity = 0;
+    a.addEventListener("click", e => { e.preventDefault(); selectTarget(k); toViewer(); });
+    grid.appendChild(a);
+    tiles.push({ layers: layers, row: row, frame: start, top: false });
+  });
+  if (K < 2 || matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+  let seen = true, turn = 0;
+  if ("IntersectionObserver" in window) new IntersectionObserver(es => { seen = es[0].isIntersecting; }).observe(cover);
+  setInterval(() => {                                      // one tile moves on at a time, so the wall is never still and never frantic
+    if (!seen || document.hidden) return;
+    const t = tiles[turn = (turn + 5) % tiles.length];     // a stride of five hops around the wall instead of sweeping it
+    t.frame = (t.frame + 1) % K;
+    t.top = !t.top;
+    place(t.layers[t.top ? 1 : 0], t.frame, t.row);
+    t.layers[1].style.opacity = t.top ? 1 : 0;
+  }, 650);
+}
+buildCover();
+
 renderFacts();
-$("prov").textContent = "Frame index built " + IDX.generated + ".";
+$("bandKey").innerHTML = BANDS.map(b => '<div class="' + (b.d <= 2 ? "dark" : "") + '" style="background:' + b.c + '"><b>' + T("Band {0}", b.d)
+  + "</b><span>" + b.lo.toFixed(2) + "–" + b.hi.toFixed(2) + " µm</span></div>").join("");
+$("prov").textContent = T("Frame index built {0}.", IDX.generated);
 buildTargets();
 buildCoords();
 let start = 0;
@@ -1855,7 +2711,7 @@ addEventListener("resize", () => { if (S.target) { if (S.frames.length) drawTime
    two are kept in step so neither can contradict the other. */
 const BRIGHT_T = b => 0.98 - (b / 100) * 0.5333;          // slider 0..100 -> whiteT 0.98..0.447, hitting the 0.82 default exactly at 30
 const T_BRIGHT = t => Math.round((0.98 - t) / 0.5333 * 100);
-const BRIGHT_WORD = b => b < 18 ? "Dim" : b < 42 ? "Normal" : b < 72 ? "Bright" : "Very bright";
+const BRIGHT_WORD = b => b < 18 ? T("Dim") : b < 42 ? T("Normal") : b < 72 ? T("Bright") : T("Very bright");
 
 function setBrightFromWhite() {
   const b = Math.max(0, Math.min(100, T_BRIGHT(S.whiteT)));
@@ -1876,7 +2732,7 @@ $("dispToggle").addEventListener("click", () => {
   const open = $("dispAdv").hidden;
   $("dispAdv").hidden = !open;
   $("dispToggle").setAttribute("aria-expanded", open);
-  $("dispToggle").textContent = open ? "Fewer options" : "More options";
+  $("dispToggle").textContent = open ? T("Fewer options") : T("More options");
 });
 
 setBrightFromWhite();
@@ -1884,7 +2740,7 @@ setBrightFromWhite();
 
 /* One gesture for the whole page: a ? beside a heading or a label opens a sentence under it.
    Built from a table rather than written into the markup, so the controls stay readable. */
-const GUIDE = [["#skyCard h3", "g-sky", "The whole sky laid out flat, the way a world map flattens the globe. Each grey square is one of the patches this tool holds; the blue one is where you are now. The curved line is the ecliptic — the path the Sun traces across the year. SPHEREx sweeps along it, which is why its two deep fields sit at the poles. Click a square to jump there, or an empty spot to pick its coordinates."], ["#compareCard h3", "g-compare", "Three ways of looking at the same patch. Single shows one frame at a time. Blink flips back and forth between the frame you pinned as reference and the current one, and your eye catches whatever shifts. Difference subtracts the two, so everything unchanged goes flat and only what moved or brightened is left."], ["#specCard h3", "g-spec", "Click any star or galaxy in the image and this plots its brightness against colour. It works because SPHEREx records a different wavelength on every visit, so thirty visits to one star become thirty points of a spectrum."], ["#displayCard h3", "g-display", "These change how the numbers are turned into something you can see. They never change the data: every frame keeps the brightness actually measured, and you are only choosing where to put black, where to put white, and what colours to stretch in between."], ["#framesCard h3", "g-frames", "Which visits appear, and in what order."], ["label[for=cmap]", "g-cmap", "Just the palette used to paint the numbers. Ember is warm, like the infrared it stands for. Greyscale is the most honest for judging brightness by eye. The others make different features easier to pick out."], ["label[for=bright]", "g-bright", "The one control most people want. Drag it right and faint things lift out of the dark; drag it left and only the brightest sources stay. It is purely how the numbers are painted — the measured brightness never changes. Under More options you can set the same thing by percentile, plus a few others."], ["label[for=scale]", "g-scale", "How brightness gets compressed to fit a screen. Space is mostly very faint things next to a few blinding ones, so a straight linear scale wastes almost all of its range. Asinh squashes the bright end and lets the faint end breathe — usually the one to leave alone."], ["label[for=black]", "g-black", "Anything dimmer than this is painted pure black. Raise it to clean background noise out of the picture, lower it to dig faint things out of the murk."], ["label[for=white]", "g-white", "Anything brighter than this is painted pure white. Lower it to make faint things jump out, raise it to keep detail inside bright cores instead of burning them flat."], ["label[for=sort]", "g-sort", "By date you get a time-lapse, which is what the tool is for. By wavelength the same frames are reordered from blue to red, so you watch the patch change colour instead of change over time."], ["#bandLabel", "g-band", "SPHEREx carries six detectors, each covering its own stretch of infrared. Switching some off keeps only visits of a similar colour, which makes brightness comparable from one frame to the next."], ["#coordRaLabel", "g-ra", "Right ascension is the sky's version of longitude: how far around you go, from 0 to 360 degrees. Astronomers often write it in hours, minutes and seconds, where 24 hours is the full circle. Both ways work here: 08h55m10.8s or 133.795."], ["#coordDecLabel", "g-dec", "Declination is the sky's version of latitude. +90 is straight above the North Pole, 0 is above the equator, −90 is above the South Pole. Type it as degrees, minutes and seconds (-7d14m42s) or as a plain number (-7.245)."], ["#coordFovLabel", "g-fov", "How big a square of sky to show. A wider square lets you follow things that move a long way, but every image is a bigger download. Zoomed in, each picture element covers half as much sky, which makes small shifts easier to see."], ["#coordNameLabel", "g-name", "Type the name of a star, nebula or galaxy and the page asks SIMBAD, a public astronomy catalogue, where it is. For stars that move quickly across the sky it also brings back how fast, and works out where the star is now rather than where it was years ago."], ["#coordCountLabel", "g-count", "More images show more of the story but take longer to arrive: each one is about a megabyte."], ["#coordBandLabel", "g-cband", "Every exposure lands on one of six detectors, each seeing its own stretch of infrared. Staying in one band keeps brightness comparable from image to image, which is what you want for a star that changes. All six gives the widest spectrum."], ["#coordWhenLabel", "g-when", "Spread over every date gives the longest time-lapse, from the first visit to the latest. Only the newest shows what SPHEREx saw most recently."]];
+const GUIDE = [["#skyCard h3", "g-sky", "The whole sky laid out flat, the way a world map flattens the globe. Each grey square is one of the patches this tool holds; the blue one is where you are now. The curved line is the ecliptic — the path the Sun traces across the year. SPHEREx sweeps along it, which is why its two deep fields sit at the poles. Click a square to jump there, or an empty spot to pick its coordinates. The button underneath opens the same spot in Aladin, a public atlas of the sky, to compare with what other telescopes saw."], ["#compareCard h3", "g-compare", "Three ways of looking at the same patch. Single shows one frame at a time. Blink flips back and forth between the frame you pinned as reference and the current one, and your eye catches whatever shifts. Difference subtracts the two, so everything unchanged goes flat and only what moved or brightened is left."], ["#specCard h3", "g-spec", "Click any star or galaxy in the image and this plots its brightness. By colour gives a rough spectrum: SPHEREx records a different wavelength on every visit, so thirty visits to one star become thirty points. By date puts the same measurements in time order, one line per band, which is how a star that pulses gives itself away."], ["#marksCard h3", "g-marks", "Three things you can lay over the picture. Gaia and WISE are public star catalogues: tick one and every star it knows here gets a mark, so you can tell a catalogued star from something that is not in the books. The third paints the pixels NASA's own software flagged in each exposure, and says why."], ["#stackLabel", "g-stack", "One exposure is grainy. Adding several from the same band averages the grain away, so faint things come out. One picture per band adds every date together. Season by season keeps each return of the telescope apart, about six months between them, so you can pin one season and blink or subtract another."], ["#displayCard h3", "g-display", "These change how the numbers are turned into something you can see. They never change the data: every frame keeps the brightness actually measured, and you are only choosing where to put black, where to put white, and what colours to stretch in between."], ["#framesCard h3", "g-frames", "Which visits appear, and in what order."], ["label[for=cmap]", "g-cmap", "Just the palette used to paint the numbers. Ember is warm, like the infrared it stands for. Greyscale is the most honest for judging brightness by eye. The others make different features easier to pick out."], ["label[for=bright]", "g-bright", "The one control most people want. Drag it right and faint things lift out of the dark; drag it left and only the brightest sources stay. It is purely how the numbers are painted — the measured brightness never changes. Under More options you can set the same thing by percentile, plus a few others."], ["label[for=scale]", "g-scale", "How brightness gets compressed to fit a screen. Space is mostly very faint things next to a few blinding ones, so a straight linear scale wastes almost all of its range. Asinh squashes the bright end and lets the faint end breathe — usually the one to leave alone."], ["label[for=black]", "g-black", "Anything dimmer than this is painted pure black. Raise it to clean background noise out of the picture, lower it to dig faint things out of the murk."], ["label[for=white]", "g-white", "Anything brighter than this is painted pure white. Lower it to make faint things jump out, raise it to keep detail inside bright cores instead of burning them flat."], ["label[for=sort]", "g-sort", "By date you get a time-lapse, which is what the tool is for. By wavelength the same frames are reordered from blue to red, so you watch the patch change colour instead of change over time."], ["#bandLabel", "g-band", "SPHEREx carries six detectors, each covering its own stretch of infrared. Switching some off keeps only visits of a similar colour, which makes brightness comparable from one frame to the next."], ["#coordRaLabel", "g-ra", "Right ascension is the sky's version of longitude: how far around you go, from 0 to 360 degrees. Astronomers often write it in hours, minutes and seconds, where 24 hours is the full circle. Both ways work here: 08h55m10.8s or 133.795."], ["#coordDecLabel", "g-dec", "Declination is the sky's version of latitude. +90 is straight above the North Pole, 0 is above the equator, −90 is above the South Pole. Type it as degrees, minutes and seconds (-7d14m42s) or as a plain number (-7.245)."], ["#coordFovLabel", "g-fov", "How big a square of sky to show. A wider square lets you follow things that move a long way, but every image is a bigger download. Zoomed in, each picture element covers half as much sky, which makes small shifts easier to see."], ["#coordNameLabel", "g-name", "Type the name of a star, nebula or galaxy and the page asks SIMBAD, a public astronomy catalogue, where it is. For stars that move quickly across the sky it also brings back how fast, and works out where the star is now rather than where it was years ago."], ["#coordCountLabel", "g-count", "More images show more of the story but take longer to arrive: each one is about a megabyte."], ["#coordBandLabel", "g-cband", "Every exposure lands on one of six detectors, each seeing its own stretch of infrared. Staying in one band keeps brightness comparable from image to image, which is what you want for a star that changes. All six gives the widest spectrum."], ["#coordWhenLabel", "g-when", "Spread over every date gives the longest time-lapse, from the first visit to the latest. Only the newest shows what SPHEREx saw most recently."]];
 
 function buildGuide() {
   GUIDE.forEach(g => {
@@ -1896,17 +2752,17 @@ function buildGuide() {
     b.textContent = "?";
     b.setAttribute("aria-expanded", "false");
     b.setAttribute("aria-controls", g[1]);
-    b.setAttribute("aria-label", "What is this?");
+    b.setAttribute("aria-label", T("What is this?"));
     host.appendChild(b);
 
     const p = document.createElement("p");
     p.className = "ghelp";
     p.id = g[1];
     p.hidden = true;
-    p.textContent = g[2];
-    const field = host.closest(".field");
+    p.textContent = T(g[2]);
+    const field = host.closest(".field"), anchor = host.closest(".cardhead") || host;
     if (field) field.appendChild(p);
-    else host.parentNode.insertBefore(p, host.nextSibling);
+    else anchor.parentNode.insertBefore(p, anchor.nextSibling);
 
     b.onclick = e => {
       e.preventDefault();
