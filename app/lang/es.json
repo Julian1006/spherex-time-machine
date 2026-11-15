@@ -425,5 +425,12 @@
  "Assumes an orbit round the Sun close to circular and close to the plane of the planets. 1 AU is the distance from the Earth to the Sun; Neptune is about 30.": "Supone una órbita alrededor del Sol casi circular y cerca del plano de los planetas. 1 UA es la distancia de la Tierra al Sol; Neptuno está a unas 30.",
  "From {0} clicks over {1} days.": "Con {0} clics en {1} días.",
  "Things far away crawl across the sky and things close by race, and the Earth's own trip round the Sun adds a sway that also depends on distance. This box turns that into a number. Click the same object in two or more frames a few hours to a few weeks apart. It is how astronomers hunt for a Planet X far beyond Neptune: anything out there would crawl only about a pixel a day. Tried on JPL's own positions it lands within 2 % for Neptune and 5 % for Uranus and Vesta; your clicks add a little more uncertainty.": "Lo lejano se arrastra por el cielo y lo cercano corre, y el propio viaje de la Tierra alrededor del Sol añade un vaivén que también depende de la distancia. Esta caja lo convierte en un número. Toca el mismo objeto en dos o más fotos separadas entre unas horas y unas semanas. Así buscan los astrónomos un Planeta X más allá de Neptuno: algo allá afuera se movería apenas un píxel por día. Probado con las posiciones del propio JPL, acierta con un 2 % de error en Neptuno y un 5 % en Urano y Vesta; tus clics añaden un poco más de incertidumbre.",
- "Press play on the sky. Whatever moves gives itself away.": "Dale play al cielo. Lo que se mueve se delata solo."
+ "Press play on the sky. Whatever moves gives itself away.": "Dale play al cielo. Lo que se mueve se delata solo.",
+ "Copy a link to this view": "Copiar un enlace a esta vista",
+ "Copy code to put it in another page": "Copiar el código para ponerla en otra página",
+ "Link copied. Whoever opens it lands on this same view.": "Enlace copiado. Quien lo abra llega a esta misma vista.",
+ "Embed code copied. Paste it into any web page to show this viewer there.": "Código copiado. Pégalo en cualquier página web para mostrar este visor ahí.",
+ "Copy this by hand: {0}": "Cópialo a mano: {0}",
+ "How far away is it? Measure it": "¿A qué distancia está? Mídelo",
+ "SkyBoT: one known asteroid or comet brighter than magnitude 21 passes near this square, {0}. It is drawn where it was at the moment of each exposure.": "SkyBoT: un asteroide o cometa conocido, más brillante que magnitud 21, pasa cerca de este cuadro: {0}. Se dibuja donde estaba en el momento de cada foto."
 }

@@ -302,7 +302,7 @@ h1 em{font-family:var(--display);font-weight:500;color:var(--accent)}
 .field label{font-size:14px}
 .field label b{font-size:12.5px}
 .chk{font-size:14px}
-.note,.specempty{font-size:13.5px;line-height:1.5}
+.note,.specempty{font-size:14.5px;line-height:1.5;color:var(--muted)}
 .kv{font-size:13.5px}
 .keys{font-family:var(--sans);font-size:13px;color:var(--muted);letter-spacing:0}
 .keys b{display:inline-block;font-family:var(--mono);font-size:11.5px;color:var(--text);background:var(--surface-2);
@@ -648,6 +648,9 @@ body.embed .wrap{padding-top:14px}
         <p class="note" id="skyNote">The whole sky. The line is the ecliptic: SPHEREx scans along it, so its two deep fields
           end up at the poles. Click a square to go there, or an empty spot to pick its coordinates.</p>
         <a class="btn" id="aladin" href="#" target="_blank" rel="noopener">See this spot in Aladin ↗</a>
+        <button class="btn" id="shareLink" type="button">Copy a link to this view</button>
+        <button class="btn" id="shareEmbed" type="button">Copy code to put it in another page</button>
+        <p class="note" id="shareNote" hidden></p>
       </div>
 
       <div class="card" id="movingCard" hidden>
@@ -658,6 +661,14 @@ body.embed .wrap{padding-top:14px}
           <label class="chk"><input type="checkbox" id="follow"> Keep it centred</label>
         </div>
         <button class="btn" id="bodySpec" type="button">Show its infrared spectrum</button>
+        <button class="btn" id="bodyDist" type="button">How far away is it? Measure it</button>
+      </div>
+
+      <div class="card" id="distCard">
+        <h3>How far away is it?</h3>
+        <p class="note" id="distIntro" style="margin-top:0">Saw something move? Click it in one frame, then again in a later one. From how far and which way it drifted, and where the Earth was on those dates, the page works out how far away it must be.</p>
+        <button class="btn" id="distGo" type="button">Measure a distance</button>
+        <div class="distout" id="distOut" hidden></div>
       </div>
 
 
@@ -680,13 +691,6 @@ body.embed .wrap{padding-top:14px}
           </select>
         </div>
         <p class="note" id="stackNote" hidden></p>
-      </div>
-
-      <div class="card" id="distCard">
-        <h3>How far away is it?</h3>
-        <p class="note" id="distIntro" style="margin-top:0">Saw something move? Click it in one frame, then again in a later one. From how far and which way it drifted, and where the Earth was on those dates, the page works out how far away it must be.</p>
-        <button class="btn" id="distGo" type="button">Measure a distance</button>
-        <div class="distout" id="distOut" hidden></div>
       </div>
 
       <div class="card" id="marksCard">
@@ -1282,7 +1286,7 @@ function drawTrack(meta) {
     vctx.font = "500 " + Math.round(13 * k / 8) + "px " +
       getComputedStyle(document.body).getPropertyValue("--mono");
     vctx.fillStyle = "rgba(180,230,255,.95)"; vctx.textAlign = "left";
-    vctx.fillText(t.moving, x + 9 * kz / 4 + 9, y + 4);
+    vctx.fillText(T(t.moving), x + 9 * kz / 4 + 9, y + 4);
   };
   const here = P(meta.mx, meta.my);
   if (S.follow) { label(here[0], here[1]); return; }     // the body is pinned to the middle; a track would be a dot
@@ -1447,11 +1451,34 @@ function noteDistance() {
   if (pts.length > 1) lines.push(p("", T("From {0} clicks over {1} days.", pts.length, m.span.toLocaleString(LOCALE, { maximumFractionDigits: 2 }))));
   out.innerHTML = lines.join(""); out.hidden = false;
 }
+$("bodyDist").addEventListener("click", () => {
+  S.measure = { on: true, pts: [], msg: null, result: null }; stop();
+  noteDistance(); draw();
+  $("distCard").scrollIntoView({ behavior: "smooth", block: "nearest" });
+});
 $("distGo").addEventListener("click", () => {
   if (S.measure && S.measure.on) S.measure.on = false;
   else { S.measure = { on: true, pts: [], msg: null, result: null }; stop(); }
   noteDistance(); draw();
 });
+
+/* ---------- sharing ----------
+   A saved place is #its-id in the address; a place found by coordinates already carries
+   ?ra=…&dec=… there. Either way the address is the link, and ?embed=1 shows only the viewer. */
+function viewLink(embed) {
+  const u = new URL(location.href);
+  if (embed) u.searchParams.set("embed", "1"); else u.searchParams.delete("embed");
+  return u.toString();
+}
+async function copyText(text, done) {
+  let ok = false;
+  try { await navigator.clipboard.writeText(text); ok = true; } catch (_) {}
+  $("shareNote").hidden = false;
+  $("shareNote").textContent = ok ? done : T("Copy this by hand: {0}", text);
+}
+$("shareLink").addEventListener("click", () => copyText(viewLink(false), T("Link copied. Whoever opens it lands on this same view.")));
+$("shareEmbed").addEventListener("click", () => copyText('<iframe src="' + viewLink(true) + '" width="100%" height="760" style="border:0" loading="lazy" title="SPHEREx Time Machine"></iframe>',
+  T("Embed code copied. Paste it into any web page to show this viewer there.")));
 
 /* ---------- ordering / filtering ---------- */
 function applyOrder() {
@@ -2684,15 +2711,33 @@ function stopSso() {
   if (S.ssoAbort) { S.ssoAbort.abort(); S.ssoAbort = null; }
   if (S.target) S.target.ssoBusy = false;
 }
+/* For the saved places the answers never change, so build/skybot_saved.py asked them ahead of
+   time into sso.json beside the page: ticking the box is then instant. Places typed in by
+   coordinates, and copies of the page with no such file beside it, still ask live. */
+let SSO_SAVED = null;
+async function savedSso() {
+  if (!SSO_SAVED) {
+    try { const r = await fetch("sso.json"); SSO_SAVED = r.ok ? await r.json() : {}; } catch (_) { SSO_SAVED = {}; }
+  }
+  return SSO_SAVED;
+}
 async function loadSso() {
   const t = S.target;
   if (!t || t.ssoBusy) return;
   t.sso = t.sso || {};
-  const todo = ssoKeys().filter(k => !Array.isArray(t.sso[k]));
-  if (!todo.length) return;
-  const radius = SIZE * scaleOf() / 3600 * 0.71 + 0.01;             // half the diagonal of the square, in degrees, and a little
-  const run = ++ssoRun, ac = S.ssoAbort = new AbortController();
+  const run = ++ssoRun;
   t.ssoBusy = true;
+  if (!t.live) {
+    const saved = (await savedSso())[t.id];
+    if (run !== ssoRun) return;
+    if (saved) Object.keys(saved).forEach(k => {
+      if (!Array.isArray(t.sso[k])) t.sso[k] = saved[k].map(a => ({ ra: a[0], dec: a[1], v: a[2], name: a[3] }));
+    });
+  }
+  const todo = ssoKeys().filter(k => !Array.isArray(t.sso[k]));
+  if (!todo.length) { t.ssoBusy = false; if (S.target === t) { noteMarks(); draw(); } return; }
+  const radius = SIZE * scaleOf() / 3600 * 0.71 + 0.01;             // half the diagonal of the square, in degrees, and a little
+  const ac = S.ssoAbort = new AbortController();
   todo.forEach(k => { t.sso[k] = undefined; });
   let next = 0;
   const worker = async () => {
@@ -2879,6 +2924,7 @@ function noteMarks() {
     if (S.stack !== "off") notes.push(T("Asteroids are marked on single visits: set “Add images together” back to No to see them."));
     else if (t && t.ssoBusy) notes.push(T("Asking SkyBoT which known asteroids were here: {0} of {1} frames…", done.length, keys.length));
     else if (keys.length && lost.length === keys.length) notes.push(T("SkyBoT isn't answering right now. Untick the box and tick it again in a moment."));
+    else if (names.size === 1) notes.push(T("SkyBoT: one known asteroid or comet brighter than magnitude 21 passes near this square, {0}. It is drawn where it was at the moment of each exposure.", [...names][0]));
     else if (names.size) notes.push(T("SkyBoT: {0} known asteroids or comets brighter than magnitude 21 pass near this square. Each is drawn where it was at the moment of that exposure, so a diamond with nothing under it is too faint for SPHEREx.", num(names.size)));
     else if (keys.length) notes.push(T("SkyBoT knows no asteroid or comet brighter than magnitude 21 near this square."));
   }

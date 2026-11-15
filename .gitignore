@@ -17,3 +17,6 @@ __pycache__/
 
 # Offline bundle built by build/make_usb.py
 usb/
+
+# SkyBoT answers for the saved places; build/skybot_saved.py rebuilds docs/sso.json from them
+data/skybot_cache.json
