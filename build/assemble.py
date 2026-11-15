@@ -16,11 +16,27 @@ sys.path.insert(0, 'build')
 import pwa, cover, lang
 
 SRC_TPL = 'app/template.html'
+# the phone keeps the earlier, single-column page: the big dark band is made for a computer screen
+CEL_TPL = 'app/template_cel.html'
 LIVE_JS = 'app/live/sxlive.js'
 SITE_DIR = 'docs'
 ART_DIR = 'app/dist'
 META = ('<meta charset="utf-8">\n'
         '<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">\n')
+
+
+# Each site page sends the visitor to the other one when it is the wrong screen for it: a phone
+# (or a window under 820 px) gets cel.html, anything wider gets the dome. Decided once on arrival,
+# from the screen rather than the window, so turning a phone sideways does not bounce it. Never
+# from a file:// copy, which has only the one page.
+SWITCH = """<script>
+(function () {
+  if (location.protocol === "file:") return;
+  var phone = innerWidth <= 820 || (matchMedia("(pointer: coarse)").matches && Math.min(screen.width, screen.height) <= 600);
+  if (phone === %s) location.replace("%s" + location.search + location.hash);
+})();
+</script>
+"""
 
 
 def main(index_path):
@@ -38,15 +54,20 @@ def main(index_path):
     if '/*__ES__*/{}' not in tpl:
         raise SystemExit('language marker missing')
     spanish = json.load(open(lang.ES_PATH, encoding='utf-8'))
-    missing, stale = lang.check(spanish, lang.keys(tpl, idx))
+    cel = open(CEL_TPL, encoding='utf-8').read()
+    needed = lang.keys(tpl, idx)
+    needed += [k for k in lang.keys(cel, idx) if k not in set(needed)]
+    missing, stale = lang.check(spanish, needed)
     for k in missing:
         print('no Spanish for:        ' + k[:90])
     for k in stale:
         print('Spanish for nothing:   ' + k[:90])
     tpl = tpl.replace('/*__ES__*/{}', json.dumps(spanish, ensure_ascii=False, separators=(',', ':')))
+    cel = cel.replace('/*__ES__*/{}', json.dumps(spanish, ensure_ascii=False, separators=(',', ':')))
     # the engine that reads images straight from NASA's bucket lives in its own file so that
     # app/live/test.html can check it on its own; here it is folded into the single page
     tpl = tpl.replace('/*__LIVE__*/', open(LIVE_JS, encoding='utf-8').read())
+    cel = cel.replace('/*__LIVE__*/', open(LIVE_JS, encoding='utf-8').read()).replace('/*__INDEX__*/null', payload)
     if '/*__COVER__*/null' not in tpl:
         raise SystemExit('cover marker missing')
     html = tpl.replace('/*__INDEX__*/null', payload)
@@ -59,9 +80,12 @@ def main(index_path):
     # since it has nowhere to keep a picture file
     sheet = cover.build(idx, 'data/out', os.path.join(SITE_DIR, 'cover.png'))
     html = html.replace('/*__COVER__*/null', json.dumps(sheet, separators=(',', ':')))
+    cel = cel.replace('/*__COVER__*/null', json.dumps(sheet, separators=(',', ':')))
     # only the site build is installable: a service worker needs https or localhost
-    site, version = pwa.install(SITE_DIR, META + html)
+    (site, cel), version = pwa.install(SITE_DIR, [META + SWITCH % ('true', 'cel.html') + html,
+                                                  META + SWITCH % ('false', './') + cel])
     open(os.path.join(SITE_DIR, 'index.html'), 'w', encoding='utf-8').write(site)
+    open(os.path.join(SITE_DIR, 'cel.html'), 'w', encoding='utf-8').write(cel)
     open(os.path.join(ART_DIR, 'index.html'), 'w', encoding='utf-8').write(art)
 
     data = 0

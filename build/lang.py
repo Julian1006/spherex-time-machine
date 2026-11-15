@@ -72,6 +72,8 @@ if __name__ == '__main__':
     tpl = open('app/template.html', encoding='utf-8').read()
     idx = json.load(open('data/out/index.json'))
     needed = keys(tpl, idx)
+    cel = keys(open('app/template_cel.html', encoding='utf-8').read(), idx)    # the phone page
+    needed += [k for k in cel if k not in set(needed)]
     if '--keys' in sys.argv:
         print('\n'.join(needed))
         raise SystemExit

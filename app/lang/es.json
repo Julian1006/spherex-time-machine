@@ -438,5 +438,6 @@
  "Each dot is one photo: across, when it was taken; up, the infrared colour it saw. Click one to jump to it.": "Cada punto es una foto: a lo ancho, cuándo se tomó; a lo alto, el color de infrarrojo que vio. Toca uno para ir a esa foto.",
  "Each visit as a dot: across, the date it was taken; up, the infrared wavelength it saw. Click a dot to jump to that photo.": "Cada visita como un punto: a lo ancho, la fecha en que se tomó; a lo alto, la longitud de onda infrarroja que vio. Toca un punto para ir a esa foto.",
  "{0} · {1} µm · band {2}": "{0} · {1} µm · banda {2}",
- "Tools ↓": "Herramientas ↓"
+ "Tools ↓": "Herramientas ↓",
+ "When each visit happened, on a date axis. Click to jump to the nearest visit; the thumbnails below do the same from the keyboard.": "Cuándo fue cada visita, sobre una línea de fechas. Haz clic para saltar a la visita más cercana; las miniaturas de abajo hacen lo mismo con el teclado."
 }

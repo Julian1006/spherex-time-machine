@@ -27,7 +27,7 @@ SW = """/* Cache-first for everything this app owns, so it keeps working with no
    full set is 16 MB and most people look at two or three. The one exception is the list of
    pointings behind the coordinate search, which is always asked of the network first. */
 const VERSION = "%s";
-const SHELL = ["./", "./index.html", "./manifest.webmanifest", "./icon-192.png", "./icon-512.png", "./cover.png"];
+const SHELL = ["./", "./index.html", "./cel.html", "./manifest.webmanifest", "./icon-192.png", "./icon-512.png", "./cover.png"];
 const FONT_HOSTS = ["fonts.googleapis.com", "fonts.gstatic.com"];
 
 self.addEventListener("install", e => {
@@ -88,10 +88,10 @@ if ("serviceWorker" in navigator &&
 """
 
 
-def install(site_dir, page_html):
-    """Write the manifest and worker, and return the page with both wired in."""
+def install(site_dir, pages):
+    """Write the manifest and worker, and return the pages with both wired in."""
     io.open(os.path.join(site_dir, 'manifest.webmanifest'), 'w', encoding='utf-8').write(
         json.dumps(MANIFEST, indent=2))
-    version = "sx-" + hashlib.sha1(page_html.encode('utf-8')).hexdigest()[:10]
+    version = "sx-" + hashlib.sha1(''.join(pages).encode('utf-8')).hexdigest()[:10]
     io.open(os.path.join(site_dir, 'sw.js'), 'w', encoding='utf-8').write(SW % version)
-    return HEAD + page_html + REGISTER, version
+    return [HEAD + q + REGISTER for q in pages], version
