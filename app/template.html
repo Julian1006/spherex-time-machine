@@ -155,6 +155,9 @@ input[type=range]{width:100%;accent-color:var(--accent);height:22px}
 .dockbtn[aria-expanded="true"]{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
 .panel.drawer{display:none;max-height:calc(100vh - 60px);overflow-y:auto;scrollbar-width:thin;padding-right:4px}
 .dome.open .panel.drawer{display:flex}
+.lane-r{min-width:0;display:flex;flex-direction:column;gap:14px}
+.lane-r .under{grid-template-columns:minmax(0,1fr);margin-top:0}
+.dome.open .lane-r .under{display:none}
 .tlcard{margin-top:16px}
 .tlcard .tlaxis{height:200px}
 .tlhead{display:flex;flex-wrap:wrap;justify-content:space-between;gap:4px 18px;align-items:baseline;margin-bottom:10px}
@@ -167,9 +170,11 @@ input[type=range]{width:100%;accent-color:var(--accent);height:22px}
   .panel.drawer,.dome.open .panel.drawer{display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));
     align-items:start;gap:14px;max-height:none;overflow:visible;padding-right:0}
   #dockTools{display:none}
+  .lane-r .under,.dome.open .lane-r .under{display:grid;grid-template-columns:repeat(2,minmax(0,1fr))}
 }
 @media (max-width:620px){
   .lane-l{grid-template-columns:minmax(0,1fr)}
+  .lane-r .under,.dome.open .lane-r .under{grid-template-columns:minmax(0,1fr)}
   .dome{--W:calc(100vw - 20px);padding:8px;gap:14px;border-radius:12px}
   .tools{gap:4px;right:8px}
   .tools button{width:30px;height:30px}
@@ -676,6 +681,26 @@ body.embed .wrap{padding-top:14px}
           <button class="dockbtn" id="dockTools" type="button" aria-expanded="false" aria-controls="drawer">Tools</button>
       </div>
     </div>
+    <div class="lane-r">
+      <div class="under">
+        <div class="card">
+          <h3>This frame</h3>
+          <dl class="kv" id="meta"></dl>
+        </div>
+        <div class="card" id="specCard">
+          <div class="cardhead">
+            <h3>Brightness of what you clicked</h3>
+            <div class="seg small" id="plot" role="group" aria-label="What to plot the brightness against">
+              <button type="button" data-plot="spec" aria-pressed="true">By colour</button>
+              <button type="button" data-plot="curve" aria-pressed="false">By date</button>
+            </div>
+          </div>
+          <canvas id="spec" width="600" height="264" hidden></canvas>
+          <p class="specempty" id="specEmpty">Click a star or galaxy. Each visit sees a slightly different infrared color,
+            so put together they give you a rough spectrum. Switch to <b>By date</b> to watch it brighten and fade.</p>
+          <p class="note" id="specNote" hidden></p>
+        </div>
+      </div>
     <div class="panel drawer" id="drawer">
       <div class="card" id="skyCard">
         <h3>Where you are looking</h3>
@@ -795,6 +820,7 @@ body.embed .wrap{padding-top:14px}
         <p class="note" id="bandNote"></p>
       </div>
     </div>
+    </div>
   </div>
 
   <div class="card tlcard">
@@ -807,26 +833,6 @@ body.embed .wrap{padding-top:14px}
           <div class="strip" id="strip" role="group" aria-label="Frame thumbnails"></div>
         <p class="keys"><b>Space</b> play · <b>← →</b> step a frame · <b>+ −</b> or pinch to zoom, drag to move · <b>click</b> a star for its spectrum</p>
   </div>
-
-      <div class="under">
-        <div class="card">
-          <h3>This frame</h3>
-          <dl class="kv" id="meta"></dl>
-        </div>
-        <div class="card" id="specCard">
-          <div class="cardhead">
-            <h3>Brightness of what you clicked</h3>
-            <div class="seg small" id="plot" role="group" aria-label="What to plot the brightness against">
-              <button type="button" data-plot="spec" aria-pressed="true">By colour</button>
-              <button type="button" data-plot="curve" aria-pressed="false">By date</button>
-            </div>
-          </div>
-          <canvas id="spec" width="600" height="264" hidden></canvas>
-          <p class="specempty" id="specEmpty">Click a star or galaxy. Each visit sees a slightly different infrared color,
-            so put together they give you a rough spectrum. Switch to <b>By date</b> to watch it brighten and fade.</p>
-          <p class="note" id="specNote" hidden></p>
-        </div>
-      </div>
 
   <section class="about">
     <h2>What am I looking at?</h2>
