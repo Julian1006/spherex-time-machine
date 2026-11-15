@@ -125,6 +125,56 @@ input[type=range]{width:100%;accent-color:var(--accent);height:22px}
 .tl{margin-top:12px}
 .tlaxis{width:100%;height:36px;display:block;cursor:pointer}
 .strip{display:flex;gap:4px;overflow-x:auto;padding-bottom:6px;scrollbar-width:thin}
+
+/* ---------- the dome: the picture as large as the screen allows, the sky map beside it as a
+   minimap, the controls in one dock under it, and the side cards only when asked for ---------- */
+.dome{--W:min(1680px,calc(100vw - 48px));width:var(--W);margin-left:calc((100% - var(--W)) / 2);
+  display:grid;grid-template-columns:minmax(230px,1fr) var(--S) minmax(300px,1fr);gap:22px;align-items:start;
+  --S:max(420px,min(calc(100vh - 200px),900px));
+  background:#07080C;border:1px solid #1E2028;border-radius:16px;padding:18px;color:#EFEAE3}
+.dome .center{display:flex;flex-direction:column;gap:12px;align-items:center;min-width:0}
+.dome .stage{width:100%}
+.lane-l{display:flex;flex-direction:column;gap:14px;min-width:0}
+.mini{background:#0E0F15;border:1px solid #23252E;border-radius:10px;padding:8px}
+.mini canvas{display:block;width:100%;height:auto;cursor:pointer}
+.dome .nowtitle{color:#F2F1EF;font-size:clamp(24px,2.2vw,34px)}
+.dome .blurb,.dome .latest{color:#B9B2A6}
+.dock{width:100%;display:flex;flex-wrap:wrap;gap:8px 10px;align-items:center;background:#111218;
+  border:1px solid #262833;border-radius:14px;padding:10px 12px}
+.dock .scrub{flex:1 1 180px;min-width:120px}
+.dock .counter{color:#A9A9AD}
+.dock .step,.dock .speed{background:#1B1C23;border-color:#30323D;color:#EFEAE3}
+.dock .speed{width:auto;flex:0 0 auto}
+.dock .seg{flex:1 1 280px;border-color:#30323D}
+.dock .seg button{background:#1B1C23;color:#D9D4CB;border-right-color:#30323D}
+.dock .seg button[aria-pressed="true"]{background:var(--accent);color:var(--accent-ink)}
+.dockbtn{flex:0 0 auto;background:#1B1C23;border:1px solid #30323D;color:#EFEAE3;border-radius:8px;
+  padding:9px 13px;font:inherit;font-family:var(--display);font-size:14px;font-weight:600;cursor:pointer}
+.dockbtn:hover{border-color:var(--accent)}
+.dockbtn:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.dockbtn[aria-expanded="true"]{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.panel.drawer{display:none;max-height:calc(100vh - 60px);overflow-y:auto;scrollbar-width:thin;padding-right:4px}
+.dome.open .panel.drawer{display:flex}
+.tlcard{margin-top:16px}
+.tlcard .tlaxis{height:200px}
+.tlhead{display:flex;flex-wrap:wrap;justify-content:space-between;gap:4px 18px;align-items:baseline;margin-bottom:10px}
+.tlhead h3{margin:0}
+.tlcard .strip{display:none}
+@media (max-width:1280px){
+  .dome{grid-template-columns:minmax(0,1fr);--S:auto}
+  .lane-l{display:grid;grid-template-columns:minmax(200px,280px) minmax(0,1fr);gap:16px;align-items:start}
+  .dome .center{width:min(100%,calc(100vh - 150px));justify-self:center}
+  .panel.drawer,.dome.open .panel.drawer{display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));
+    align-items:start;gap:14px;max-height:none;overflow:visible;padding-right:0}
+  #dockTools{display:none}
+}
+@media (max-width:620px){
+  .lane-l{grid-template-columns:minmax(0,1fr)}
+  .dome{--W:calc(100vw - 20px);padding:8px;gap:14px;border-radius:12px}
+  .tools{gap:4px;right:8px}
+  .tools button{width:30px;height:30px}
+  .tlcard .tlaxis{height:170px}
+}
 .thumb{flex:0 0 auto;width:52px;border:1px solid var(--line);border-radius:6px;overflow:hidden;
   background:var(--stage);cursor:pointer;padding:0;line-height:0;position:relative;transition:border-color .12s}
 .thumb:hover{border-color:var(--accent)}
@@ -559,11 +609,19 @@ body.embed .wrap{padding-top:14px}
     <div class="coordbar" id="coordBar" hidden><i></i></div>
   </section>
 
-  <div class="main">
-    <div>
-      <h2 class="nowtitle" id="nowTitle"></h2>
-      <p class="blurb" id="blurb"></p>
-      <p class="latest" id="latest" hidden></p>
+  <div class="dome" id="dome">
+    <div class="lane-l">
+      <div class="mini">
+        <canvas id="sky" width="620" height="310" role="img"
+                  aria-label="All-sky map with the ecliptic marked, showing where each target sits. Click a marker to jump there; the target buttons above do the same from the keyboard."></canvas>
+      </div>
+      <div>
+        <h2 class="nowtitle" id="nowTitle"></h2>
+        <p class="blurb" id="blurb"></p>
+        <p class="latest" id="latest" hidden></p>
+      </div>
+    </div>
+    <div class="center">
       <div class="stage" id="stage">
         <canvas id="view" width="1024" height="1024"></canvas>
         <div class="tools" role="group" aria-label="Zoom and save">
@@ -592,9 +650,7 @@ body.embed .wrap{padding-top:14px}
         <div class="hint" id="hint">Hit play. Click a star to see its spectrum.</div>
         <div class="loading" id="loading">Loading frames…</div>
       </div>
-
-      <div class="transport">
-        <div class="trow">
+      <div class="dock" role="toolbar" aria-label="Viewer controls">
           <button class="play" id="play" type="button" aria-label="Play">
             <svg width="15" height="15" viewBox="0 0 16 16" aria-hidden="true"><path id="playIcon" d="M4 2.5v11l10-5.5z" fill="currentColor"/></svg>
           </button>
@@ -611,40 +667,18 @@ body.embed .wrap{padding-top:14px}
             <option value="420" selected>Normal</option>
             <option value="180">Fast</option>
           </select>
-        </div>
-        <p class="keys"><b>Space</b> play · <b>← →</b> step a frame · <b>+ −</b> or pinch to zoom, drag to move · <b>click</b> a star for its spectrum</p>
-        <div class="tl">
-          <canvas class="tlaxis" id="tlaxis" width="1600" height="72" role="img"
-            aria-label="When each visit happened, on a date axis. Click to jump to the nearest visit; the thumbnails below do the same from the keyboard."></canvas>
-          <div class="strip" id="strip" role="group" aria-label="Frame thumbnails"></div>
-        </div>
-      </div>
-      <div class="under">
-        <div class="card">
-          <h3>This frame</h3>
-          <dl class="kv" id="meta"></dl>
-        </div>
-        <div class="card" id="specCard">
-          <div class="cardhead">
-            <h3>Brightness of what you clicked</h3>
-            <div class="seg small" id="plot" role="group" aria-label="What to plot the brightness against">
-              <button type="button" data-plot="spec" aria-pressed="true">By colour</button>
-              <button type="button" data-plot="curve" aria-pressed="false">By date</button>
-            </div>
-          </div>
-          <canvas id="spec" width="600" height="264" hidden></canvas>
-          <p class="specempty" id="specEmpty">Click a star or galaxy. Each visit sees a slightly different infrared color,
-            so put together they give you a rough spectrum. Switch to <b>By date</b> to watch it brighten and fade.</p>
-          <p class="note" id="specNote" hidden></p>
-        </div>
+          <div class="seg" id="mode" role="group" aria-label="Comparison mode">
+                    <button type="button" data-mode="single" aria-pressed="true">Single</button>
+                    <button type="button" data-mode="blink" aria-pressed="false">Blink</button>
+                    <button type="button" data-mode="diff" aria-pressed="false">Difference</button>
+                  </div>
+          <button class="dockbtn" id="dockMeasure" type="button">Measure distance</button>
+          <button class="dockbtn" id="dockTools" type="button" aria-expanded="false" aria-controls="drawer">Tools</button>
       </div>
     </div>
-
-    <div class="panel">
+    <div class="panel drawer" id="drawer">
       <div class="card" id="skyCard">
         <h3>Where you are looking</h3>
-        <canvas id="sky" width="620" height="310" role="img"
-          aria-label="All-sky map with the ecliptic marked, showing where each target sits. Click a marker to jump there; the target buttons above do the same from the keyboard."></canvas>
         <p class="note" id="skyNote">The whole sky. The line is the ecliptic: SPHEREx scans along it, so its two deep fields
           end up at the poles. Click a square to go there, or an empty spot to pick its coordinates.</p>
         <a class="btn" id="aladin" href="#" target="_blank" rel="noopener">See this spot in Aladin ↗</a>
@@ -674,11 +708,6 @@ body.embed .wrap{padding-top:14px}
 
       <div class="card" id="compareCard">
         <h3>Compare</h3>
-        <div class="seg" id="mode" role="group" aria-label="Comparison mode">
-          <button type="button" data-mode="single" aria-pressed="true">Single</button>
-          <button type="button" data-mode="blink" aria-pressed="false">Blink</button>
-          <button type="button" data-mode="diff" aria-pressed="false">Difference</button>
-        </div>
         <button class="btn" id="setref" type="button">Pin this frame as reference</button>
         <p class="note" id="modeNote">Blink jumps back and forth between your pinned frame and this one. Difference
           subtracts them, so anything that didn't change disappears.</p>
@@ -767,6 +796,37 @@ body.embed .wrap{padding-top:14px}
       </div>
     </div>
   </div>
+
+  <div class="card tlcard">
+    <div class="tlhead">
+      <h3>Every visit, by date and colour</h3>
+      <p class="note" style="margin:0">Each dot is one photo: across, when it was taken; up, the infrared colour it saw. Click one to jump to it.</p>
+    </div>
+    <canvas class="tlaxis" id="tlaxis" role="img"
+      aria-label="Each visit as a dot: across, the date it was taken; up, the infrared wavelength it saw. Click a dot to jump to that photo."></canvas>
+          <div class="strip" id="strip" role="group" aria-label="Frame thumbnails"></div>
+        <p class="keys"><b>Space</b> play · <b>← →</b> step a frame · <b>+ −</b> or pinch to zoom, drag to move · <b>click</b> a star for its spectrum</p>
+  </div>
+
+      <div class="under">
+        <div class="card">
+          <h3>This frame</h3>
+          <dl class="kv" id="meta"></dl>
+        </div>
+        <div class="card" id="specCard">
+          <div class="cardhead">
+            <h3>Brightness of what you clicked</h3>
+            <div class="seg small" id="plot" role="group" aria-label="What to plot the brightness against">
+              <button type="button" data-plot="spec" aria-pressed="true">By colour</button>
+              <button type="button" data-plot="curve" aria-pressed="false">By date</button>
+            </div>
+          </div>
+          <canvas id="spec" width="600" height="264" hidden></canvas>
+          <p class="specempty" id="specEmpty">Click a star or galaxy. Each visit sees a slightly different infrared color,
+            so put together they give you a rough spectrum. Switch to <b>By date</b> to watch it brighten and fade.</p>
+          <p class="note" id="specNote" hidden></p>
+        </div>
+      </div>
 
   <section class="about">
     <h2>What am I looking at?</h2>
@@ -1451,6 +1511,20 @@ function noteDistance() {
   if (pts.length > 1) lines.push(p("", T("From {0} clicks over {1} days.", pts.length, m.span.toLocaleString(LOCALE, { maximumFractionDigits: 2 }))));
   out.innerHTML = lines.join(""); out.hidden = false;
 }
+/* The side cards: a drawer beside the picture on a wide screen, a plain grid under it otherwise. */
+const wideDome = () => matchMedia("(min-width: 1281px)").matches;
+function openTools(open) {
+  $("dome").classList.toggle("open", open);
+  $("dockTools").setAttribute("aria-expanded", open);
+  $("dockTools").textContent = open ? T("Close tools") : T("Tools");
+}
+$("dockTools").addEventListener("click", () => openTools(!$("dome").classList.contains("open")));
+$("dockMeasure").addEventListener("click", () => {
+  S.measure = { on: true, pts: [], msg: null, result: null }; stop();
+  if (wideDome()) openTools(true);
+  noteDistance(); draw();
+  $("distCard").scrollIntoView({ behavior: "smooth", block: "nearest" });
+});
 $("bodyDist").addEventListener("click", () => {
   S.measure = { on: true, pts: [], msg: null, result: null }; stop();
   noteDistance(); draw();
@@ -1693,57 +1767,81 @@ $("sky").addEventListener("click", e => {
 });
 
 /* ---------- timeline axis ---------- */
+/* Every visit as a dot: across, when it was taken; up, the infrared wavelength it saw. Only
+   SPHEREx samples a different colour on every visit, so this map is the survey's own shape:
+   bursts of visits a few days long, each a little ladder of colours, months apart. */
 function drawTimeline() {
-  const c = $("tlaxis"), g = c.getContext("2d");
-  const W = c.width, H = c.height, pad = 10;
+  const c = $("tlaxis"), box = c.getBoundingClientRect();
+  if (!box.width || !S.target) return;
+  const dpr = window.devicePixelRatio || 1, W = box.width, H = box.height;
+  if (c.width !== Math.round(W * dpr) || c.height !== Math.round(H * dpr)) { c.width = Math.round(W * dpr); c.height = Math.round(H * dpr); }
+  const g = c.getContext("2d");
+  g.setTransform(dpr, 0, 0, dpr, 0, 0);
   g.clearRect(0, 0, W, H);
+  const L = 74, R = 14, T = 10, B = 30;                // room for the colour bar and its numbers, and for the months
   const all = S.target.rawFrames || S.target.frames, shown = S.target.frames;
   const t0 = Math.min(...all.map(f => f.mjd)), t1 = Math.max(...all.map(f => f.mjd));
-  const span = Math.max(1, t1 - t0);
+  const span = Math.max(1, t1 - t0), pad = Math.max(0.5, span * 0.02);
+  const X = mjd => L + (mjd - t0 + pad) / (span + 2 * pad) * (W - L - R);
+  const LAM0 = 0.7, LAM1 = 5.1, Y = lam => T + (1 - (lam - LAM0) / (LAM1 - LAM0)) * (H - T - B);
   const cs = getComputedStyle(document.body);
-  const line = cs.getPropertyValue("--line").trim() || "#ccc";
-  const faint = cs.getPropertyValue("--faint").trim() || "#999";
-  g.strokeStyle = line; g.lineWidth = 2;
-  g.beginPath(); g.moveTo(pad, H - 22); g.lineTo(W - pad, H - 22); g.stroke();
-  // month ticks
-  g.fillStyle = faint; g.font = "500 17px " + cs.getPropertyValue("--mono");
-  g.textAlign = "center";
-  const d0 = mjdDate(t0), d1 = mjdDate(t1);
-  const perMonth = (c.clientWidth || 600) / Math.max(1, span / 30.44);
+  const line = cs.getPropertyValue("--line").trim() || "#ccc", faint = cs.getPropertyValue("--faint").trim() || "#999";
+  const mono = cs.getPropertyValue("--mono");
+  // the six detectors as a colour bar, each over the stretch of infrared it sees
+  BANDS.forEach(b => { g.fillStyle = b.c; g.fillRect(12, Y(b.hi), 14, Math.max(2, Y(b.lo) - Y(b.hi))); });
+  g.font = "500 11px " + mono; g.fillStyle = faint; g.textAlign = "right"; g.textBaseline = "middle";
+  g.strokeStyle = line; g.lineWidth = 1;
+  [1, 2, 3, 4, 5].forEach(l => {
+    g.fillText(l + " µm", L - 10, Y(l));
+    g.globalAlpha = .55; g.beginPath(); g.moveTo(L, Y(l)); g.lineTo(W - R, Y(l)); g.stroke(); g.globalAlpha = 1;
+  });
+  // months along the bottom
+  g.textAlign = "center"; g.textBaseline = "alphabetic";
+  const d0 = mjdDate(t0 - pad), d1 = mjdDate(t1 + pad);
+  const perMonth = (W - L - R) / Math.max(1, (span + 2 * pad) / 30.44);
   const step = perMonth >= 46 ? 1 : perMonth >= 23 ? 2 : perMonth >= 15 ? 3 : perMonth >= 8 ? 6 : 12;
   let y = d0.getUTCFullYear(), mo = d0.getUTCMonth();
+  g.strokeStyle = line; g.beginPath(); g.moveTo(L, H - B); g.lineTo(W - R, H - B); g.stroke();
   for (let k = 0; k < 40; k++) {
     const dt = Date.UTC(y, mo, 1);
     if (dt > d1.getTime()) break;
     const mjd = dt / 86400000 + 40587;
-    if (mjd >= t0) {
-      const x = pad + (mjd - t0) / span * (W - 2 * pad);
-      g.strokeStyle = line; g.beginPath(); g.moveTo(x, H - 28); g.lineTo(x, H - 16); g.stroke();
-      if (mo % step === 0) g.fillText(MONTHS[mo] + " " + String(y).slice(2), x, H - 2);
+    if (mjd >= t0 - pad) {
+      const x = X(mjd);
+      g.beginPath(); g.moveTo(x, H - B); g.lineTo(x, H - B + 5); g.stroke();
+      if (mo % step === 0) g.fillText(MONTHS[mo] + " " + String(y).slice(2), x, H - 8);
     }
     mo++; if (mo > 11) { mo = 0; y++; }
   }
-  if (S.stack !== "off") {                       // the exposures that went into the added-up pictures, faintly
-    g.globalAlpha = .3; g.lineWidth = 1.5;
-    all.forEach(f => {
-      if (!S.bands.has(f.det)) return;
-      const x = pad + (f.mjd - t0) / span * (W - 2 * pad);
-      g.strokeStyle = bandOf(f.det).c; g.beginPath(); g.moveTo(x, H - 36); g.lineTo(x, H - 24); g.stroke();
-    });
+  if (span < 45) {                                      // a short run of visits: say the days instead
+    g.fillText(when({ mjd: t0, date: mjdDate(t0).toISOString().slice(0, 10) }) + "  →  " + when({ mjd: t1, date: mjdDate(t1).toISOString().slice(0, 10) }), (L + W - R) / 2, H - 8);
+  }
+  if (S.stack !== "off") {                              // the exposures inside the added-up pictures, faintly
+    g.globalAlpha = .28;
+    all.forEach(f => { if (!S.bands.has(f.det)) return; g.fillStyle = bandOf(f.det).c; g.beginPath(); g.arc(X(f.mjd), Y(f.lam), 3.5, 0, 6.2832); g.fill(); });
     g.globalAlpha = 1;
   }
-  // one tick per frame, coloured by infrared band
+  // visits switched off by the band filter, as small grey dots
+  const on = new Set(S.order);
+  g.fillStyle = faint; g.globalAlpha = .45;
+  shown.forEach((f, n) => { if (!on.has(n)) { g.beginPath(); g.arc(X(f.mjd), Y(f.lam), 3, 0, 6.2832); g.fill(); } });
+  g.globalAlpha = 1;
+  // one dot per visit on screen, in its band's colour; the reference ringed, the current one large
+  S.tlPts = [];
   S.order.forEach((n, k) => {
-    const f = shown[n], x = pad + (f.mjd - t0) / span * (W - 2 * pad);
-    const cur = k === S.i, ref = n === S.ref;
-    g.strokeStyle = bandOf(f.det).c;
-    g.lineWidth = cur ? 5 : 2.5;
-    g.globalAlpha = cur ? 1 : .62;
-    g.beginPath(); g.moveTo(x, cur ? 6 : 12); g.lineTo(x, H - 24); g.stroke();
-    if (ref && !cur) { g.globalAlpha = 1; g.lineWidth = 2.5; g.setLineDash([3,3]);
-      g.beginPath(); g.moveTo(x, 8); g.lineTo(x, H - 24); g.stroke(); g.setLineDash([]); }
-    g.globalAlpha = 1;
+    const f = shown[n], x = X(f.mjd), yy = Y(f.lam);
+    S.tlPts.push({ k: k, x: x, y: yy, f: f });
+    if (k === S.i) return;
+    g.fillStyle = bandOf(f.det).c; g.globalAlpha = .9;
+    g.beginPath(); g.arc(x, yy, 5.5, 0, 6.2832); g.fill(); g.globalAlpha = 1;
+    if (n === S.ref) { g.strokeStyle = bandOf(f.det).c; g.lineWidth = 1.6; g.setLineDash([3, 3]); g.beginPath(); g.arc(x, yy, 10, 0, 6.2832); g.stroke(); g.setLineDash([]); }
   });
+  const cur = S.tlPts[S.i];
+  if (cur) {
+    g.fillStyle = bandOf(cur.f.det).c; g.beginPath(); g.arc(cur.x, cur.y, 9, 0, 6.2832); g.fill();
+    g.strokeStyle = cs.getPropertyValue("--accent").trim() || "#288BFF"; g.lineWidth = 3;
+    g.beginPath(); g.arc(cur.x, cur.y, 13, 0, 6.2832); g.stroke();
+  }
 }
 const mjdDate = mjd => new Date((mjd - 40587) * 86400000);
 
@@ -2275,13 +2373,21 @@ async function saveVideo() {
   downloadBlob(new Blob(chunks, { type: type.split(";")[0] }), "spherex-" + slug(t.name) + "-" + S.order.length + "-frames." + ext);
 }
 $("savevid").addEventListener("click", saveVideo);
+const tlNearest = e => {
+  const r = $("tlaxis").getBoundingClientRect(), x = e.clientX - r.left, y = e.clientY - r.top;
+  let best = null, bd = Infinity;
+  (S.tlPts || []).forEach(p => { const d = (p.x - x) ** 2 + (p.y - y) ** 2; if (d < bd) { bd = d; best = p; } });
+  return best ? { p: best, d: Math.sqrt(bd) } : null;
+};
 $("tlaxis").addEventListener("click", e => {
-  const r = e.target.getBoundingClientRect(), frac = (e.clientX - r.left) / r.width;
-  const all = S.target.rawFrames || S.target.frames, t0 = Math.min(...all.map(f => f.mjd)), t1 = Math.max(...all.map(f => f.mjd));
-  const want = t0 + frac * (t1 - t0);
-  let best = 0, bd = Infinity;
-  S.order.forEach((n, k) => { const d = Math.abs(S.target.frames[n].mjd - want); if (d < bd) { bd = d; best = k; } });
-  stop(); S.i = best; draw();
+  const hit = tlNearest(e);
+  if (!hit) return;
+  stop(); S.i = hit.p.k; draw();
+});
+$("tlaxis").addEventListener("mousemove", e => {
+  const hit = tlNearest(e), c = $("tlaxis");
+  c.style.cursor = hit && hit.d < 18 ? "pointer" : "crosshair";
+  c.title = hit && hit.d < 18 ? T("{0} · {1} µm · band {2}", when(hit.p.f), hit.p.f.lam.toFixed(2), hit.p.f.det) : "";
 });
 document.addEventListener("keydown", e => {
   if (/^(INPUT|SELECT|TEXTAREA|BUTTON)$/.test(e.target.tagName)) return;
