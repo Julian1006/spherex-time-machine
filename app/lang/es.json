@@ -434,10 +434,9 @@
  "SkyBoT: one known asteroid or comet brighter than magnitude 21 passes near this square, {0}. It is drawn where it was at the moment of each exposure.": "SkyBoT: un asteroide o cometa conocido, más brillante que magnitud 21, pasa cerca de este cuadro: {0}. Se dibuja donde estaba en el momento de cada foto.",
  "Viewer controls": "Controles del visor",
  "Measure distance": "Medir distancia",
- "Tools": "Herramientas",
- "Close tools": "Cerrar herramientas",
  "Every visit, by date and colour": "Cada visita, por fecha y color",
  "Each dot is one photo: across, when it was taken; up, the infrared colour it saw. Click one to jump to it.": "Cada punto es una foto: a lo ancho, cuándo se tomó; a lo alto, el color de infrarrojo que vio. Toca uno para ir a esa foto.",
  "Each visit as a dot: across, the date it was taken; up, the infrared wavelength it saw. Click a dot to jump to that photo.": "Cada visita como un punto: a lo ancho, la fecha en que se tomó; a lo alto, la longitud de onda infrarroja que vio. Toca un punto para ir a esa foto.",
- "{0} · {1} µm · band {2}": "{0} · {1} µm · banda {2}"
+ "{0} · {1} µm · band {2}": "{0} · {1} µm · banda {2}",
+ "Tools ↓": "Herramientas ↓"
 }

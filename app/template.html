@@ -153,19 +153,17 @@ input[type=range]{width:100%;accent-color:var(--accent);height:22px}
 .dockbtn:hover{border-color:var(--accent)}
 .dockbtn:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 .dockbtn[aria-expanded="true"]{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
-.panel.drawer{display:none;max-height:calc(100vh - 60px);overflow-y:auto;scrollbar-width:thin;padding-right:4px}
-.dome.open .panel.drawer{display:flex}
+.panel.drawer{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:14px;align-items:start;margin-top:16px}
+.stripcard{margin-top:16px}
+.stripcard .keys{margin-top:10px}
 .lane-r{min-width:0;display:flex;flex-direction:column;gap:14px}
 .lane-r .under{grid-template-columns:minmax(0,1fr);margin-top:0}
-.dome.open .lane-r .under{display:none}
 .tlcard{margin-top:0}
 .lane-l .tlhead{flex-direction:column;gap:4px}
 .lane-l .tlhead .note{font-size:13px}
-.lane-l .keys{display:none}
 .tlcard .tlaxis{height:220px}
 .tlhead{display:flex;flex-wrap:wrap;justify-content:space-between;gap:4px 18px;align-items:baseline;margin-bottom:10px}
 .tlhead h3{margin:0}
-.tlcard .strip{display:none}
 @media (max-width:1280px){
   .dome{grid-template-columns:minmax(0,1fr);--S:auto}
   /* narrow: the name first, then the picture, then the maps, then the facts and the tools */
@@ -176,14 +174,11 @@ input[type=range]{width:100%;accent-color:var(--accent);height:22px}
   .lane-l .tlcard{order:4}
   .lane-r{order:5}
   .dome .center{width:min(100%,calc(100vh - 150px));justify-self:center}
-  .panel.drawer,.dome.open .panel.drawer{display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));
-    align-items:start;gap:14px;max-height:none;overflow:visible;padding-right:0}
-  #dockTools{display:none}
-  .lane-r .under,.dome.open .lane-r .under{display:grid;grid-template-columns:repeat(2,minmax(0,1fr))}
+  .lane-r .under{display:grid;grid-template-columns:repeat(2,minmax(0,1fr))}
 }
 @media (max-width:620px){
   .lane-l{grid-template-columns:minmax(0,1fr)}
-  .lane-r .under,.dome.open .lane-r .under{grid-template-columns:minmax(0,1fr)}
+  .lane-r .under{grid-template-columns:minmax(0,1fr)}
   .dome{--W:calc(100vw - 20px);padding:8px;gap:14px;border-radius:12px}
   .tools{gap:4px;right:8px}
   .tools button{width:30px;height:30px}
@@ -641,8 +636,6 @@ body.embed .wrap{padding-top:14px}
         </div>
         <canvas class="tlaxis" id="tlaxis" role="img"
           aria-label="Each visit as a dot: across, the date it was taken; up, the infrared wavelength it saw. Click a dot to jump to that photo."></canvas>
-              <div class="strip" id="strip" role="group" aria-label="Frame thumbnails"></div>
-            <p class="keys"><b>Space</b> play · <b>← →</b> step a frame · <b>+ −</b> or pinch to zoom, drag to move · <b>click</b> a star for its spectrum</p>
       </div>
     </div>
     <div class="center">
@@ -697,10 +690,16 @@ body.embed .wrap{padding-top:14px}
                     <button type="button" data-mode="diff" aria-pressed="false">Difference</button>
                   </div>
           <button class="dockbtn" id="dockMeasure" type="button">Measure distance</button>
-          <button class="dockbtn" id="dockTools" type="button" aria-expanded="false" aria-controls="drawer">Tools</button>
+          <button class="dockbtn" id="dockTools" type="button" aria-controls="drawer">Tools ↓</button>
       </div>
     </div>
     <div class="lane-r">
+      <div class="card" id="distCard">
+        <h3>How far away is it?</h3>
+        <p class="note" id="distIntro" style="margin-top:0">Saw something move? Click it in one frame, then again in a later one. From how far and which way it drifted, and where the Earth was on those dates, the page works out how far away it must be.</p>
+        <button class="btn" id="distGo" type="button">Measure a distance</button>
+        <div class="distout" id="distOut" hidden></div>
+      </div>
       <div class="under">
         <div class="card">
           <h3>This frame</h3>
@@ -720,7 +719,15 @@ body.embed .wrap{padding-top:14px}
           <p class="note" id="specNote" hidden></p>
         </div>
       </div>
-    <div class="panel drawer" id="drawer">
+    </div>
+  </div>
+
+  <div class="card stripcard">
+<div class="strip" id="strip" role="group" aria-label="Frame thumbnails"></div>
+    <p class="keys"><b>Space</b> play · <b>← →</b> step a frame · <b>+ −</b> or pinch to zoom, drag to move · <b>click</b> a star for its spectrum</p>
+  </div>
+
+  <div class="panel drawer" id="drawer">
       <div class="card" id="skyCard">
         <h3>Where you are looking</h3>
         <p class="note" id="skyNote">The whole sky. The line is the ecliptic: SPHEREx scans along it, so its two deep fields
@@ -742,12 +749,6 @@ body.embed .wrap{padding-top:14px}
         <button class="btn" id="bodyDist" type="button">How far away is it? Measure it</button>
       </div>
 
-      <div class="card" id="distCard">
-        <h3>How far away is it?</h3>
-        <p class="note" id="distIntro" style="margin-top:0">Saw something move? Click it in one frame, then again in a later one. From how far and which way it drifted, and where the Earth was on those dates, the page works out how far away it must be.</p>
-        <button class="btn" id="distGo" type="button">Measure a distance</button>
-        <div class="distout" id="distOut" hidden></div>
-      </div>
 
 
       <div class="card" id="compareCard">
@@ -838,8 +839,6 @@ body.embed .wrap{padding-top:14px}
         </div>
         <p class="note" id="bandNote"></p>
       </div>
-    </div>
-    </div>
   </div>
 
 
@@ -1526,17 +1525,10 @@ function noteDistance() {
   if (pts.length > 1) lines.push(p("", T("From {0} clicks over {1} days.", pts.length, m.span.toLocaleString(LOCALE, { maximumFractionDigits: 2 }))));
   out.innerHTML = lines.join(""); out.hidden = false;
 }
-/* The side cards: a drawer beside the picture on a wide screen, a plain grid under it otherwise. */
-const wideDome = () => matchMedia("(min-width: 1281px)").matches;
-function openTools(open) {
-  $("dome").classList.toggle("open", open);
-  $("dockTools").setAttribute("aria-expanded", open);
-  $("dockTools").textContent = open ? T("Close tools") : T("Tools");
-}
-$("dockTools").addEventListener("click", () => openTools(!$("dome").classList.contains("open")));
+/* "Tools" goes down to the cards under the dome; "Measure distance" starts beside the picture. */
+$("dockTools").addEventListener("click", () => $("drawer").scrollIntoView({ behavior: "smooth", block: "start" }));
 $("dockMeasure").addEventListener("click", () => {
   S.measure = { on: true, pts: [], msg: null, result: null }; stop();
-  if (wideDome()) openTools(true);
   noteDistance(); draw();
   $("distCard").scrollIntoView({ behavior: "smooth", block: "nearest" });
 });
