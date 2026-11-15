@@ -154,7 +154,11 @@ input[type=range]{width:100%;accent-color:var(--accent);height:22px}
 .dockbtn:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 .dockbtn[aria-expanded="true"]{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
 .panel.drawer{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:14px;align-items:start;margin-top:16px}
-.stripcard{margin-top:16px}
+.stripcard{margin-top:0}
+.dome > .stripcard,.dome > .panel.drawer{grid-column:1/-1;margin-top:0}
+.dome > .panel.drawer{grid-template-columns:repeat(3,minmax(0,1fr))}
+/* everything inside the band keeps the band's dark, whatever the page theme */
+.dome{--surface:#121318;--surface-2:#1B1C23;--line:#2A2C36;--line-soft:#202229;--text:#EFEAE3;--muted:#B5AFA4;--faint:#8F897F}
 .stripcard .keys{margin-top:10px}
 .lane-r{min-width:0;display:flex;flex-direction:column;gap:14px}
 .lane-r .under{grid-template-columns:minmax(0,1fr);margin-top:0}
@@ -173,6 +177,8 @@ input[type=range]{width:100%;accent-color:var(--accent);height:22px}
   .lane-l .mini{order:3;width:min(100%,460px);justify-self:center}
   .lane-l .tlcard{order:4}
   .lane-r{order:5}
+  .dome > .stripcard{order:6}
+  .dome > .panel.drawer{order:7;grid-template-columns:repeat(auto-fill,minmax(280px,1fr))}
   .dome .center{width:min(100%,calc(100vh - 150px));justify-self:center}
   .lane-r .under{display:grid;grid-template-columns:repeat(2,minmax(0,1fr))}
 }
@@ -720,125 +726,124 @@ body.embed .wrap{padding-top:14px}
         </div>
       </div>
     </div>
-  </div>
-
-  <div class="card stripcard">
+    <div class="card stripcard">
 <div class="strip" id="strip" role="group" aria-label="Frame thumbnails"></div>
-    <p class="keys"><b>Space</b> play · <b>← →</b> step a frame · <b>+ −</b> or pinch to zoom, drag to move · <b>click</b> a star for its spectrum</p>
-  </div>
+      <p class="keys"><b>Space</b> play · <b>← →</b> step a frame · <b>+ −</b> or pinch to zoom, drag to move · <b>click</b> a star for its spectrum</p>
+    </div>
 
-  <div class="panel drawer" id="drawer">
-      <div class="card" id="skyCard">
-        <h3>Where you are looking</h3>
-        <p class="note" id="skyNote">The whole sky. The line is the ecliptic: SPHEREx scans along it, so its two deep fields
-          end up at the poles. Click a square to go there, or an empty spot to pick its coordinates.</p>
-        <a class="btn" id="aladin" href="#" target="_blank" rel="noopener">See this spot in Aladin ↗</a>
-        <button class="btn" id="shareLink" type="button">Copy a link to this view</button>
-        <button class="btn" id="shareEmbed" type="button">Copy code to put it in another page</button>
-        <p class="note" id="shareNote" hidden></p>
-      </div>
-
-      <div class="card" id="movingCard" hidden>
-        <h3>Moving target</h3>
-        <p class="note" id="movingNote" style="margin-top:0"></p>
-        <div class="checks">
-          <label class="chk"><input type="checkbox" id="showTrack" checked> Mark its predicted position</label>
-          <label class="chk"><input type="checkbox" id="follow"> Keep it centred</label>
+    <div class="panel drawer" id="drawer">
+        <div class="card" id="skyCard">
+          <h3>Where you are looking</h3>
+          <p class="note" id="skyNote">The whole sky. The line is the ecliptic: SPHEREx scans along it, so its two deep fields
+            end up at the poles. Click a square to go there, or an empty spot to pick its coordinates.</p>
+          <a class="btn" id="aladin" href="#" target="_blank" rel="noopener">See this spot in Aladin ↗</a>
+          <button class="btn" id="shareLink" type="button">Copy a link to this view</button>
+          <button class="btn" id="shareEmbed" type="button">Copy code to put it in another page</button>
+          <p class="note" id="shareNote" hidden></p>
         </div>
-        <button class="btn" id="bodySpec" type="button">Show its infrared spectrum</button>
-        <button class="btn" id="bodyDist" type="button">How far away is it? Measure it</button>
-      </div>
 
-
-
-      <div class="card" id="compareCard">
-        <h3>Compare</h3>
-        <button class="btn" id="setref" type="button">Pin this frame as reference</button>
-        <p class="note" id="modeNote">Blink jumps back and forth between your pinned frame and this one. Difference
-          subtracts them, so anything that didn't change disappears.</p>
-        <div class="field">
-          <label for="stack" id="stackLabel">Add images together</label>
-          <select id="stack">
-            <option value="off" selected>No · every visit on its own</option>
-            <option value="band">Yes · one picture per band</option>
-            <option value="season">Yes · per band, season by season</option>
-          </select>
+        <div class="card" id="movingCard" hidden>
+          <h3>Moving target</h3>
+          <p class="note" id="movingNote" style="margin-top:0"></p>
+          <div class="checks">
+            <label class="chk"><input type="checkbox" id="showTrack" checked> Mark its predicted position</label>
+            <label class="chk"><input type="checkbox" id="follow"> Keep it centred</label>
+          </div>
+          <button class="btn" id="bodySpec" type="button">Show its infrared spectrum</button>
+          <button class="btn" id="bodyDist" type="button">How far away is it? Measure it</button>
         </div>
-        <p class="note" id="stackNote" hidden></p>
-      </div>
-
-      <div class="card" id="marksCard">
-        <h3>Mark on the image</h3>
-        <div class="checks col">
-          <label class="chk"><input type="checkbox" id="markGaia"> Stars from the Gaia catalogue</label>
-          <label class="chk"><input type="checkbox" id="markWise"> Sources from the WISE catalogue</label>
-          <label class="chk"><input type="checkbox" id="markSso"> Known asteroids and comets</label>
-          <label class="chk"><input type="checkbox" id="markFlags"> Pixels NASA flagged as doubtful</label>
-        </div>
-        <ul class="legend" id="marksLegend" hidden></ul>
-        <p class="note" id="marksNote" hidden></p>
-      </div>
 
 
-      <div class="card" id="displayCard">
-        <h3>Display</h3>
-        <div class="field">
-          <label for="bright">Brightness <b id="brightV">Normal</b></label>
-          <input type="range" id="bright" min="0" max="100" step="1" value="30">
-        </div>
-        <div class="field">
-          <label for="cmap">Colour</label>
-          <select id="cmap">
-            <option value="grey">Greyscale</option>
-            <option value="ember" selected>Ember (infrared)</option>
-            <option value="ice">Ice</option>
-            <option value="spectral">Spectral</option>
-          </select>
-        </div>
-        <button class="advtoggle" id="dispToggle" type="button" aria-expanded="false"
-          aria-controls="dispAdv" style="margin:14px 0 0">More options</button>
-        <div id="dispAdv" hidden>
+
+        <div class="card" id="compareCard">
+          <h3>Compare</h3>
+          <button class="btn" id="setref" type="button">Pin this frame as reference</button>
+          <p class="note" id="modeNote">Blink jumps back and forth between your pinned frame and this one. Difference
+            subtracts them, so anything that didn't change disappears.</p>
           <div class="field">
-            <label for="scale">Brightness scaling</label>
-            <select id="scale">
-              <option value="asinh" selected>Asinh (best for faint things)</option>
-              <option value="linear">Linear</option>
-              <option value="sqrt">Square root</option>
-              <option value="log">Logarithmic</option>
+            <label for="stack" id="stackLabel">Add images together</label>
+            <select id="stack">
+              <option value="off" selected>No · every visit on its own</option>
+              <option value="band">Yes · one picture per band</option>
+              <option value="season">Yes · per band, season by season</option>
+            </select>
+          </div>
+          <p class="note" id="stackNote" hidden></p>
+        </div>
+
+        <div class="card" id="marksCard">
+          <h3>Mark on the image</h3>
+          <div class="checks col">
+            <label class="chk"><input type="checkbox" id="markGaia"> Stars from the Gaia catalogue</label>
+            <label class="chk"><input type="checkbox" id="markWise"> Sources from the WISE catalogue</label>
+            <label class="chk"><input type="checkbox" id="markSso"> Known asteroids and comets</label>
+            <label class="chk"><input type="checkbox" id="markFlags"> Pixels NASA flagged as doubtful</label>
+          </div>
+          <ul class="legend" id="marksLegend" hidden></ul>
+          <p class="note" id="marksNote" hidden></p>
+        </div>
+
+
+        <div class="card" id="displayCard">
+          <h3>Display</h3>
+          <div class="field">
+            <label for="bright">Brightness <b id="brightV">Normal</b></label>
+            <input type="range" id="bright" min="0" max="100" step="1" value="30">
+          </div>
+          <div class="field">
+            <label for="cmap">Colour</label>
+            <select id="cmap">
+              <option value="grey">Greyscale</option>
+              <option value="ember" selected>Ember (infrared)</option>
+              <option value="ice">Ice</option>
+              <option value="spectral">Spectral</option>
+            </select>
+          </div>
+          <button class="advtoggle" id="dispToggle" type="button" aria-expanded="false"
+            aria-controls="dispAdv" style="margin:14px 0 0">More options</button>
+          <div id="dispAdv" hidden>
+            <div class="field">
+              <label for="scale">Brightness scaling</label>
+              <select id="scale">
+                <option value="asinh" selected>Asinh (best for faint things)</option>
+                <option value="linear">Linear</option>
+                <option value="sqrt">Square root</option>
+                <option value="log">Logarithmic</option>
+              </select>
+            </div>
+            <div class="field">
+              <label for="black">Black point <b id="blackV">45.0%</b></label>
+              <input type="range" id="black" min="0" max="80" step="0.5" value="45">
+            </div>
+            <div class="field">
+              <label for="white">White point <b id="whiteV">99.70%</b></label>
+              <input type="range" id="white" min="0" max="1000" step="1" value="820">
+            </div>
+            <div class="checks">
+              <label class="chk"><input type="checkbox" id="flatten"> Flatten background</label>
+              <label class="chk"><input type="checkbox" id="smooth"> Smooth pixels</label>
+            </div>
+            <p class="note">Bright stars just outside the frame often leave a glow. Flattening wipes it out
+              so the faint stuff shows up.</p>
+          </div>
+        </div>
+
+        <div class="card" id="framesCard">
+          <h3>Frames shown</h3>
+          <div class="field" style="margin-top:0">
+            <label for="sort">Order by</label>
+            <select id="sort">
+              <option value="time" selected>Date observed</option>
+              <option value="lam">Wavelength</option>
             </select>
           </div>
           <div class="field">
-            <label for="black">Black point <b id="blackV">45.0%</b></label>
-            <input type="range" id="black" min="0" max="80" step="0.5" value="45">
+            <label id="bandLabel">Infrared band</label>
+            <div class="bandsel" id="bands"></div>
           </div>
-          <div class="field">
-            <label for="white">White point <b id="whiteV">99.70%</b></label>
-            <input type="range" id="white" min="0" max="1000" step="1" value="820">
-          </div>
-          <div class="checks">
-            <label class="chk"><input type="checkbox" id="flatten"> Flatten background</label>
-            <label class="chk"><input type="checkbox" id="smooth"> Smooth pixels</label>
-          </div>
-          <p class="note">Bright stars just outside the frame often leave a glow. Flattening wipes it out
-            so the faint stuff shows up.</p>
+          <p class="note" id="bandNote"></p>
         </div>
-      </div>
-
-      <div class="card" id="framesCard">
-        <h3>Frames shown</h3>
-        <div class="field" style="margin-top:0">
-          <label for="sort">Order by</label>
-          <select id="sort">
-            <option value="time" selected>Date observed</option>
-            <option value="lam">Wavelength</option>
-          </select>
-        </div>
-        <div class="field">
-          <label id="bandLabel">Infrared band</label>
-          <div class="bandsel" id="bands"></div>
-        </div>
-        <p class="note" id="bandNote"></p>
-      </div>
+    </div>
   </div>
 
 
